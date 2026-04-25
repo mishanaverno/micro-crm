@@ -2,6 +2,12 @@ import { IsEmail, IsString, IsNotEmpty, IsPhoneNumber, IsOptional } from 'class-
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateClientDto {
+
+  @ApiProperty({ example: '3529e0aa-794e-4edd-ab0e-07cce6e7f3eb', description: 'User UUID'})
+  @IsString()
+  @IsNotEmpty()
+  user_id: string
+
   @ApiProperty({ example: 'Jane', description: 'Client first name' })
   @IsString()
   @IsNotEmpty()

@@ -7,13 +7,15 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS clients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
   first_name VARCHAR(255),
   last_name VARCHAR(255),
   email VARCHAR(255),
   phone_number VARCHAR(20),
   company VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP DEFAULT NULL
 );
 
 CREATE INDEX idx_clients_email ON clients(email);
@@ -24,6 +26,6 @@ COMMIT;
 
 BEGIN;
 
-DROP TABLE clients;
+DROP TABLE IF EXISTS clients;
 
 COMMIT;
