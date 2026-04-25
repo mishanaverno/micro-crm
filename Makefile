@@ -1,6 +1,9 @@
 ENV_DIR := environments
 
-.PHONY: up down clean restart reset logs ps backend-shell frontend-shell db-shell migrate
+.PHONY: install-packages up down clean restart reset logs ps backend-shell frontend-shell db-shell migrate
+
+install-packages:
+	npm run install:packages
 
 up:
 	cd $(ENV_DIR) && ./start.sh
