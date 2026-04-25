@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: crm-postgres
+    environment:
+      POSTGRES_USER: crm_user
+      POSTGRES_PASSWORD: crm_password
+      POSTGRES_DB: crm_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - crm-network
+
+  migrator:
+    image: postgres:15-alpine
+    container_name: crm-migrator
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: crm_password
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: crm_user
+      DATABASE_PASSWORD: crm_password
+      DATABASE_NAME: crm_db
+    volumes:
+      - ../db/migrations:/app/migrations:ro
+      - ../db/up.sh:/app/up.sh:ro
+      - ../db/init.sql:/app/init.sql:ro
+    working_dir: /app
+    command: ["sh", "/app/up.sh"]
+    networks:
+      - crm-network
+    restart: "no"
+
+  backend:
+    build:
+      context: ../packages/backend
+      dockerfile: Dockerfile
+    container_name: crm-backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: crm_user
+      DATABASE_PASSWORD: crm_password
+      DATABASE_NAME: crm_db
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - crm-network
+    volumes:
+      - ../packages/backend/src:/app/src
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  crm-network:
+    driver: bridge
