@@ -114,17 +114,6 @@ export function ClientsPage() {
               />
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                value={form.address}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, address: event.target.value }))
-                }
-              />
-            </div>
-
             <div className="flex items-center gap-3">
               <Button disabled={createClient.isPending} type="submit">
                 {createClient.isPending ? 'Saving...' : 'Create client'}
