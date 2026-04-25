@@ -23,9 +23,6 @@ export class Client {
   @Column({ type: 'varchar', length: 255, nullable: true })
   company?: string;
 
-  @Column({ type: 'text', nullable: true })
-  address?: string;
-
   @CreateDateColumn()
   created_at: Date;
 

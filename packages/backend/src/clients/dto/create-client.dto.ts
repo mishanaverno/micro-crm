@@ -32,9 +32,4 @@ export class CreateClientDto {
   @IsString()
   @IsOptional()
   company?: string;
-
-  @ApiPropertyOptional({ example: '123 Main St, City', description: 'Client address' })
-  @IsString()
-  @IsOptional()
-  address?: string;
 }
