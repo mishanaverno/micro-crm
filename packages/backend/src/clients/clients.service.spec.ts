@@ -33,20 +33,26 @@ describe('ClientsService', () => {
 
   it('creates and saves a client', async () => {
     const dto: CreateClientDto = {
-      user_id: '3529e0aa-794e-4edd-ab0e-07cce6e7f3eb',
       first_name: 'Jane',
       last_name: 'Smith',
       email: 'jane@example.com',
       phone_number: '+1234567890',
       company: 'Acme Corp',
     };
-    const createdClient = { id: 'client-1', ...dto } as unknown as Client;
+    const createdClient = {
+      id: 'client-1',
+      user_id: 'user-1',
+      ...dto,
+    } as unknown as Client;
 
     repository.create.mockReturnValue(createdClient);
     repository.save.mockResolvedValue(createdClient);
 
-    await expect(service.create(dto)).resolves.toEqual(createdClient);
-    expect(repository.create).toHaveBeenCalledWith(dto);
+    await expect(service.create(dto, 'user-1')).resolves.toEqual(createdClient);
+    expect(repository.create).toHaveBeenCalledWith({
+      ...dto,
+      user_id: 'user-1',
+    });
     expect(repository.save).toHaveBeenCalledWith(createdClient);
   });
 

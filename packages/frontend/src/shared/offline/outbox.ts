@@ -1,6 +1,7 @@
 import { createClientRequest } from '../api/clients';
 import { HttpError, NetworkError } from '../api/http';
 import { offlineDb, QueuedMutation } from './offline-db';
+import { loadStoredAuthSession } from '../../features/auth/auth-storage';
 import { markClientFailed, markClientSynced } from './offline-clients';
 
 async function processMutation(mutation: QueuedMutation & { id: number }) {
@@ -11,7 +12,13 @@ async function processMutation(mutation: QueuedMutation & { id: number }) {
   });
 
   if (mutation.entity === 'client' && mutation.operation === 'create') {
-    const savedClient = await createClientRequest(mutation.payload);
+    const storedSession = loadStoredAuthSession();
+
+    if (!storedSession?.access_token) {
+      throw new HttpError(401, 'Authentication is required to replay queued client creation.');
+    }
+
+    const savedClient = await createClientRequest(mutation.payload, storedSession.access_token);
 
     await markClientSynced(mutation.id, savedClient);
     await offlineDb.queued_mutations.delete(mutation.id);

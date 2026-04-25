@@ -13,7 +13,6 @@ const initialFormState = {
   email: '',
   phone_number: '',
   company: '',
-  address: '',
 };
 
 const clients = [
@@ -37,7 +36,6 @@ export function ClientsPage() {
       email: form.email,
       phone_number: form.phone_number || undefined,
       company: form.company || undefined,
-      address: form.address || undefined,
     });
 
     setForm(initialFormState);

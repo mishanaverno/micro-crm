@@ -23,12 +23,14 @@ interface RequestOptions extends RequestInit {
 
 export async function httpRequest<T>({ path, ...init }: RequestOptions): Promise<T> {
   try {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(init.headers ?? {}),
+    };
+
     const response = await fetch(`${env.apiBaseUrl}${path}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(init.headers ?? {}),
-      },
       ...init,
+      headers,
     });
 
     if (!response.ok) {

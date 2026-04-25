@@ -12,8 +12,11 @@ export class ClientsService {
     private clientsRepository: Repository<Client>,
   ) {}
 
-  create(createClientDto: CreateClientDto): Promise<Client> {
-    const client = this.clientsRepository.create(createClientDto);
+  create(createClientDto: CreateClientDto, userId: string): Promise<Client> {
+    const client = this.clientsRepository.create({
+      ...createClientDto,
+      user_id: userId,
+    });
     return this.clientsRepository.save(client);
   }
 
@@ -38,4 +41,3 @@ export class ClientsService {
     return client;
   }
 }
-
