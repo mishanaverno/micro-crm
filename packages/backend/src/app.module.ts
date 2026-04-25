@@ -5,9 +5,10 @@ import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { AuthModule } from './auth/auth.module';
 import { NotesModule } from './notes/notes.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(typeormConfig), UsersModule, ClientsModule, AuthModule, NotesModule],
+  imports: [TypeOrmModule.forRoot(typeormConfig), UsersModule, ClientsModule, AuthModule, NotesModule, EventsModule],
   controllers: [],
   providers: [],
 })

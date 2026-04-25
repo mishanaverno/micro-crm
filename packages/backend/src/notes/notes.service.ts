@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientsService } from '../clients/clients.service';
+import { EventsService } from '../events/events.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
@@ -12,6 +13,7 @@ export class NotesService {
     @InjectRepository(Note)
     private readonly notesRepository: Repository<Note>,
     private readonly clientsService: ClientsService,
+    private readonly eventsService: EventsService,
   ) {}
 
   async create(createNoteDto: CreateNoteDto, userId: string): Promise<Note> {
@@ -22,7 +24,9 @@ export class NotesService {
       user_id: userId,
     });
 
-    return this.notesRepository.save(note);
+    const createdNote = await this.notesRepository.save(note);
+    await this.eventsService.createNoteCreatedEvent(createdNote);
+    return createdNote;
   }
 
   findAll(userId: string, clientId?: string): Promise<Note[]> {

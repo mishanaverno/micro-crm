@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from '../clients/entities/client.entity';
 import { ClientsService } from '../clients/clients.service';
+import { EventsService } from '../events/events.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
@@ -20,6 +21,10 @@ type MockClientsService = {
   findOneOwnedByUser: jest.Mock<Promise<Client | null>, [string, string]>;
 };
 
+type MockEventsService = {
+  createNoteCreatedEvent: jest.Mock<Promise<unknown>, [Note]>;
+};
+
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -33,16 +38,22 @@ describe('NotesService', () => {
   let service: NotesService;
   let repository: MockRepository<Note>;
   let clientsService: MockClientsService;
+  let eventsService: MockEventsService;
 
   beforeEach(() => {
     repository = createRepositoryMock<Note>();
     clientsService = {
       findOneOwnedByUser: jest.fn(),
     };
+    eventsService = {
+      createNoteCreatedEvent: jest.fn(),
+    };
+    eventsService.createNoteCreatedEvent.mockResolvedValue(undefined);
 
     service = new NotesService(
       repository as unknown as Repository<Note>,
       clientsService as unknown as ClientsService,
+      eventsService as unknown as EventsService,
     );
   });
 
@@ -68,6 +79,7 @@ describe('NotesService', () => {
       user_id: 'user-1',
     });
     expect(repository.save).toHaveBeenCalledWith(createdNote);
+    expect(eventsService.createNoteCreatedEvent).toHaveBeenCalledWith(createdNote);
   });
 
   it('rejects note creation when client does not belong to the user', async () => {

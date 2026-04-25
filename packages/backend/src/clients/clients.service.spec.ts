@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
+import { EventsService } from '../events/events.service';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
@@ -22,13 +23,25 @@ const createRepositoryMock = <T>(): MockRepository<T> => ({
   delete: jest.fn(),
 });
 
+type MockEventsService = {
+  createClientCreatedEvent: jest.Mock<Promise<unknown>, [Client]>;
+};
+
 describe('ClientsService', () => {
   let service: ClientsService;
   let repository: MockRepository<Client>;
+  let eventsService: MockEventsService;
 
   beforeEach(() => {
     repository = createRepositoryMock<Client>();
-    service = new ClientsService(repository as unknown as Repository<Client>);
+    eventsService = {
+      createClientCreatedEvent: jest.fn(),
+    };
+    eventsService.createClientCreatedEvent.mockResolvedValue(undefined);
+    service = new ClientsService(
+      repository as unknown as Repository<Client>,
+      eventsService as unknown as EventsService,
+    );
   });
 
   it('creates and saves a client', async () => {
@@ -54,6 +67,7 @@ describe('ClientsService', () => {
       user_id: 'user-1',
     });
     expect(repository.save).toHaveBeenCalledWith(createdClient);
+    expect(eventsService.createClientCreatedEvent).toHaveBeenCalledWith(createdClient);
   });
 
   it('returns all clients', async () => {

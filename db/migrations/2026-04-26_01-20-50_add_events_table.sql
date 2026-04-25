@@ -14,7 +14,7 @@ BEGIN
     WHERE t.typname = 'event_type'
       AND n.nspname = 'public'
   ) THEN
-    CREATE TYPE public.event_type AS ENUM ('note');
+    CREATE TYPE public.event_type AS ENUM ('note', 'client_created');
   END IF;
 END
 $$;

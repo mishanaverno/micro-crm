@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventsService } from '../events/events.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { Client } from './entities/client.entity';
@@ -10,14 +11,17 @@ export class ClientsService {
   constructor(
     @InjectRepository(Client)
     private clientsRepository: Repository<Client>,
+    private readonly eventsService: EventsService,
   ) {}
 
-  create(createClientDto: CreateClientDto, userId: string): Promise<Client> {
+  async create(createClientDto: CreateClientDto, userId: string): Promise<Client> {
     const client = this.clientsRepository.create({
       ...createClientDto,
       user_id: userId,
     });
-    return this.clientsRepository.save(client);
+    const createdClient = await this.clientsRepository.save(client);
+    await this.eventsService.createClientCreatedEvent(createdClient);
+    return createdClient;
   }
 
   findAll(): Promise<Client[]> {
