@@ -46,10 +46,8 @@ docker-compose ps
 echo ""
 
 echo "Migrator logs:"
-MIGRATOR_ID=$(docker-compose ps -q migrator)
-
-if [ -n "$MIGRATOR_ID" ]; then
-    docker-compose logs -f migrator || true
+if docker-compose ps -a migrator >/dev/null 2>&1; then
+    docker-compose logs --tail=200 migrator || true
 else
-    echo "  Migrator container is not available for log streaming."
+    echo "  Migrator service is not available."
 fi

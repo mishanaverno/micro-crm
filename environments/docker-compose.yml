@@ -60,7 +60,7 @@ services:
       - /app/node_modules
     command: npm run dev
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/docs >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
