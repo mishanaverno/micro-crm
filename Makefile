@@ -1,9 +1,16 @@
 ENV_DIR := environments
 
-.PHONY: install-packages up down clean restart reset logs ps backend-shell frontend-shell db-shell migrate
+.PHONY: install-packages backend-install frontend-install up down clean restart reset logs ps backend-shell frontend-shell db-shell migrate
 
 install-packages:
-	npm run install:packages
+	$(MAKE) backend-install
+	$(MAKE) frontend-install
+
+backend-install:
+	cd packages/backend && npm install
+
+frontend-install:
+	cd packages/frontend && npm install
 
 up:
 	cd $(ENV_DIR) && ./start.sh

@@ -40,5 +40,16 @@ echo "  View logs: docker-compose logs -f"
 echo "  Stop services: docker-compose down"
 echo "  Stop and remove volumes: docker-compose down -v"
 echo ""
-echo "Waiting for migrator logs:"
-docker logs -f crm-migrator
+
+echo "Service status:"
+docker-compose ps
+echo ""
+
+echo "Migrator logs:"
+MIGRATOR_ID=$(docker-compose ps -q migrator)
+
+if [ -n "$MIGRATOR_ID" ]; then
+    docker-compose logs -f migrator || true
+else
+    echo "  Migrator container is not available for log streaming."
+fi
