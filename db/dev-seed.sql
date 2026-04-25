@@ -71,4 +71,54 @@ SET
   company = EXCLUDED.company,
   deleted_at = NULL;
 
+DELETE FROM notes
+WHERE user_id = '11111111-1111-1111-1111-111111111111'
+  AND client_id IN (
+    '22222222-2222-2222-2222-222222222221',
+    '22222222-2222-2222-2222-222222222222',
+    '22222222-2222-2222-2222-222222222223'
+  );
+
+INSERT INTO notes (
+  user_id,
+  client_id,
+  content
+)
+VALUES
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222221',
+    'Interested in expanding the contract next quarter.'
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222221',
+    'Prefers communication by email after 18:00.'
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222222',
+    'Asked for a revised pricing proposal for the team plan.'
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222222',
+    'Follow up next Tuesday after internal approval meeting.'
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222222',
+    'Interested in onboarding support and migration assistance.'
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222223',
+    'Requested a demo focused on reporting and analytics.'
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222223',
+    'Budget owner joins the next call, prepare enterprise options.'
+  );
+
 COMMIT;
