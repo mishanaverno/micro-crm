@@ -33,10 +33,10 @@ describe('ClientsService', () => {
 
   it('creates and saves a client', async () => {
     const dto: CreateClientDto = {
-      firstName: 'Jane',
-      lastName: 'Smith',
+      first_name: 'Jane',
+      last_name: 'Smith',
       email: 'jane@example.com',
-      phoneNumber: '+1234567890',
+      phone_number: '+1234567890',
       company: 'Acme Corp',
       address: 'Main street',
     };

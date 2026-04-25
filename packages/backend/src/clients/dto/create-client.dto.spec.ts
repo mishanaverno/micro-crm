@@ -7,10 +7,10 @@ import { UpdateClientDto } from './update-client.dto';
 describe('CreateClientDto', () => {
   it('accepts a valid payload with optional fields', async () => {
     const dto = plainToInstance(CreateClientDto, {
-      firstName: 'Jane',
-      lastName: 'Smith',
+      first_name: 'Jane',
+      last_name: 'Smith',
       email: 'jane@example.com',
-      phoneNumber: '+1234567890',
+      phone_number: '+1234567890',
       company: 'Acme Corp',
       address: 'Main street',
     });
@@ -20,8 +20,8 @@ describe('CreateClientDto', () => {
 
   it('accepts a valid payload without optional fields', async () => {
     const dto = plainToInstance(CreateClientDto, {
-      firstName: 'Jane',
-      lastName: 'Smith',
+      first_name: 'Jane',
+      last_name: 'Smith',
       email: 'jane@example.com',
     });
 
@@ -30,15 +30,15 @@ describe('CreateClientDto', () => {
 
   it('rejects invalid required fields', async () => {
     const dto = plainToInstance(CreateClientDto, {
-      firstName: '',
-      lastName: '',
+      first_name: '',
+      last_name: '',
       email: 'not-an-email',
     });
 
     const errors = await validate(dto);
     const fields = errors.map((error) => error.property);
 
-    expect(fields).toEqual(expect.arrayContaining(['firstName', 'lastName', 'email']));
+    expect(fields).toEqual(expect.arrayContaining(['first_name', 'last_name', 'email']));
   });
 });
 

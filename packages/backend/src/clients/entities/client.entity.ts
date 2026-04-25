@@ -9,7 +9,7 @@ export class Client {
   first_name: string;
 
   @Column({ type: 'varchar', length: 255 })
-  last_nName: string;
+  last_name: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
