@@ -4,6 +4,15 @@ import { useOfflineClients } from '../features/clients/use-offline-clients';
 import { useNetworkStatus } from '../shared/lib/network';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../shared/ui/dialog';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
 
@@ -23,6 +32,7 @@ const clients = [
 
 export function ClientsPage() {
   const [form, setForm] = useState(initialFormState);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const createClient = useCreateClient();
   const offlineClients = useOfflineClients();
   const isOnline = useNetworkStatus();
@@ -39,90 +49,118 @@ export function ClientsPage() {
     });
 
     setForm(initialFormState);
+    setIsCreateDialogOpen(false);
   }
 
   return (
     <main className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
       <Card>
         <CardHeader>
-          <CardTitle>Create client</CardTitle>
-          <CardDescription>
-            If the server or network is unavailable, the mutation is stored in IndexedDB and
-            retried after reconnection.
-          </CardDescription>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2">
+              <CardTitle>Create client</CardTitle>
+              <CardDescription>
+                If the server or network is unavailable, the mutation is stored in IndexedDB and
+                retried after reconnection.
+              </CardDescription>
+            </div>
+
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>Create client</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>New client</DialogTitle>
+                  <DialogDescription>
+                    Create a client record. If the app is offline, the write will be queued and
+                    replayed later.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form className="grid gap-4" id="create-client-form" onSubmit={handleSubmit}>
+                  <div className="grid gap-2">
+                    <Label htmlFor="first_name">First name</Label>
+                    <Input
+                      id="first_name"
+                      required
+                      value={form.first_name}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, first_name: event.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="last_name">Last name</Label>
+                    <Input
+                      id="last_name"
+                      required
+                      value={form.last_name}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, last_name: event.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      required
+                      type="email"
+                      value={form.email}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, email: event.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone_number">Phone</Label>
+                    <Input
+                      id="phone_number"
+                      value={form.phone_number}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, phone_number: event.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="company">Company</Label>
+                    <Input
+                      id="company"
+                      value={form.company}
+                      onChange={(event) =>
+                        setForm((current) => ({ ...current, company: event.target.value }))
+                      }
+                    />
+                  </div>
+                </form>
+
+                <DialogFooter>
+                  <Button
+                    onClick={() => setIsCreateDialogOpen(false)}
+                    type="button"
+                    variant="ghost"
+                  >
+                    Cancel
+                  </Button>
+                  <Button disabled={createClient.isPending} form="create-client-form" type="submit">
+                    {createClient.isPending ? 'Saving...' : 'Save client'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
-        <CardContent>
-          <form className="grid gap-4" onSubmit={handleSubmit}>
-            <div className="grid gap-2">
-              <Label htmlFor="first_name">First name</Label>
-              <Input
-                id="first_name"
-                required
-                value={form.first_name}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, first_name: event.target.value }))
-                }
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="last_name">Last name</Label>
-              <Input
-                id="last_name"
-                required
-                value={form.last_name}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, last_name: event.target.value }))
-                }
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                required
-                type="email"
-                value={form.email}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, email: event.target.value }))
-                }
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="phone_number">Phone</Label>
-              <Input
-                id="phone_number"
-                value={form.phone_number}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, phone_number: event.target.value }))
-                }
-              />
-            </div>
-
-            <div className="grid gap-2">
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                value={form.company}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, company: event.target.value }))
-                }
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button disabled={createClient.isPending} type="submit">
-                {createClient.isPending ? 'Saving...' : 'Create client'}
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                {isOnline
-                  ? 'Online: request will try backend first.'
-                  : 'Offline: request will be queued locally.'}
-              </p>
-            </div>
-          </form>
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          <p>Use the modal to create a client with accessible keyboard and focus handling.</p>
+          <p>
+            Current network mode: {isOnline ? 'online' : 'offline'}. Offline submissions are added
+            to the outbox automatically.
+          </p>
         </CardContent>
       </Card>
 

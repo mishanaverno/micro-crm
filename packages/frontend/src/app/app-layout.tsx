@@ -3,6 +3,15 @@ import { useAuth } from '../features/auth/auth-provider';
 import { useNetworkStatus } from '../shared/lib/network';
 import { useOutboxStats } from '../shared/offline/use-outbox-stats';
 import { Button } from '../shared/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../shared/ui/dropdown-menu';
 
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
@@ -75,14 +84,22 @@ export function AppLayout() {
                 ))}
               </nav>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {user ? `${user.first_name} ${user.last_name}` : ''}
-                </span>
-                <Button onClick={() => void logout()} size="default" variant="ghost">
-                  Log out
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="default" variant="ghost">
+                    {user ? `${user.first_name} ${user.last_name}` : 'Account'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => void logout()}>
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>
