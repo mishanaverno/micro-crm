@@ -1,6 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { useAuth } from '../features/auth/auth-provider';
 import { useNetworkStatus } from '../shared/lib/network';
 import { useOutboxStats } from '../shared/offline/use-outbox-stats';
+import { Button } from '../shared/ui/button';
 
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
@@ -11,6 +13,7 @@ const navItems = [
 export function AppLayout() {
   const isOnline = useNetworkStatus();
   const stats = useOutboxStats();
+  const { user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -43,28 +46,44 @@ export function AppLayout() {
                 <span className="rounded-full bg-rose-100 px-3 py-1 text-rose-700">
                   failed: {stats?.failed_count ?? 0}
                 </span>
+                {user ? (
+                  <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800">
+                    signed in as: {user.email}
+                  </span>
+                ) : null}
               </div>
             </div>
 
-            <nav className="flex flex-wrap gap-2" aria-label="Main navigation">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  className={({ isActive }) =>
-                    [
-                      'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border bg-background/70 text-foreground hover:border-primary/30 hover:bg-primary/5',
-                    ].join(' ')
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
+            <div className="flex flex-col items-start gap-3 lg:items-end">
+              <nav className="flex flex-wrap gap-2" aria-label="Main navigation">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      [
+                        'rounded-full border px-4 py-2 text-sm font-medium transition-colors',
+                        isActive
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-background/70 text-foreground hover:border-primary/30 hover:bg-primary/5',
+                      ].join(' ')
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {user ? `${user.first_name} ${user.last_name}` : ''}
+                </span>
+                <Button onClick={() => void logout()} size="default" variant="ghost">
+                  Log out
+                </Button>
+              </div>
+            </div>
           </div>
         </header>
 
