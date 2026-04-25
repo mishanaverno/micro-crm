@@ -8,7 +8,7 @@ type MockRepository<T> = {
   create: jest.Mock<T, [Partial<T>]>;
   save: jest.Mock<Promise<T>, [T]>;
   find: jest.Mock<Promise<T[]>, []>;
-  findOneBy: jest.Mock<Promise<T | null>, [{ id: string }]>;
+  findOneBy: jest.Mock<Promise<T | null>, [Partial<T>]>;
   update: jest.Mock<Promise<unknown>, [string, Partial<T>]>;
   delete: jest.Mock<Promise<unknown>, [string]>;
 };
@@ -70,6 +70,14 @@ describe('ClientsService', () => {
 
     await expect(service.findOne('client-1')).resolves.toEqual(client);
     expect(repository.findOneBy).toHaveBeenCalledWith({ id: 'client-1' });
+  });
+
+  it('returns one client by id and owner', async () => {
+    const client = { id: 'client-1', user_id: 'user-1' } as Client;
+    repository.findOneBy.mockResolvedValue(client);
+
+    await expect(service.findOneOwnedByUser('client-1', 'user-1')).resolves.toEqual(client);
+    expect(repository.findOneBy).toHaveBeenCalledWith({ id: 'client-1', user_id: 'user-1' });
   });
 
   it('updates a client and returns the fresh record', async () => {

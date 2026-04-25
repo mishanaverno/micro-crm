@@ -10,6 +10,7 @@ create table if not exists
     "id" serial not null,
     "user_id" UUID not null,
     "client_id" UUID not null,
+    "content" varchar(255) not null DEFAULT '',
     "created_at" timestamp not null default NOW(),
     "updated_at" TIMESTAMP not null default NOW(),
     "deleted_at" TIMESTAMP null,

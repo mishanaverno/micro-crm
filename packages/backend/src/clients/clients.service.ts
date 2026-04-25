@@ -28,6 +28,10 @@ export class ClientsService {
     return this.clientsRepository.findOneBy({ id });
   }
 
+  findOneOwnedByUser(id: string, userId: string): Promise<Client | null> {
+    return this.clientsRepository.findOneBy({ id, user_id: userId });
+  }
+
   async update(id: string, updateClientDto: UpdateClientDto): Promise<Client | null> {
     await this.clientsRepository.update(id, updateClientDto);
     return this.findOne(id);
