@@ -22,3 +22,15 @@ psql -U crm_user -d crm_db -f migration_file.sql
 ## Откат
 
 Каждая миграция должна содержать инструкции для отката (DROP TABLE, etc.)
+
+## Dev dataset
+
+В `dev`-окружении после применения миграций автоматически запускается сид:
+[dev-seed.sql](/Users/monipchenko/work/project-crm/db/dev-seed.sql)
+
+Dev credentials для входа во frontend:
+
+- `email`: `dev@example.com`
+- `password`: `dev-password-123`
+
+Сид также создаёт несколько клиентов для этого пользователя.

@@ -5,23 +5,23 @@ export class Client {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid'})
+  @Column({ type: 'uuid' })
   user_id: string;
 
-  @Column({ type: 'varchar', length: 255 })
-  first_name: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  last_name: string;
-
-  @Column({ type: 'varchar', length: 255, unique: true })
-  email: string;
-
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  phone_number?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  first_name: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  company?: string;
+  last_name: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  email: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  phone_number?: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  company?: string | null;
 
   @CreateDateColumn()
   created_at: Date;
@@ -30,5 +30,5 @@ export class Client {
   updated_at: Date;
 
   @DeleteDateColumn()
-  deleted_at: Date;
+  deleted_at: Date | null;
 }

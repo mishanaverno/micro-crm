@@ -9,6 +9,8 @@ DB_NAME=${DATABASE_NAME:-crm_db}
 MIGRATIONS_TABLE="migrations"
 MIGRATIONS_DIR="migrations"
 INIT_SQL="init.sql"
+DEV_SEED_ENABLED=${DEV_SEED_ENABLED:-false}
+DEV_SEED_SQL=${DEV_SEED_SQL:-dev-seed.sql}
 
 export PGPASSWORD="$DATABASE_PASSWORD"
 
@@ -62,3 +64,20 @@ find "$MIGRATIONS_DIR" -name "*.sql" | sort | while IFS= read -r migration_file;
 done
 
 echo "All migrations completed successfully!"
+
+if [ "$DEV_SEED_ENABLED" = "true" ]; then
+  if [ -f "$DEV_SEED_SQL" ]; then
+    echo "Running dev seed: $DEV_SEED_SQL"
+    psql \
+      -h "$DB_HOST" \
+      -p "$DB_PORT" \
+      -U "$DB_USER" \
+      -d "$DB_NAME" \
+      -f "$DEV_SEED_SQL" \
+      -q
+    echo "✓ Dev seed completed: $DEV_SEED_SQL"
+  else
+    echo "Dev seed file not found: $DEV_SEED_SQL"
+    exit 1
+  fi
+fi
