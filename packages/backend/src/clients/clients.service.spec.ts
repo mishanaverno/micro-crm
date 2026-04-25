@@ -33,12 +33,12 @@ describe('ClientsService', () => {
 
   it('creates and saves a client', async () => {
     const dto: CreateClientDto = {
+      user_id: '3529e0aa-794e-4edd-ab0e-07cce6e7f3eb',
       first_name: 'Jane',
       last_name: 'Smith',
       email: 'jane@example.com',
       phone_number: '+1234567890',
       company: 'Acme Corp',
-      address: 'Main street',
     };
     const createdClient = { id: 'client-1', ...dto } as unknown as Client;
 
@@ -67,7 +67,7 @@ describe('ClientsService', () => {
   });
 
   it('updates a client and returns the fresh record', async () => {
-    const dto: UpdateClientDto = { company: 'Updated Corp' };
+    const dto = { company: 'Updated Corp' } as UpdateClientDto;
     const updatedClient = { id: 'client-1', company: 'Updated Corp' } as Client;
     repository.update.mockResolvedValue({ affected: 1 });
     repository.findOneBy.mockResolvedValue(updatedClient);
