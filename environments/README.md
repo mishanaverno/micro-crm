@@ -1,10 +1,10 @@
-# CRM Test Environment
+# CRM Environments
 
 ## Быстрый старт
 
 ### Запуск сервисов
 ```bash
-cd test-environment
+cd environments
 chmod +x start.sh
 ./start.sh
 ```
@@ -36,6 +36,11 @@ chmod +x start.sh
 - **URL**: http://localhost:5173
 - **API Base URL**: http://localhost:3000/api
 
+### Auth
+- **Login**: `POST http://localhost:3000/api/auth/login`
+- **Refresh**: `POST http://localhost:3000/api/auth/refresh`
+- **Me**: `GET http://localhost:3000/api/auth/me`
+
 ## Команды Docker
 
 ### Просмотр логов
@@ -48,6 +53,7 @@ docker-compose logs -f
 docker-compose logs -f postgres
 docker-compose logs -f backend
 docker-compose logs -f frontend
+docker-compose logs -f migrator
 ```
 
 ### Запуск команды в контейнере backend
@@ -65,16 +71,19 @@ docker-compose exec postgres psql -U crm_user -d crm_db
 ## Структура
 
 - `docker-compose.yml` - Конфигурация контейнеров
+- `.env.backend` - Переменные окружения backend для локального docker-запуска
+- `.env.frontend` - Переменные окружения frontend для локального docker-запуска
 - `start.sh` - Скрипт для запуска сервисов
 - `stop.sh` - Скрипт для остановки сервисов
 - `clean.sh` - Скрипт для удаления сервисов и данных
 - `../packages/backend/Dockerfile` - Dockerfile для backend
 - `../packages/frontend/Dockerfile` - Dockerfile для frontend
-- `../packages/backend/.env` - Переменные окружения
 
 ## Примечания
 
-- Backend будет автоматически пересоздаваться при изменении файлов в `src/`
+- Backend ждёт успешного завершения миграций перед стартом
+- Backend и frontend имеют healthcheck, поэтому зависимости стартуют надёжнее
+- Backend и frontend монтируются целиком как пакеты, а `node_modules` остаются внутри контейнеров
 - Frontend доступен через Vite dev server на `5173`
 - PostgreSQL данные сохраняются в Docker volume `postgres_data`
 - Все сервисы находятся в одной сети `crm-network` для взаимодействия

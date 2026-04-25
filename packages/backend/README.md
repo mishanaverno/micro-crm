@@ -95,7 +95,7 @@ docker-compose exec backend bash db-migrations/run-migrations.sh
 
 ### Запуск с Docker Compose
 
-В папке `test-environment/`:
+В папке `environments/`:
 
 ```bash
 ./start.sh      # Запустить контейнеры
