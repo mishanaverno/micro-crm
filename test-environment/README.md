@@ -32,6 +32,10 @@ chmod +x start.sh
 - **URL**: http://localhost:3000
 - **API**: http://localhost:3000/api
 
+### Frontend SPA
+- **URL**: http://localhost:5173
+- **API Base URL**: http://localhost:3000/api
+
 ## Команды Docker
 
 ### Просмотр логов
@@ -43,12 +47,14 @@ docker-compose logs -f
 ```bash
 docker-compose logs -f postgres
 docker-compose logs -f backend
+docker-compose logs -f frontend
 ```
 
 ### Запуск команды в контейнере backend
 ```bash
 docker-compose exec backend npm run lint
 docker-compose exec backend npm run type-check
+docker-compose exec frontend npm run type-check
 ```
 
 ### Подключение к PostgreSQL из контейнера
@@ -63,10 +69,12 @@ docker-compose exec postgres psql -U crm_user -d crm_db
 - `stop.sh` - Скрипт для остановки сервисов
 - `clean.sh` - Скрипт для удаления сервисов и данных
 - `../packages/backend/Dockerfile` - Dockerfile для backend
+- `../packages/frontend/Dockerfile` - Dockerfile для frontend
 - `../packages/backend/.env` - Переменные окружения
 
 ## Примечания
 
 - Backend будет автоматически пересоздаваться при изменении файлов в `src/`
+- Frontend доступен через Vite dev server на `5173`
 - PostgreSQL данные сохраняются в Docker volume `postgres_data`
-- Оба сервиса находятся в одной сети `crm-network` для взаимодействия
+- Все сервисы находятся в одной сети `crm-network` для взаимодействия
