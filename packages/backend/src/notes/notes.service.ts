@@ -6,6 +6,7 @@ import { EventsService } from '../events/events.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
+import { EventType } from '../events/entities/event.entity';
 
 @Injectable()
 export class NotesService {
@@ -25,7 +26,7 @@ export class NotesService {
     });
 
     const createdNote = await this.notesRepository.save(note);
-    await this.eventsService.createNoteCreatedEvent(createdNote);
+    await this.eventsService.createEvent(EventType.NOTE, createdNote);
     return createdNote;
   }
 

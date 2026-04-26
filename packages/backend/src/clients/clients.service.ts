@@ -5,6 +5,7 @@ import { EventsService } from '../events/events.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { Client } from './entities/client.entity';
+import { EventType } from '../events/entities/event.entity';
 
 @Injectable()
 export class ClientsService {
@@ -20,7 +21,11 @@ export class ClientsService {
       user_id: userId,
     });
     const createdClient = await this.clientsRepository.save(client);
-    await this.eventsService.createClientCreatedEvent(createdClient);
+    await this.eventsService.createEvent(EventType.CLIENT_CREATED, {
+        user_id: createdClient.user_id,
+        client_id: createdClient.id,
+        getPayload: () => { return {...createClientDto}}
+    });
     return createdClient;
   }
 

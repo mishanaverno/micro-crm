@@ -1,3 +1,4 @@
+import { EventReady } from '../../events/interfaces/event-ready.interface';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -8,7 +9,11 @@ import {
 } from 'typeorm';
 
 @Entity('notes')
-export class Note {
+export class Note implements EventReady{
+  getPayload: () => Record<string, string | number> = () => { return { 
+    note_id: this.id,
+    content: this.content
+  }};
   @PrimaryGeneratedColumn()
   id: number;
 
