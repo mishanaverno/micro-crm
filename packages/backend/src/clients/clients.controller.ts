@@ -56,11 +56,14 @@ export class ClientsController {
   }
 
   @Delete(':id')
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete client' })
   @ApiParam({ name: 'id', description: 'Client ID', type: 'string' })
   @ApiResponse({ status: 200, description: 'Client deleted successfully', type: Client })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Client not found' })
-  remove(@Param('id') id: string) {
-    return this.clientsService.remove(id);
+  remove(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
+    return this.clientsService.remove(id, request.user.sub);
   }
 }

@@ -37,3 +37,30 @@ export async function createClientRequest(payload: ClientDraft, accessToken: str
 
   return toClientRecord(client);
 }
+
+export async function updateClientRequest(
+  clientId: string,
+  payload: ClientDraft,
+  accessToken: string,
+) {
+  const client = await httpRequest<ApiClientRecord>({
+    path: `/clients/${clientId}`,
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  return toClientRecord(client);
+}
+
+export async function deleteClientRequest(clientId: string, accessToken: string) {
+  return httpRequest<ClientRecord>({
+    path: `/clients/${clientId}`,
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+}

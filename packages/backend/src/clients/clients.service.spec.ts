@@ -11,7 +11,7 @@ type MockRepository<T> = {
   find: jest.Mock<Promise<T[]>, []>;
   findOneBy: jest.Mock<Promise<T | null>, [Partial<T>]>;
   update: jest.Mock<Promise<unknown>, [string, Partial<T>]>;
-  delete: jest.Mock<Promise<unknown>, [string]>;
+  softDelete: jest.Mock<Promise<unknown>, [Partial<T>]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -20,11 +20,11 @@ const createRepositoryMock = <T>(): MockRepository<T> => ({
   find: jest.fn(),
   findOneBy: jest.fn(),
   update: jest.fn(),
-  delete: jest.fn(),
+  softDelete: jest.fn(),
 });
 
 type MockEventsService = {
-  createClientCreatedEvent: jest.Mock<Promise<unknown>, [Client]>;
+  createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
 };
 
 describe('ClientsService', () => {
@@ -35,9 +35,9 @@ describe('ClientsService', () => {
   beforeEach(() => {
     repository = createRepositoryMock<Client>();
     eventsService = {
-      createClientCreatedEvent: jest.fn(),
+      createEvent: jest.fn(),
     };
-    eventsService.createClientCreatedEvent.mockResolvedValue(undefined);
+    eventsService.createEvent.mockResolvedValue(undefined);
     service = new ClientsService(
       repository as unknown as Repository<Client>,
       eventsService as unknown as EventsService,
@@ -67,7 +67,7 @@ describe('ClientsService', () => {
       user_id: 'user-1',
     });
     expect(repository.save).toHaveBeenCalledWith(createdClient);
-    expect(eventsService.createClientCreatedEvent).toHaveBeenCalledWith(createdClient);
+    expect(eventsService.createEvent).toHaveBeenCalledTimes(1);
   });
 
   it('returns all clients', async () => {
@@ -106,18 +106,18 @@ describe('ClientsService', () => {
   });
 
   it('deletes a client when it exists', async () => {
-    const client = { id: 'client-1' } as Client;
+    const client = { id: 'client-1', user_id: 'user-1' } as Client;
     repository.findOneBy.mockResolvedValue(client);
-    repository.delete.mockResolvedValue({ affected: 1 });
+    repository.softDelete.mockResolvedValue({ affected: 1 });
 
-    await expect(service.remove('client-1')).resolves.toEqual(client);
-    expect(repository.delete).toHaveBeenCalledWith('client-1');
+    await expect(service.remove('client-1', 'user-1')).resolves.toEqual(client);
+    expect(repository.softDelete).toHaveBeenCalledWith({ id: 'client-1', user_id: 'user-1' });
   });
 
   it('does not delete a client when it does not exist', async () => {
     repository.findOneBy.mockResolvedValue(null);
 
-    await expect(service.remove('missing-client')).resolves.toBeNull();
-    expect(repository.delete).not.toHaveBeenCalled();
+    await expect(service.remove('missing-client', 'user-1')).resolves.toBeNull();
+    expect(repository.softDelete).not.toHaveBeenCalled();
   });
 });

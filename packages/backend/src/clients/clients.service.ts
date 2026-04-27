@@ -46,10 +46,10 @@ export class ClientsService {
     return this.findOne(id);
   }
 
-  async remove(id: string): Promise<Client | null> {
-    const client = await this.findOne(id);
+  async remove(id: string, userId: string): Promise<Client | null> {
+    const client = await this.findOneOwnedByUser(id, userId);
     if (client) {
-      await this.clientsRepository.delete(id);
+      await this.clientsRepository.softDelete({ id, user_id: userId });
     }
     return client;
   }

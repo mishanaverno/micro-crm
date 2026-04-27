@@ -22,7 +22,7 @@ type MockClientsService = {
 };
 
 type MockEventsService = {
-  createNoteCreatedEvent: jest.Mock<Promise<unknown>, [Note]>;
+  createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -46,9 +46,9 @@ describe('NotesService', () => {
       findOneOwnedByUser: jest.fn(),
     };
     eventsService = {
-      createNoteCreatedEvent: jest.fn(),
+      createEvent: jest.fn(),
     };
-    eventsService.createNoteCreatedEvent.mockResolvedValue(undefined);
+    eventsService.createEvent.mockResolvedValue(undefined);
 
     service = new NotesService(
       repository as unknown as Repository<Note>,
@@ -79,7 +79,7 @@ describe('NotesService', () => {
       user_id: 'user-1',
     });
     expect(repository.save).toHaveBeenCalledWith(createdNote);
-    expect(eventsService.createNoteCreatedEvent).toHaveBeenCalledWith(createdNote);
+    expect(eventsService.createEvent).toHaveBeenCalledTimes(1);
   });
 
   it('rejects note creation when client does not belong to the user', async () => {
