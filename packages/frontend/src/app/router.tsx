@@ -38,8 +38,8 @@ export const router = createHashRouter([
             element: <ClientsPage />,
           },
           {
-            path: 'settings',
-            element: <SettingsPage />,
+            path: 'notes',
+            element: <ClientsPage />,
           },
         ],
       },

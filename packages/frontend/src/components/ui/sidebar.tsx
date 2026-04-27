@@ -97,7 +97,7 @@ export function Sidebar({
     <aside
       data-open={open}
       className={cn(
-        'sticky top-0 hidden h-screen shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:block',
+        'sticky top-0 hidden h-screen shrink-0 bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:block',
         open ? 'w-[var(--sidebar-width)]' : 'w-[var(--sidebar-width-collapsed)]',
         className,
       )}
@@ -138,7 +138,7 @@ export function SidebarHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('border-b border-sidebar-border p-4', className)} {...props} />;
+  return <div className={cn('p-4', className)} {...props} />;
 }
 
 export function SidebarContent({
@@ -152,7 +152,7 @@ export function SidebarFooter({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('border-t border-sidebar-border p-3', className)} {...props} />;
+  return <div className={cn('p-3', className)} {...props} />;
 }
 
 export function SidebarGroup({

@@ -5,7 +5,6 @@
 @layer base {
   :root {
     color-scheme: light;
-    --background: 42 45% 96%;
     --foreground: 221 41% 15%;
     --card: 0 0% 100%;
     --card-foreground: 221 41% 15%;

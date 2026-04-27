@@ -12,13 +12,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 
 const navigation = [
-  { to: '/', label: 'Dashboard', icon: '⌂' },
-  { to: '/clients', label: 'Clients', icon: '◫' },
-  { to: '/settings', label: 'Offline', icon: '◎' },
+  { to: '/', label: 'dashboard', icon: '⌂' },
+  { to: '/clients', label: 'clients', icon: '◫' , actions: [
+    { label: 'add' , icon: ''},
+    { label: 'list', icon: ''}
+  ]},
 ];
 
 export function AppSidebar() {
@@ -38,6 +41,7 @@ export function AppSidebar() {
               <p className="text-xs text-sidebar-foreground/60">Operations workspace</p>
             </div>
           ) : null}
+          <SidebarTrigger />
         </div>
       </SidebarHeader>
 
@@ -73,11 +77,11 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroupLabel>Clients</SidebarGroupLabel>
       </SidebarContent>
 
       <SidebarFooter>
         <div className="rounded-2xl bg-sidebar-accent px-3 py-3">
+          
           {open ? (
             <>
               <p className="text-sm font-medium">

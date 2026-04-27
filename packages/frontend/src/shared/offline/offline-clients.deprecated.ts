@@ -7,6 +7,7 @@ function createLocalClient(payload: ClientDraft): ClientRecord {
     ...payload,
     sync_status: 'pending',
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 }
 
@@ -36,7 +37,7 @@ export async function markClientSynced(queuedMutationId: number, client: ClientR
     .equals(queuedMutationId)
     .first();
 
-  if (localClient) {
+  if (localClient && localClient.id) {
     await offlineDb.clients.delete(localClient.id);
   }
 

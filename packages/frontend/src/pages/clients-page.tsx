@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useCreateClient } from '../features/clients/use-create-client';
+import { useClients } from '../features/clients/use-clients';
 import { useOfflineClients } from '../features/clients/use-offline-clients';
 import { useNetworkStatus } from '../shared/lib/network';
 import { Button } from '../shared/ui/button';
@@ -24,18 +25,12 @@ const initialFormState = {
   company: '',
 };
 
-const clients = [
-  { name: 'Northwind Labs', status: 'active', owner: 'AM', next_touch: '2026-04-28' },
-  { name: 'Bright Harbor', status: 'proposal', owner: 'MO', next_touch: '2026-04-29' },
-  { name: 'Maple Works', status: 'discovery', owner: 'EK', next_touch: '2026-05-02' },
-];
-
 export function ClientsPage() {
   const [form, setForm] = useState(initialFormState);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const createClient = useCreateClient();
-  const offlineClients = useOfflineClients();
-  const isOnline = useNetworkStatus();
+  const clientsQuery = useClients();
+
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,18 +48,14 @@ export function ClientsPage() {
   }
 
   return (
-    <main className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2">
-              <CardTitle>Create client</CardTitle>
-              <CardDescription>
-                If the server or network is unavailable, the mutation is stored in IndexedDB and
-                retried after reconnection.
-              </CardDescription>
-            </div>
-
+    <main className="grid gap-4">
+      <div className="grid gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Clients</CardTitle>
+            <CardDescription>
+              This list is loaded from the API and refreshed after successful writes.
+            </CardDescription>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>Create client</Button>
@@ -153,94 +144,52 @@ export function ClientsPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>Use the modal to create a client with accessible keyboard and focus handling.</p>
-          <p>
-            Current network mode: {isOnline ? 'online' : 'offline'}. Offline submissions are added
-            to the outbox automatically.
-          </p>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Offline outbox preview</CardTitle>
-            <CardDescription>
-              Local records remain visible before the backend confirms them.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {offlineClients && offlineClients.length > 0 ? (
-              offlineClients.map((client) => (
-                <div
-                  key={client.id}
-                  className="rounded-2xl border border-border bg-muted/30 px-4 py-3 text-sm"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <strong>
-                      {client.first_name} {client.last_name}
-                    </strong>
-                    <span
-                      className={[
-                        'rounded-full px-2 py-1 text-xs font-medium',
-                        client.sync_status === 'synced'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : client.sync_status === 'failed'
-                            ? 'bg-rose-100 text-rose-700'
-                            : 'bg-amber-100 text-amber-900',
-                      ].join(' ')}
-                    >
-                      {client.sync_status}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-muted-foreground">{client.email}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No locally tracked client writes yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Example list</CardTitle>
-            <CardDescription>
-              Static placeholder for the future backend-backed client directory.
-            </CardDescription>
           </CardHeader>
           <CardContent className="overflow-x-auto">
-            <table className="w-full min-w-[560px] border-separate border-spacing-y-2 text-left text-sm">
-              <thead className="text-muted-foreground">
-                <tr>
-                  <th className="px-3 py-2 font-medium">Client</th>
-                  <th className="px-3 py-2 font-medium">Status</th>
-                  <th className="px-3 py-2 font-medium">Owner</th>
-                  <th className="px-3 py-2 font-medium">Next touch</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map((client) => (
-                  <tr key={client.name} className="rounded-2xl bg-muted/60">
-                    <td className="rounded-l-2xl px-3 py-3 font-medium text-foreground">
-                      {client.name}
-                    </td>
-                    <td className="px-3 py-3 uppercase tracking-wide text-muted-foreground">
-                      {client.status}
-                    </td>
-                    <td className="px-3 py-3 text-muted-foreground">{client.owner}</td>
-                    <td className="rounded-r-2xl px-3 py-3 text-muted-foreground">
-                      {client.next_touch}
-                    </td>
+            {clientsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading clients...</p>
+            ) : clientsQuery.isError ? (
+              <p className="text-sm text-rose-700">
+                Failed to load clients from the backend.
+              </p>
+            ) : clientsQuery.data && clientsQuery.data.length > 0 ? (
+              <table className="w-full min-w-[720px] border-separate border-spacing-y-2 text-left text-sm">
+                <thead className="text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 font-medium">Client</th>
+                    <th className="px-3 py-2 font-medium">Email</th>
+                    <th className="px-3 py-2 font-medium">Phone</th>
+                    <th className="px-3 py-2 font-medium">Company</th>
+                    <th className="px-3 py-2 font-medium">Created</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {clientsQuery.data.map((client) => (
+                    <tr key={client.id} className="rounded-2xl bg-muted/60">
+                      <td className="rounded-l-2xl px-3 py-3 font-medium text-foreground">
+                        {[client.first_name, client.last_name].filter(Boolean).join(' ') || 'Unnamed client'}
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        {client.email || 'No email'}
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        {client.phone_number || 'No phone'}
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground">
+                        {client.company || 'No company'}
+                      </td>
+                      <td className="rounded-r-2xl px-3 py-3 text-muted-foreground">
+                        {new Date(client.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No clients returned by the backend yet.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
