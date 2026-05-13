@@ -15,8 +15,17 @@ export class EventsService {
       user_id: instance.user_id,
       client_id: instance.client_id,
       type,
-      payload: instance.getPayload()
-    })
+      payload: instance.getPayload(),
+    });
+
     return this.eventsRepository.save(event);
+  }
+
+  findRecentByUser(userId: string, limit = 50) {
+    return this.eventsRepository.find({
+      where: { user_id: userId },
+      order: { created_at: 'DESC' },
+      take: limit,
+    });
   }
 }

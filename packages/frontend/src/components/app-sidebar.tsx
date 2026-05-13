@@ -17,10 +17,9 @@ import {
 
 const navigation = [
   { to: '/', label: 'dashboard', icon: '⌂' },
-  { to: '/clients', label: 'clients', icon: '◫' , actions: [
-    { label: 'add' , icon: ''},
-    { label: 'list', icon: ''}
-  ]},
+  { to: '/clients', label: 'clients', icon: '◫' },
+  { to: '/notes', label: 'notes', icon: '✎' },
+  { to: '/activity-log', label: 'activity log', icon: '≣' },
 ];
 
 export function AppSidebar() {

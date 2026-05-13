@@ -148,10 +148,12 @@ describe('NotesService', () => {
     expect(clientsService.findOneOwnedByUser).toHaveBeenCalledWith('client-2', 'user-1');
   });
 
-  it('returns null when updating a missing note', async () => {
+  it('throws when updating a missing note', async () => {
     repository.findOneBy.mockResolvedValue(null);
 
-    await expect(service.update(999, 'user-1', { content: 'Updated' })).resolves.toBeNull();
+    await expect(service.update(999, 'user-1', { content: 'Updated' })).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
     expect(repository.save).not.toHaveBeenCalled();
   });
 
@@ -164,10 +166,10 @@ describe('NotesService', () => {
     expect(repository.delete).toHaveBeenCalledWith({ id: 1, user_id: 'user-1' });
   });
 
-  it('returns null when deleting a missing note', async () => {
+  it('throws when deleting a missing note', async () => {
     repository.findOneBy.mockResolvedValue(null);
 
-    await expect(service.remove(999, 'user-1')).resolves.toBeNull();
+    await expect(service.remove(999, 'user-1')).rejects.toBeInstanceOf(NotFoundException);
     expect(repository.delete).not.toHaveBeenCalled();
   });
 });

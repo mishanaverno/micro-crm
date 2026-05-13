@@ -5,11 +5,13 @@ import { EventsService } from './events.service';
 type MockRepository<T> = {
   create: jest.Mock<T, [Partial<T>]>;
   save: jest.Mock<Promise<T>, [T]>;
+  find: jest.Mock<Promise<T[]>, [unknown?]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
+  find: jest.fn(),
 });
 
 describe('EventsService', () => {
@@ -78,6 +80,18 @@ describe('EventsService', () => {
         note_id: 1,
         content: 'Important note',
       },
+    });
+  });
+
+  it('returns recent events for the current user', async () => {
+    const events = [{ id: 1 }, { id: 2 }] as Event[];
+    repository.find.mockResolvedValue(events);
+
+    await expect(service.findRecentByUser('user-1')).resolves.toEqual(events);
+    expect(repository.find).toHaveBeenCalledWith({
+      where: { user_id: 'user-1' },
+      order: { created_at: 'DESC' },
+      take: 50,
     });
   });
 });

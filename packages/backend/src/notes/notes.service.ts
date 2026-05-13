@@ -48,11 +48,11 @@ export class NotesService {
     return this.notesRepository.findOneBy({ id, user_id: userId });
   }
 
-  async update(id: number, userId: string, updateNoteDto: UpdateNoteDto): Promise<Note | null> {
+  async update(id: number, userId: string, updateNoteDto: UpdateNoteDto): Promise<Note> {
     const note = await this.findOne(id, userId);
 
     if (!note) {
-      return null;
+      throw new NotFoundException('Note not found');
     }
 
     if (updateNoteDto.client_id && updateNoteDto.client_id !== note.client_id) {
@@ -63,11 +63,11 @@ export class NotesService {
     return this.notesRepository.save(updatedNote);
   }
 
-  async remove(id: number, userId: string): Promise<Note | null> {
+  async remove(id: number, userId: string): Promise<Note> {
     const note = await this.findOne(id, userId);
 
     if (!note) {
-      return null;
+      throw new NotFoundException('Note not found');
     }
 
     await this.notesRepository.delete({ id, user_id: userId });

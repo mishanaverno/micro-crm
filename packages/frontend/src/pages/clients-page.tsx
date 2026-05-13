@@ -51,6 +51,7 @@ export function ClientsPage() {
   const [form, setForm] = useState(initialFormState);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientRecord | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<ClientRecord | null>(null);
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -118,17 +119,25 @@ export function ClientsPage() {
     setForm(initialFormState);
   }
 
-  async function handleDeleteClient(client: ClientRecord) {
-    const label =
-      [client.first_name, client.last_name].filter(Boolean).join(' ') ||
-      client.email ||
-      client.id;
+  function openDeleteDialog(client: ClientRecord) {
+    setClientToDelete(client);
+  }
 
-    if (!window.confirm(`Удалить клиента "${label}"?`)) {
+  function closeDeleteDialog() {
+    if (deleteClient.isPending) {
       return;
     }
 
-    await deleteClient.mutateAsync(client.id);
+    setClientToDelete(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!clientToDelete) {
+      return;
+    }
+
+    await deleteClient.mutateAsync(clientToDelete.id);
+    setClientToDelete(null);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -309,6 +318,51 @@ export function ClientsPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <Dialog
+                  open={Boolean(clientToDelete)}
+                  onOpenChange={(open) => {
+                    if (!open) {
+                      closeDeleteDialog();
+                    }
+                  }}
+                >
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete client</DialogTitle>
+                      <DialogDescription>
+                        {clientToDelete
+                          ? `Client "${
+                              [clientToDelete.first_name, clientToDelete.last_name]
+                                .filter(Boolean)
+                                .join(' ') ||
+                              clientToDelete.email ||
+                              clientToDelete.id
+                            }" will be moved to deleted state and hidden from the default list.`
+                          : 'Selected client will be moved to deleted state.'}
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                      <Button
+                        disabled={deleteClient.isPending}
+                        onClick={closeDeleteDialog}
+                        type="button"
+                        variant="ghost"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        className="bg-rose-600 text-white hover:bg-rose-700"
+                        disabled={deleteClient.isPending}
+                        onClick={() => void handleConfirmDelete()}
+                        type="button"
+                      >
+                        {deleteClient.isPending ? 'Deleting...' : 'Delete'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </CardHeader>
@@ -323,7 +377,7 @@ export function ClientsPage() {
               <ClientsDataTable
                 clients={clientsQuery.data}
                 onEditClient={openEditDialog}
-                onDeleteClient={handleDeleteClient}
+                onDeleteClient={openDeleteDialog}
                 visibleColumns={visibleColumns}
               />
             ) : (
