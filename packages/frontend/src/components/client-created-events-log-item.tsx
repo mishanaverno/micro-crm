@@ -1,4 +1,5 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { ClientCreatedEventRecord } from '../shared/types/event';
 import { LogItemTitle } from '../shared/ui/log-item';
@@ -35,6 +36,7 @@ export function ClientCreatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      icon={<EventTypeIcon type="client_created" />}
       markerClassName="bg-sky-500"
       specificActions={[]}
       typeLabel="client created"

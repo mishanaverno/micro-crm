@@ -1,4 +1,5 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { LogItemTitle } from '../shared/ui/log-item';
 import { NoteEventRecord } from '../shared/types/event';
@@ -31,6 +32,7 @@ export function NoteEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      icon={<EventTypeIcon type="note" />}
       markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel="note"

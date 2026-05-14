@@ -1,4 +1,5 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderChangedField, OrderUpdatedEventRecord } from '../shared/types/event';
@@ -56,6 +57,7 @@ export function OrderUpdatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      icon={<EventTypeIcon type="order_updated" />}
       markerClassName="bg-violet-500"
       specificActions={[]}
       typeLabel="order updated"

@@ -1,4 +1,5 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { PaidEventRecord } from '../shared/types/event';
@@ -33,6 +34,7 @@ export function PaidEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      icon={<EventTypeIcon type="paid" />}
       markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel="paid"

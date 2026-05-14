@@ -1,4 +1,5 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderReopenedEventRecord } from '../shared/types/event';
@@ -33,6 +34,7 @@ export function OrderReopenedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      icon={<EventTypeIcon type="order_reopened" />}
       markerClassName="bg-sky-500"
       specificActions={[]}
       typeLabel="order reopened"
