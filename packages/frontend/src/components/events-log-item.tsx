@@ -12,24 +12,32 @@ interface EventsLogItemProps {
   event: EventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
-export function EventsLogItem({ event, clientLabel, commonActions = [] }: EventsLogItemProps) {
+export function EventsLogItem({
+  event,
+  clientLabel,
+  commonActions = [],
+  cardBorderClassName,
+  compact = false,
+}: EventsLogItemProps) {
   switch (event.type) {
     case 'client_created':
-      return <ClientCreatedEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <ClientCreatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'note':
-      return <NoteEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <NoteEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'order_created':
-      return <OrderCreatedEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <OrderCreatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'order_updated':
-      return <OrderUpdatedEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <OrderUpdatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'order_complete':
-      return <OrderCompleteEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <OrderCompleteEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'order_reopened':
-      return <OrderReopenedEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <OrderReopenedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'paid':
-      return <PaidEventsLogItem clientLabel={clientLabel} commonActions={commonActions} event={event} />;
+      return <PaidEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     default:
       return null;
   }

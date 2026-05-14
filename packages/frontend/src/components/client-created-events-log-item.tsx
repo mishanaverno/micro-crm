@@ -7,6 +7,8 @@ interface ClientCreatedEventsLogItemProps {
   event: ClientCreatedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function describeClientCreatedEvent(event: ClientCreatedEventRecord) {
@@ -23,10 +25,14 @@ export function ClientCreatedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: ClientCreatedEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-sky-500"

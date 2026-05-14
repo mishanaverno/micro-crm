@@ -28,6 +28,7 @@ export interface BaseEventRecord<TType extends EventType, TPayload extends objec
 export interface NoteEventPayload {
   note_id: number;
   content: string;
+  order_id?: number | null;
 }
 
 export interface ClientCreatedEventPayload {

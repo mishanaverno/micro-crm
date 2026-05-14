@@ -7,6 +7,8 @@ interface OrderCompleteEventsLogItemProps {
   event: OrderCompleteEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function describeOrderCompleteEvent(event: OrderCompleteEventRecord) {
@@ -21,10 +23,14 @@ export function OrderCompleteEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: OrderCompleteEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-emerald-500"
@@ -32,7 +38,7 @@ export function OrderCompleteEventsLogItem({
       typeLabel="order complete"
     >
       <LogItemTitle>{describeOrderCompleteEvent(event)}</LogItemTitle>
-      <LogItemDescription>Status changed to done.</LogItemDescription>
+      {!compact ? <LogItemDescription>Status changed to done.</LogItemDescription> : null}
     </AbstractEventsLogItem>
   );
 }

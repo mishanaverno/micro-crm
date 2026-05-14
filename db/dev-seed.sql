@@ -235,7 +235,9 @@ INSERT INTO events (
   client_id,
   type,
   comment,
-  payload
+  payload,
+  created_at,
+  updated_at
 )
 VALUES
   (
@@ -243,112 +245,144 @@ VALUES
     '22222222-2222-4222-8222-222222222221',
     'client_created',
     'Client created',
-    '{"client_id":"22222222-2222-4222-8222-222222222221","first_name":"Ivan","last_name":"Petrov","email":"ivan.petrov@example.com","phone_number":"+79990000001","company":"Acme LLC"}'::jsonb
+    '{"client_id":"22222222-2222-4222-8222-222222222221","first_name":"Ivan","last_name":"Petrov","email":"ivan.petrov@example.com","phone_number":"+79990000001","company":"Acme LLC"}'::jsonb,
+    '2026-05-01 09:00:00',
+    '2026-05-01 09:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222221',
+    'order_created',
+    'Order created',
+    '{"order_id":2001,"title":"CRM onboarding","price":"150000.00","content":"CRM onboarding and sales pipeline setup","status":"created"}'::jsonb,
+    '2026-05-01 10:00:00',
+    '2026-05-01 10:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222221',
+    'note',
+    'Note created',
+    '{"note_id":1001,"content":"Interested in expanding the contract next quarter.","order_id":2001}'::jsonb,
+    '2026-05-01 11:00:00',
+    '2026-05-01 11:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222221',
+    'paid',
+    'Paid created',
+    '{"paid_id":3001,"order_id":2001,"value":"50000.00"}'::jsonb,
+    '2026-05-01 12:00:00',
+    '2026-05-01 12:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222221',
+    'note',
+    'Note created',
+    '{"note_id":1002,"content":"Prefers communication by email after 18:00.","order_id":null}'::jsonb,
+    '2026-05-01 13:00:00',
+    '2026-05-01 13:00:00'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222222',
     'client_created',
     'Client created',
-    '{"client_id":"22222222-2222-4222-8222-222222222222","first_name":"Anna","last_name":"Smirnova","email":"anna.smirnova@example.com","phone_number":"+79990000002","company":"North Wind"}'::jsonb
+    '{"client_id":"22222222-2222-4222-8222-222222222222","first_name":"Anna","last_name":"Smirnova","email":"anna.smirnova@example.com","phone_number":"+79990000002","company":"North Wind"}'::jsonb,
+    '2026-05-02 09:00:00',
+    '2026-05-02 09:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    'order_created',
+    'Order created',
+    '{"order_id":2002,"title":"Website redesign","price":"245000.00","content":"Website redesign with lead forms and analytics","status":"inprogress"}'::jsonb,
+    '2026-05-02 10:00:00',
+    '2026-05-02 10:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    'note',
+    'Note created',
+    '{"note_id":1003,"content":"Asked for a revised pricing proposal for the team plan.","order_id":2002}'::jsonb,
+    '2026-05-02 11:00:00',
+    '2026-05-02 11:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    'paid',
+    'Paid created',
+    '{"paid_id":3002,"order_id":2002,"value":"-2500.00"}'::jsonb,
+    '2026-05-02 12:00:00',
+    '2026-05-02 12:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    'note',
+    'Note created',
+    '{"note_id":1004,"content":"Follow up next Tuesday after internal approval meeting.","order_id":null}'::jsonb,
+    '2026-05-02 13:00:00',
+    '2026-05-02 13:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    'note',
+    'Note created',
+    '{"note_id":1005,"content":"Interested in onboarding support and migration assistance.","order_id":null}'::jsonb,
+    '2026-05-02 14:00:00',
+    '2026-05-02 14:00:00'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222223',
     'client_created',
     'Client created',
-    '{"client_id":"22222222-2222-4222-8222-222222222223","first_name":"Pavel","last_name":"Sidorov","email":"pavel.sidorov@example.com","phone_number":"+79990000003","company":"Orbit Systems"}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222221',
-    'note',
-    'Note created',
-    '{"note_id":1001,"content":"Interested in expanding the contract next quarter.","order_id":2001}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222221',
-    'note',
-    'Note created',
-    '{"note_id":1002,"content":"Prefers communication by email after 18:00.","order_id":null}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222222',
-    'note',
-    'Note created',
-    '{"note_id":1003,"content":"Asked for a revised pricing proposal for the team plan.","order_id":2002}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222222',
-    'note',
-    'Note created',
-    '{"note_id":1004,"content":"Follow up next Tuesday after internal approval meeting.","order_id":null}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222222',
-    'note',
-    'Note created',
-    '{"note_id":1005,"content":"Interested in onboarding support and migration assistance.","order_id":null}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222223',
-    'note',
-    'Note created',
-    '{"note_id":1006,"content":"Requested a demo focused on reporting and analytics.","order_id":2003}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222223',
-    'note',
-    'Note created',
-    '{"note_id":1007,"content":"Budget owner joins the next call, prepare enterprise options.","order_id":null}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222221',
-    'order_created',
-    'Order created',
-    '{"order_id":2001,"title":"CRM onboarding","price":"150000.00","content":"CRM onboarding and sales pipeline setup","status":"created"}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222222',
-    'order_created',
-    'Order created',
-    '{"order_id":2002,"title":"Website redesign","price":"245000.00","content":"Website redesign with lead forms and analytics","status":"inprogress"}'::jsonb
+    '{"client_id":"22222222-2222-4222-8222-222222222223","first_name":"Pavel","last_name":"Sidorov","email":"pavel.sidorov@example.com","phone_number":"+79990000003","company":"Orbit Systems"}'::jsonb,
+    '2026-05-03 09:00:00',
+    '2026-05-03 09:00:00'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222223',
     'order_created',
     'Order created',
-    '{"order_id":2003,"title":"Reporting dashboard","price":"98000.00","content":"Reporting dashboard implementation","status":"done"}'::jsonb
+    '{"order_id":2003,"title":"Reporting dashboard","price":"98000.00","content":"Reporting dashboard implementation","status":"done"}'::jsonb,
+    '2026-05-03 10:00:00',
+    '2026-05-03 10:00:00'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222221',
-    'paid',
-    'Paid created',
-    '{"paid_id":3001,"order_id":2001,"value":"50000.00"}'::jsonb
-  ),
-  (
-    '11111111-1111-4111-8111-111111111111',
-    '22222222-2222-4222-8222-222222222222',
-    'paid',
-    'Paid created',
-    '{"paid_id":3002,"order_id":2002,"value":"-2500.00"}'::jsonb
+    '22222222-2222-4222-8222-222222222223',
+    'note',
+    'Note created',
+    '{"note_id":1006,"content":"Requested a demo focused on reporting and analytics.","order_id":2003}'::jsonb,
+    '2026-05-03 11:00:00',
+    '2026-05-03 11:00:00'
   ),
   (
     '11111111-1111-4111-8111-111111111111',
     '22222222-2222-4222-8222-222222222223',
     'paid',
     'Paid created',
-    '{"paid_id":3003,"order_id":2003,"value":"98000.00"}'::jsonb
+    '{"paid_id":3003,"order_id":2003,"value":"98000.00"}'::jsonb,
+    '2026-05-03 12:00:00',
+    '2026-05-03 12:00:00'
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222223',
+    'note',
+    'Note created',
+    '{"note_id":1007,"content":"Budget owner joins the next call, prepare enterprise options.","order_id":null}'::jsonb,
+    '2026-05-03 13:00:00',
+    '2026-05-03 13:00:00'
   );
 
 COMMIT;

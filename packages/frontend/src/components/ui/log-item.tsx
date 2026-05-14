@@ -5,7 +5,7 @@ export function LogItem({
   className,
   ...props
 }: React.HTMLAttributes<HTMLElement>) {
-  return <article className={cn('relative pl-8', className)} {...props} />;
+  return <article className={cn('relative', className)} {...props} />;
 }
 
 export function LogItemMarker({
@@ -30,7 +30,7 @@ export function LogItemContent({
   return (
     <div
       className={cn(
-        'rounded-3xl border border-border/70 bg-card/80 px-4 py-4 shadow-sm backdrop-blur-sm',
+        'overflow-hidden rounded-3xl border border-border/70 bg-card/80 px-4 py-4 shadow-sm backdrop-blur-sm',
         className,
       )}
       {...props}
@@ -78,7 +78,7 @@ export function LogItemFooter({
   return (
     <div
       className={cn(
-        'mt-4 flex flex-col gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between',
+        'mt-3 flex flex-col gap-1.5 border-t border-border/60 pt-2 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}
@@ -133,7 +133,7 @@ export function LogItemTimestamp({
 }: React.TimeHTMLAttributes<HTMLTimeElement>) {
   return (
     <time
-      className={cn('text-xs text-muted-foreground sm:text-right', className)}
+      className={cn('text-[11px] text-muted-foreground sm:text-right', className)}
       {...props}
     />
   );

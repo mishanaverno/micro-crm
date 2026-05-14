@@ -7,6 +7,8 @@ interface OrderCreatedEventsLogItemProps {
   event: OrderCreatedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function describeOrderCreatedEvent(event: OrderCreatedEventRecord) {
@@ -21,17 +23,23 @@ export function OrderCreatedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: OrderCreatedEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-amber-500"
       specificActions={[]}
       typeLabel="order created"
     >
-      <LogItemTitle>{describeOrderCreatedEvent(event)}</LogItemTitle>
+      <LogItemTitle>
+        {compact ? `Order created: #${event.payload.order_id}` : describeOrderCreatedEvent(event)}
+      </LogItemTitle>
     </AbstractEventsLogItem>
   );
 }

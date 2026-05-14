@@ -7,6 +7,8 @@ interface PaidEventsLogItemProps {
   event: PaidEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function formatValue(value: string | number) {
@@ -21,18 +23,24 @@ export function PaidEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: PaidEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel="paid"
     >
-      <LogItemTitle>{`Paid recorded: ${formatValue(event.payload.value)}`}</LogItemTitle>
-      <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription>
+      <LogItemTitle>
+        {compact ? `Paid: Order #${event.payload.order_id}` : `Paid recorded: ${formatValue(event.payload.value)}`}
+      </LogItemTitle>
+      {!compact ? <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription> : null}
     </AbstractEventsLogItem>
   );
 }

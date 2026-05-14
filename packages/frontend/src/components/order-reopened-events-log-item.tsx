@@ -7,6 +7,8 @@ interface OrderReopenedEventsLogItemProps {
   event: OrderReopenedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function describeOrderReopenedEvent(event: OrderReopenedEventRecord) {
@@ -21,10 +23,14 @@ export function OrderReopenedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: OrderReopenedEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-sky-500"
@@ -32,7 +38,7 @@ export function OrderReopenedEventsLogItem({
       typeLabel="order reopened"
     >
       <LogItemTitle>{describeOrderReopenedEvent(event)}</LogItemTitle>
-      <LogItemDescription>Status changed from done.</LogItemDescription>
+      {!compact ? <LogItemDescription>Status changed from done.</LogItemDescription> : null}
     </AbstractEventsLogItem>
   );
 }

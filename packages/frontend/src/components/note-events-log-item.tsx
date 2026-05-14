@@ -7,6 +7,8 @@ interface NoteEventsLogItemProps {
   event: NoteEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function describeNoteEvent(event: NoteEventRecord) {
@@ -19,17 +21,25 @@ export function NoteEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: NoteEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel="note"
     >
-      <LogItemTitle>{describeNoteEvent(event)}</LogItemTitle>
+      <LogItemTitle>
+        {compact && event.payload.order_id != null
+          ? `Note: Order #${event.payload.order_id}`
+          : describeNoteEvent(event)}
+      </LogItemTitle>
     </AbstractEventsLogItem>
   );
 }

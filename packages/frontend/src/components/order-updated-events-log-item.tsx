@@ -7,6 +7,8 @@ interface OrderUpdatedEventsLogItemProps {
   event: OrderUpdatedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  cardBorderClassName?: string;
+  compact?: boolean;
 }
 
 function describeOrderUpdatedEvent(event: OrderUpdatedEventRecord) {
@@ -42,12 +44,16 @@ export function OrderUpdatedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  cardBorderClassName,
+  compact = false,
 }: OrderUpdatedEventsLogItemProps) {
   const changedFields = event.payload.changed_fields ?? [];
 
   return (
     <AbstractEventsLogItem
+      cardBorderClassName={cardBorderClassName}
       clientLabel={clientLabel}
+      compact={compact}
       commonActions={commonActions}
       event={event}
       markerClassName="bg-violet-500"
@@ -55,7 +61,7 @@ export function OrderUpdatedEventsLogItem({
       typeLabel="order updated"
     >
       <LogItemTitle>{describeOrderUpdatedEvent(event)}</LogItemTitle>
-      {changedFields.length > 0 ? (
+      {!compact && changedFields.length > 0 ? (
         <div className="mt-3 grid gap-2">
           <LogItemDescription>
             Changed fields: {changedFields.map((item) => formatFieldLabel(item.field)).join(', ')}
