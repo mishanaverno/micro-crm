@@ -23,7 +23,7 @@ type MockClientsService = {
 };
 
 type MockEventsService = {
-  createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
+  createEvent: jest.Mock<Promise<unknown>, [unknown, unknown, (Record<string, unknown> | undefined)?]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -150,11 +150,132 @@ describe('OrdersService', () => {
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedOrder);
     expect(repository.merge).toHaveBeenCalledWith(existingOrder, {
-      ...dto,
       price: '2000.00',
+      content: 'Updated',
     });
     expect(repository.save).toHaveBeenCalledWith(mergedOrder);
-    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.ORDER_UPDATED, mergedOrder);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.ORDER_UPDATED,
+      mergedOrder,
+      {
+        changed_fields: [
+          {
+            field: 'price',
+            from: '1000.00',
+            to: '2000.00',
+          },
+          {
+            field: 'content',
+            from: 'Old',
+            to: 'Updated',
+          },
+        ],
+      },
+    );
+  });
+
+  it('tracks changed fields even when repository.merge mutates the source order', async () => {
+    const existingOrder = {
+      id: 1,
+      user_id: 'user-1',
+      client_id: 'client-1',
+      title: 'Initial title',
+      price: '1000.00',
+      content: 'Old',
+      status: OrderStatus.CREATED,
+    } as Order;
+    const dto: UpdateOrderDto = { title: 'New title', status: OrderStatus.DONE };
+
+    repository.findOneBy.mockResolvedValue(existingOrder);
+    repository.merge.mockImplementation((target, patch) => Object.assign(target, patch));
+    repository.save.mockImplementation(async (value) => value);
+
+    await service.update(1, 'user-1', dto);
+
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.ORDER_COMPLETE,
+      existingOrder,
+      {
+        changed_fields: [
+          {
+            field: 'title',
+            from: 'Initial title',
+            to: 'New title',
+          },
+          {
+            field: 'status',
+            from: OrderStatus.CREATED,
+            to: OrderStatus.DONE,
+          },
+        ],
+      },
+    );
+  });
+
+  it('creates an order_complete event when status transitions to done', async () => {
+    const existingOrder = {
+      id: 1,
+      user_id: 'user-1',
+      client_id: 'client-1',
+      title: 'Initial title',
+      price: '1000.00',
+      content: 'Old',
+      status: OrderStatus.INPROGRESS,
+    } as Order;
+    const dto: UpdateOrderDto = { status: OrderStatus.DONE };
+    const mergedOrder = { ...existingOrder, status: OrderStatus.DONE } as Order;
+
+    repository.findOneBy.mockResolvedValue(existingOrder);
+    repository.merge.mockReturnValue(mergedOrder);
+    repository.save.mockResolvedValue(mergedOrder);
+
+    await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedOrder);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.ORDER_COMPLETE,
+      mergedOrder,
+      {
+        changed_fields: [
+          {
+            field: 'status',
+            from: OrderStatus.INPROGRESS,
+            to: OrderStatus.DONE,
+          },
+        ],
+      },
+    );
+  });
+
+  it('creates an order_reopened event when status changes from done to another value', async () => {
+    const existingOrder = {
+      id: 1,
+      user_id: 'user-1',
+      client_id: 'client-1',
+      title: 'Initial title',
+      price: '1000.00',
+      content: 'Old',
+      status: OrderStatus.DONE,
+    } as Order;
+    const dto: UpdateOrderDto = { status: OrderStatus.INPROGRESS };
+    const mergedOrder = { ...existingOrder, status: OrderStatus.INPROGRESS } as Order;
+
+    repository.findOneBy.mockResolvedValue(existingOrder);
+    repository.merge.mockReturnValue(mergedOrder);
+    repository.save.mockResolvedValue(mergedOrder);
+
+    await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedOrder);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.ORDER_REOPENED,
+      mergedOrder,
+      {
+        changed_fields: [
+          {
+            field: 'status',
+            from: OrderStatus.DONE,
+            to: OrderStatus.INPROGRESS,
+          },
+        ],
+      },
+    );
   });
 
   it('ignores client changes on update', async () => {
@@ -176,9 +297,7 @@ describe('OrdersService', () => {
     repository.save.mockResolvedValue(mergedOrder);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedOrder);
-    expect(repository.merge).toHaveBeenCalledWith(existingOrder, {
-      price: undefined,
-    });
+    expect(repository.merge).toHaveBeenCalledWith(existingOrder, {});
     expect(repository.save).toHaveBeenCalledWith(mergedOrder);
   });
 

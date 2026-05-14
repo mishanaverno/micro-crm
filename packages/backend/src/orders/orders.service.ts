@@ -6,7 +6,15 @@ import { EventType } from '../events/entities/event.entity';
 import { EventsService } from '../events/events.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { Order } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
+
+interface OrderFieldChange {
+  field: 'title' | 'price' | 'content' | 'status';
+  from: string | null;
+  to: string | null;
+}
+
+type OrderSnapshot = Pick<Order, 'title' | 'price' | 'content' | 'status'>;
 
 @Injectable()
 export class OrdersService {
@@ -71,10 +79,19 @@ export class OrdersService {
           ? updateOrderDto.price.toFixed(2)
           : undefined,
     };
+    const sanitizedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([, value]) => value !== undefined),
+    ) as Partial<OrderSnapshot>;
 
-    const updatedOrder = this.ordersRepository.merge(order, payload);
+    const previousOrderSnapshot = this.createOrderSnapshot(order);
+    const updatedOrder = this.ordersRepository.merge(order, sanitizedPayload);
     const savedOrder = await this.ordersRepository.save(updatedOrder);
-    await this.eventsService.createEvent(EventType.ORDER_UPDATED, savedOrder);
+    const changed_fields = this.collectChangedFields(previousOrderSnapshot, savedOrder);
+    const eventType = this.resolveOrderUpdateEventType(previousOrderSnapshot, savedOrder);
+
+    await this.eventsService.createEvent(eventType, savedOrder, {
+      changed_fields,
+    });
     return savedOrder;
   }
 
@@ -95,5 +112,63 @@ export class OrdersService {
     if (!client) {
       throw new NotFoundException('Client not found');
     }
+  }
+
+  private createOrderSnapshot(order: Order): OrderSnapshot {
+    return {
+      title: order.title,
+      price: order.price,
+      content: order.content,
+      status: order.status,
+    };
+  }
+
+  private shouldCreateOrderCompleteEvent(previousOrder: OrderSnapshot, nextOrder: Order): boolean {
+    return previousOrder.status !== OrderStatus.DONE && nextOrder.status === OrderStatus.DONE;
+  }
+
+  private shouldCreateOrderReopenedEvent(previousOrder: OrderSnapshot, nextOrder: Order): boolean {
+    return previousOrder.status === OrderStatus.DONE && nextOrder.status !== OrderStatus.DONE;
+  }
+
+  private resolveOrderUpdateEventType(previousOrder: OrderSnapshot, nextOrder: Order): EventType {
+    if (this.shouldCreateOrderCompleteEvent(previousOrder, nextOrder)) {
+      return EventType.ORDER_COMPLETE;
+    }
+
+    if (this.shouldCreateOrderReopenedEvent(previousOrder, nextOrder)) {
+      return EventType.ORDER_REOPENED;
+    }
+
+    return EventType.ORDER_UPDATED;
+  }
+
+  private collectChangedFields(previousOrder: OrderSnapshot, nextOrder: Order): OrderFieldChange[] {
+    const trackedFields: OrderFieldChange['field'][] = ['title', 'price', 'content', 'status'];
+
+    return trackedFields.flatMap((field) => {
+      const previousValue = this.normalizeComparableValue(previousOrder[field]);
+      const nextValue = this.normalizeComparableValue(nextOrder[field]);
+
+      if (previousValue === nextValue) {
+        return [];
+      }
+
+      return [
+        {
+          field,
+          from: previousValue,
+          to: nextValue,
+        },
+      ];
+    });
+  }
+
+  private normalizeComparableValue(value: string | null | undefined): string | null {
+    if (value === undefined || value === null) {
+      return null;
+    }
+
+    return String(value);
   }
 }

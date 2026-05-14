@@ -8,20 +8,12 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum OrderStatus {
-  CREATED = 'created',
-  INPROGRESS = 'inprogress',
-  DONE = 'done',
-}
-
-@Entity('orders')
-export class Order implements EventReady {
+@Entity('paids')
+export class Paid implements EventReady {
   getPayload: () => Record<string, unknown> = () => ({
-    order_id: this.id,
-    title: this.title,
-    price: this.price,
-    content: this.content,
-    status: this.status,
+    paid_id: this.id,
+    order_id: this.order_id,
+    value: this.value,
   });
 
   @PrimaryGeneratedColumn()
@@ -33,17 +25,11 @@ export class Order implements EventReady {
   @Column({ type: 'uuid' })
   client_id: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true, default: 'order' })
-  title: string | null;
+  @Column({ type: 'integer' })
+  order_id: number;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
-  price: string;
-
-  @Column({ type: 'varchar', length: 255, default: '' })
-  content: string;
-
-  @Column({ type: 'enum', enum: OrderStatus, enumName: 'order_status', default: OrderStatus.CREATED })
-  status: OrderStatus;
+  value: string;
 
   @CreateDateColumn()
   created_at: Date;

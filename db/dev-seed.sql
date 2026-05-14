@@ -87,6 +87,14 @@ WHERE user_id = '11111111-1111-4111-8111-111111111111'
     '22222222-2222-4222-8222-222222222223'
   );
 
+DELETE FROM paids
+WHERE user_id = '11111111-1111-4111-8111-111111111111'
+  AND client_id IN (
+    '22222222-2222-4222-8222-222222222221',
+    '22222222-2222-4222-8222-222222222222',
+    '22222222-2222-4222-8222-222222222223'
+  );
+
 INSERT INTO orders (
   id,
   user_id,
@@ -183,6 +191,36 @@ VALUES
     'Budget owner joins the next call, prepare enterprise options.'
   );
 
+INSERT INTO paids (
+  id,
+  user_id,
+  client_id,
+  order_id,
+  value
+)
+VALUES
+  (
+    3001,
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222221',
+    2001,
+    50000.00
+  ),
+  (
+    3002,
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    2002,
+    -2500.00
+  ),
+  (
+    3003,
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222223',
+    2003,
+    98000.00
+  );
+
 DELETE FROM events
 WHERE user_id = '11111111-1111-4111-8111-111111111111'
   AND client_id IN (
@@ -190,7 +228,7 @@ WHERE user_id = '11111111-1111-4111-8111-111111111111'
     '22222222-2222-4222-8222-222222222222',
     '22222222-2222-4222-8222-222222222223'
   )
-  AND type IN ('client_created', 'note', 'order_created');
+  AND type IN ('client_created', 'note', 'order_created', 'paid');
 
 INSERT INTO events (
   user_id,
@@ -290,6 +328,27 @@ VALUES
     'order_created',
     'Order created',
     '{"order_id":2003,"title":"Reporting dashboard","price":"98000.00","content":"Reporting dashboard implementation","status":"done"}'::jsonb
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222221',
+    'paid',
+    'Paid created',
+    '{"paid_id":3001,"order_id":2001,"value":"50000.00"}'::jsonb
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222222',
+    'paid',
+    'Paid created',
+    '{"paid_id":3002,"order_id":2002,"value":"-2500.00"}'::jsonb
+  ),
+  (
+    '11111111-1111-4111-8111-111111111111',
+    '22222222-2222-4222-8222-222222222223',
+    'paid',
+    'Paid created',
+    '{"paid_id":3003,"order_id":2003,"value":"98000.00"}'::jsonb
   );
 
 COMMIT;

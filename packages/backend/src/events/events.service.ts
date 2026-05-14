@@ -10,12 +10,19 @@ export class EventsService {
     @InjectRepository(Event)
     private readonly eventsRepository: Repository<Event>,
   ) {}
-  createEvent<T extends EventType>(type: T, instance: EventReady) {
+  createEvent<T extends EventType>(
+    type: T,
+    instance: EventReady,
+    payloadOverrides?: Record<string, unknown>,
+  ) {
     const event = this.eventsRepository.create({
       user_id: instance.user_id,
       client_id: instance.client_id,
       type,
-      payload: instance.getPayload(),
+      payload: {
+        ...instance.getPayload(),
+        ...payloadOverrides,
+      },
     });
 
     return this.eventsRepository.save(event);

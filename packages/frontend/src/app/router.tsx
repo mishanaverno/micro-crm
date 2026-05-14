@@ -5,6 +5,7 @@ import { EventsLogPage } from '../pages/events-log-page';
 import { ClientsPage } from '../pages/clients-page';
 import { NotesPage } from '../pages/notes-page';
 import { OrdersPage } from '../pages/orders-page';
+import { PaidsPage } from '../pages/paids-page';
 import { LoginPage } from '../pages/login-page';
 import { RegisterPage } from '../pages/register-page';
 import { ProtectedRoute } from '../features/auth/protected-route';
@@ -46,6 +47,10 @@ export const router = createHashRouter([
           {
             path: 'orders',
             element: <OrdersPage />,
+          },
+          {
+            path: 'paids',
+            element: <PaidsPage />,
           },
           {
             path: 'events-log',

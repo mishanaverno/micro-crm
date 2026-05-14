@@ -99,7 +99,17 @@ describe('EventsService', () => {
     repository.create.mockReturnValue(event);
     repository.save.mockResolvedValue(event);
 
-    await expect(service.createEvent(EventType.ORDER_UPDATED, instance)).resolves.toEqual(event);
+    await expect(
+      service.createEvent(EventType.ORDER_UPDATED, instance, {
+        changed_fields: [
+          {
+            field: 'status',
+            from: 'created',
+            to: 'inprogress',
+          },
+        ],
+      }),
+    ).resolves.toEqual(event);
     expect(repository.create).toHaveBeenCalledWith({
       user_id: 'user-1',
       client_id: 'client-1',
@@ -109,6 +119,111 @@ describe('EventsService', () => {
         price: '12000.00',
         content: 'Landing redesign',
         status: 'inprogress',
+        changed_fields: [
+          {
+            field: 'status',
+            from: 'created',
+            to: 'inprogress',
+          },
+        ],
+      },
+    });
+  });
+
+  it('creates an order_complete event with order payload', async () => {
+    const instance = {
+      user_id: 'user-1',
+      client_id: 'client-1',
+      getPayload: () => ({
+        order_id: 1,
+        title: 'CRM onboarding',
+        price: '12000.00',
+        content: 'Landing redesign',
+        status: 'done',
+      }),
+    };
+    const event = { id: 5 } as Event;
+
+    repository.create.mockReturnValue(event);
+    repository.save.mockResolvedValue(event);
+
+    await expect(
+      service.createEvent(EventType.ORDER_COMPLETE, instance, {
+        changed_fields: [
+          {
+            field: 'status',
+            from: 'inprogress',
+            to: 'done',
+          },
+        ],
+      }),
+    ).resolves.toEqual(event);
+    expect(repository.create).toHaveBeenCalledWith({
+      user_id: 'user-1',
+      client_id: 'client-1',
+      type: EventType.ORDER_COMPLETE,
+      payload: {
+        order_id: 1,
+        title: 'CRM onboarding',
+        price: '12000.00',
+        content: 'Landing redesign',
+        status: 'done',
+        changed_fields: [
+          {
+            field: 'status',
+            from: 'inprogress',
+            to: 'done',
+          },
+        ],
+      },
+    });
+  });
+
+  it('creates an order_reopened event with order payload', async () => {
+    const instance = {
+      user_id: 'user-1',
+      client_id: 'client-1',
+      getPayload: () => ({
+        order_id: 1,
+        title: 'CRM onboarding',
+        price: '12000.00',
+        content: 'Landing redesign',
+        status: 'inprogress',
+      }),
+    };
+    const event = { id: 6 } as Event;
+
+    repository.create.mockReturnValue(event);
+    repository.save.mockResolvedValue(event);
+
+    await expect(
+      service.createEvent(EventType.ORDER_REOPENED, instance, {
+        changed_fields: [
+          {
+            field: 'status',
+            from: 'done',
+            to: 'inprogress',
+          },
+        ],
+      }),
+    ).resolves.toEqual(event);
+    expect(repository.create).toHaveBeenCalledWith({
+      user_id: 'user-1',
+      client_id: 'client-1',
+      type: EventType.ORDER_REOPENED,
+      payload: {
+        order_id: 1,
+        title: 'CRM onboarding',
+        price: '12000.00',
+        content: 'Landing redesign',
+        status: 'inprogress',
+        changed_fields: [
+          {
+            field: 'status',
+            from: 'done',
+            to: 'inprogress',
+          },
+        ],
       },
     });
   });
@@ -122,6 +237,34 @@ describe('EventsService', () => {
       where: { user_id: 'user-1' },
       order: { created_at: 'DESC' },
       take: 50,
+    });
+  });
+
+  it('creates a paid event with value in payload', async () => {
+    const instance = {
+      user_id: 'user-1',
+      client_id: 'client-1',
+      getPayload: () => ({
+        paid_id: 1,
+        order_id: 2001,
+        value: '-1500.00',
+      }),
+    };
+    const event = { id: 4 } as Event;
+
+    repository.create.mockReturnValue(event);
+    repository.save.mockResolvedValue(event);
+
+    await expect(service.createEvent(EventType.PAID, instance)).resolves.toEqual(event);
+    expect(repository.create).toHaveBeenCalledWith({
+      user_id: 'user-1',
+      client_id: 'client-1',
+      type: EventType.PAID,
+      payload: {
+        paid_id: 1,
+        order_id: 2001,
+        value: '-1500.00',
+      },
     });
   });
 });

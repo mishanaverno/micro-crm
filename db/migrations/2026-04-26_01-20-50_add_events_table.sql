@@ -18,11 +18,22 @@ BEGIN
       'note',
       'client_created',
       'order_created',
-      'order_updated'
+      'order_updated',
+      'order_complete',
+      'order_reopened',
+      'paid'
     );
   END IF;
 END
 $$;
+
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'note';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'client_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_complete';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_reopened';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid';
 
 create table if not exists
   "public"."events" (

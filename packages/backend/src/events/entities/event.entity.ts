@@ -12,6 +12,9 @@ export enum EventType {
   CLIENT_CREATED = 'client_created',
   ORDER_CREATED = 'order_created',
   ORDER_UPDATED = 'order_updated',
+  ORDER_COMPLETE = 'order_complete',
+  ORDER_REOPENED = 'order_reopened',
+  PAID = 'paid',
 }
 
 @Entity('events')
