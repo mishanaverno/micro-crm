@@ -72,6 +72,37 @@ export function EventsLog() {
     closeCommentDialog();
   }
 
+  async function clearComment(event: EventRecord) {
+    await updateEventComment.mutateAsync({
+      eventId: event.id,
+      comment: null,
+    });
+
+    if (eventToComment?.id === event.id) {
+      closeCommentDialog();
+    }
+  }
+
+  function commonActions(event: EventRecord) {
+    const actions = [
+      {
+        id: `comment-${event.id}`,
+        label: event.comment ? 'Edit comment' : 'Add comment',
+        onSelect: () => openCommentDialog(event),
+      } satisfies EventsLogAction
+    ]
+    if (event.comment) {
+      actions.push({
+        id: `clear-comment-${event.id}`,
+        label: 'Clear comment',
+        onSelect: () => {
+          void clearComment(event);
+        },
+      } satisfies EventsLogAction)
+    }
+    return actions;
+  }
+  
   return (
     <Card>
       <CardHeader>
@@ -92,13 +123,7 @@ export function EventsLog() {
             {eventsQuery.data.map((event) => (
               <EventsLogItem
                 clientLabel={resolveClientLabel(event.client_id)}
-                commonActions={[
-                  {
-                    id: `comment-${event.id}`,
-                    label: event.comment ? 'Edit comment' : 'Add comment',
-                    onSelect: () => openCommentDialog(event),
-                  } satisfies EventsLogAction,
-                ]}
+                commonActions={commonActions(event)}
                 key={event.id}
                 event={event}
               />
