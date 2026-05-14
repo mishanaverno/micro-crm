@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Query, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -11,6 +11,7 @@ import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { JwtUserPayload } from '../auth/interfaces/jwt-user-payload.interface';
 import { Event } from './entities/event.entity';
 import { EventsService } from './events.service';
+import { UpdateEventCommentDto } from './dto/update-event-comment.dto';
 
 interface AuthenticatedRequest extends Request {
   user: JwtUserPayload;
@@ -42,5 +43,21 @@ export class EventsController {
       : Math.min(Math.max(parsedLimit, 1), 100);
 
     return this.eventsService.findRecentByUser(request.user.sub, safeLimit);
+  }
+
+  @Patch(':id/comment')
+  @ApiOperation({ summary: 'Add or update comment for an event' })
+  @ApiResponse({ status: 200, description: 'Event comment updated', type: Event })
+  @ApiResponse({ status: 404, description: 'Event not found' })
+  updateComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateEventCommentDto: UpdateEventCommentDto,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.eventsService.updateComment(
+      id,
+      request.user.sub,
+      updateEventCommentDto.comment ?? null,
+    );
   }
 }

@@ -1,10 +1,12 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderChangedField, OrderUpdatedEventRecord } from '../shared/types/event';
 
 interface OrderUpdatedEventsLogItemProps {
   event: OrderUpdatedEventRecord;
   clientLabel: string;
+  commonActions?: EventsLogAction[];
 }
 
 function describeOrderUpdatedEvent(event: OrderUpdatedEventRecord) {
@@ -39,14 +41,17 @@ function formatFieldValue(value: string | null) {
 export function OrderUpdatedEventsLogItem({
   event,
   clientLabel,
+  commonActions = [],
 }: OrderUpdatedEventsLogItemProps) {
   const changedFields = event.payload.changed_fields ?? [];
 
   return (
     <AbstractEventsLogItem
       clientLabel={clientLabel}
+      commonActions={commonActions}
       event={event}
       markerClassName="bg-violet-500"
+      specificActions={[]}
       typeLabel="order updated"
     >
       <LogItemTitle>{describeOrderUpdatedEvent(event)}</LogItemTitle>

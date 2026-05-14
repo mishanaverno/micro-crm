@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event, EventType } from './entities/event.entity';
@@ -34,5 +34,16 @@ export class EventsService {
       order: { created_at: 'DESC' },
       take: limit,
     });
+  }
+
+  async updateComment(eventId: number, userId: string, comment: string | null | undefined) {
+    const event = await this.eventsRepository.findOneBy({ id: eventId, user_id: userId });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    event.comment = comment?.trim() ? comment.trim() : null;
+    return this.eventsRepository.save(event);
   }
 }

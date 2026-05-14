@@ -10,3 +10,18 @@ export async function fetchEventsRequest(accessToken: string, limit = 50) {
     },
   });
 }
+
+export async function updateEventCommentRequest(
+  eventId: number,
+  comment: string | null,
+  accessToken: string,
+) {
+  return httpRequest<EventRecord>({
+    path: `/events/${eventId}/comment`,
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ comment }),
+  });
+}

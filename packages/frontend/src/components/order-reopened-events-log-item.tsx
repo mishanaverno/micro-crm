@@ -1,10 +1,12 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
+import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderReopenedEventRecord } from '../shared/types/event';
 
 interface OrderReopenedEventsLogItemProps {
   event: OrderReopenedEventRecord;
   clientLabel: string;
+  commonActions?: EventsLogAction[];
 }
 
 function describeOrderReopenedEvent(event: OrderReopenedEventRecord) {
@@ -18,12 +20,15 @@ function describeOrderReopenedEvent(event: OrderReopenedEventRecord) {
 export function OrderReopenedEventsLogItem({
   event,
   clientLabel,
+  commonActions = [],
 }: OrderReopenedEventsLogItemProps) {
   return (
     <AbstractEventsLogItem
       clientLabel={clientLabel}
+      commonActions={commonActions}
       event={event}
       markerClassName="bg-sky-500"
+      specificActions={[]}
       typeLabel="order reopened"
     >
       <LogItemTitle>{describeOrderReopenedEvent(event)}</LogItemTitle>

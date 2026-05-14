@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/features/auth/auth-provider';
 import { Button } from '@/components/ui/button';
+import { useNetworkStatus } from '@/shared/lib/network';
+import { useOutboxStats } from '@/shared/offline/use-outbox-stats';
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +29,8 @@ const navigation = [
 export function AppSidebar() {
   const { user, logout } = useAuth();
   const { open } = useSidebar();
+  const isOnline = useNetworkStatus();
+  const stats = useOutboxStats();
 
   return (
     <Sidebar>
@@ -81,13 +85,30 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <div className="rounded-2xl bg-sidebar-accent px-3 py-3">
-          
           {open ? (
             <>
               <p className="text-sm font-medium">
                 {user ? `${user.first_name} ${user.last_name}` : 'Signed in'}
               </p>
               <p className="mt-1 text-xs text-sidebar-foreground/60">{user?.email}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-medium">
+                <span
+                  className={[
+                    'rounded-full px-2.5 py-1',
+                    isOnline
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-amber-100 text-amber-900',
+                  ].join(' ')}
+                >
+                  {isOnline ? 'network: online' : 'network: offline'}
+                </span>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
+                  outbox: {stats?.pending_count ?? 0}
+                </span>
+                <span className="rounded-full bg-rose-100 px-2.5 py-1 text-rose-700">
+                  failed: {stats?.failed_count ?? 0}
+                </span>
+              </div>
               <Button
                 className="mt-3 w-full justify-center"
                 onClick={() => void logout()}
@@ -99,6 +120,19 @@ export function AppSidebar() {
             </>
           ) : (
             <div className="flex flex-col items-center gap-2">
+              <div
+                className={[
+                  'h-2.5 w-2.5 rounded-full',
+                  isOnline ? 'bg-emerald-500' : 'bg-amber-500',
+                ].join(' ')}
+                title={isOnline ? 'network: online' : 'network: offline'}
+              />
+              <div
+                className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700"
+                title={`outbox: ${stats?.pending_count ?? 0}, failed: ${stats?.failed_count ?? 0}`}
+              >
+                {stats?.pending_count ?? 0}/{stats?.failed_count ?? 0}
+              </div>
               <div className="text-center text-xs font-semibold">{user?.first_name?.[0] ?? 'U'}</div>
               <Button
                 className="h-8 w-8 rounded-full p-0"

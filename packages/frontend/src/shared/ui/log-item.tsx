@@ -9,6 +9,7 @@ export {
   LogItemHeaderMain,
   LogItemMarker,
   LogItemMeta,
+  LogItemNote,
   LogItemTimestamp,
   LogItemTitle,
 } from '@/components/ui/log-item';

@@ -6,12 +6,14 @@ type MockRepository<T> = {
   create: jest.Mock<T, [Partial<T>]>;
   save: jest.Mock<Promise<T>, [T]>;
   find: jest.Mock<Promise<T[]>, [unknown?]>;
+  findOneBy: jest.Mock<Promise<T | null>, [Partial<T>]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
+  findOneBy: jest.fn(),
 });
 
 describe('EventsService', () => {
@@ -266,5 +268,22 @@ describe('EventsService', () => {
         value: '-1500.00',
       },
     });
+  });
+
+  it('updates comment for an existing event', async () => {
+    const event = {
+      id: 10,
+      user_id: 'user-1',
+      comment: null,
+    } as Event;
+
+    repository.findOneBy.mockResolvedValue(event);
+    repository.save.mockResolvedValue({ ...event, comment: 'Need follow-up' } as Event);
+
+    await expect(service.updateComment(10, 'user-1', 'Need follow-up')).resolves.toEqual({
+      ...event,
+      comment: 'Need follow-up',
+    });
+    expect(repository.findOneBy).toHaveBeenCalledWith({ id: 10, user_id: 'user-1' });
   });
 });

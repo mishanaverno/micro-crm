@@ -86,6 +86,21 @@ export function LogItemFooter({
   );
 }
 
+export function LogItemNote({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p
+      className={cn(
+        'mt-3 rounded-2xl border border-border/60 bg-muted/50 px-3 py-2 text-xs text-foreground/80',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 export function LogItemTitle({
   className,
   ...props
