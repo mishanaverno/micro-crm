@@ -31,6 +31,7 @@ import { OrderRecord, OrderStatus } from '../shared/types/order';
 
 const initialFormState = {
   client_id: '',
+  title: '',
   price: '',
   content: '',
   status: 'created' as OrderStatus,
@@ -40,6 +41,7 @@ const ORDERS_TABLE_COLUMNS_STORAGE_KEY = 'orders-table-visible-columns';
 
 const defaultVisibleColumns = {
   client: true,
+  title: true,
   price: true,
   status: true,
   created_at: false,
@@ -50,6 +52,7 @@ type VisibleColumns = typeof defaultVisibleColumns;
 
 export function OrdersPage() {
   const [form, setForm] = useState(initialFormState);
+  const [formError, setFormError] = useState<string | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<OrderRecord | null>(null);
   const [orderToDelete, setOrderToDelete] = useState<OrderRecord | null>(null);
@@ -126,9 +129,11 @@ export function OrdersPage() {
   function openCreateDialog() {
     createOrder.reset();
     updateOrder.reset();
+    setFormError(null);
     setEditingOrder(null);
     setForm({
       client_id: clientOptions[0]?.id ?? '',
+      title: '',
       price: '',
       content: '',
       status: 'created',
@@ -139,9 +144,11 @@ export function OrdersPage() {
   function openEditDialog(order: OrderRecord) {
     createOrder.reset();
     updateOrder.reset();
+    setFormError(null);
     setEditingOrder(order);
     setForm({
       client_id: order.client_id,
+      title: order.title ?? '',
       price: String(order.price),
       content: order.content,
       status: order.status,
@@ -153,6 +160,7 @@ export function OrdersPage() {
     setIsOrderDialogOpen(false);
     setEditingOrder(null);
     setForm(initialFormState);
+    setFormError(null);
     createOrder.reset();
     updateOrder.reset();
   }
@@ -184,8 +192,20 @@ export function OrdersPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (!form.client_id) {
+      setFormError('Select a client before saving the order.');
+      return;
+    }
+
+    if (!form.price || Number.isNaN(Number(form.price))) {
+      setFormError('Enter a valid order price.');
+      return;
+    }
+
+    setFormError(null);
+
     const payload = {
-      client_id: form.client_id,
+      title: form.title || undefined,
       price: Number(form.price),
       content: form.content,
       status: form.status,
@@ -197,7 +217,10 @@ export function OrdersPage() {
         payload,
       });
     } else {
-      await createOrder.mutateAsync(payload);
+      await createOrder.mutateAsync({
+        ...payload,
+        client_id: form.client_id,
+      });
     }
 
     closeDialog();
@@ -230,6 +253,12 @@ export function OrdersPage() {
                     onCheckedChange={() => toggleColumn('client')}
                   >
                     Client
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={visibleColumns.title}
+                    onCheckedChange={() => toggleColumn('title')}
+                  >
+                    Title
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.price}
@@ -278,7 +307,11 @@ export function OrdersPage() {
                       <select
                         id="client_id"
                         className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        disabled={clientsQuery.isLoading || clientOptions.length === 0}
+                        disabled={
+                          Boolean(editingOrder) ||
+                          clientsQuery.isLoading ||
+                          clientOptions.length === 0
+                        }
                         required
                         value={form.client_id}
                         onChange={(event) =>
@@ -294,6 +327,17 @@ export function OrdersPage() {
                           </option>
                         ))}
                       </select>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={form.title}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, title: event.target.value }))
+                        }
+                      />
                     </div>
 
                     <div className="grid gap-2">
@@ -413,6 +457,10 @@ export function OrdersPage() {
         </CardHeader>
 
         <CardContent>
+          {formError ? (
+            <p className="mb-4 text-sm text-rose-700">{formError}</p>
+          ) : null}
+
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
               {mutationError.message || 'Failed to save order changes.'}

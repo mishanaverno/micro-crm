@@ -5,6 +5,7 @@ import { useCreateNote } from '../features/notes/use-create-note';
 import { useDeleteNote } from '../features/notes/use-delete-note';
 import { useNotes } from '../features/notes/use-notes';
 import { useUpdateNote } from '../features/notes/use-update-note';
+import { useOrders } from '../features/orders/use-orders';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
 import {
@@ -30,6 +31,7 @@ import { NoteRecord } from '../shared/types/note';
 
 const initialFormState = {
   client_id: '',
+  order_id: '',
   content: '',
 };
 
@@ -37,6 +39,7 @@ const NOTES_TABLE_COLUMNS_STORAGE_KEY = 'notes-table-visible-columns';
 
 const defaultVisibleColumns = {
   client: true,
+  order: false,
   content: true,
   created_at: false,
   updated_at: false,
@@ -73,6 +76,7 @@ export function NotesPage() {
   });
 
   const clientsQuery = useClients();
+  const ordersQuery = useOrders();
   const notesQuery = useNotes();
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
@@ -87,6 +91,39 @@ export function NotesPage() {
   }, [visibleColumns]);
 
   const clientOptions = clientsQuery.data ?? [];
+  const orderOptions = useMemo(
+    () =>
+      (ordersQuery.data ?? []).filter((order) =>
+        form.client_id ? order.client_id === form.client_id : true,
+      ),
+    [form.client_id, ordersQuery.data],
+  );
+
+  useEffect(() => {
+    if (!isNoteDialogOpen || editingNote || form.client_id || clientOptions.length === 0) {
+      return;
+    }
+
+    setForm((current) => ({
+      ...current,
+      client_id: clientOptions[0].id,
+    }));
+  }, [clientOptions, editingNote, form.client_id, isNoteDialogOpen]);
+
+  useEffect(() => {
+    if (!form.order_id) {
+      return;
+    }
+
+    const hasSelectedOrder = orderOptions.some((order) => order.id === form.order_id);
+
+    if (!hasSelectedOrder) {
+      setForm((current) => ({
+        ...current,
+        order_id: '',
+      }));
+    }
+  }, [form.order_id, orderOptions]);
 
   const clientLabels = useMemo(() => {
     return new Map(
@@ -99,6 +136,20 @@ export function NotesPage() {
 
   function resolveClientLabel(clientId: string) {
     return clientLabels.get(clientId) ?? clientId;
+  }
+
+  function resolveOrderLabel(orderId: number | null | undefined) {
+    if (!orderId) {
+      return '—';
+    }
+
+    const order = (ordersQuery.data ?? []).find((item) => Number(item.id) === orderId);
+
+    if (!order) {
+      return `#${orderId}`;
+    }
+
+    return `#${order.id} — ${order.title || 'order'}`;
   }
 
   function toggleColumn(column: keyof VisibleColumns) {
@@ -114,6 +165,7 @@ export function NotesPage() {
     setEditingNote(null);
     setForm({
       client_id: clientOptions[0]?.id ?? '',
+      order_id: '',
       content: '',
     });
     setIsNoteDialogOpen(true);
@@ -125,6 +177,7 @@ export function NotesPage() {
     setEditingNote(note);
     setForm({
       client_id: note.client_id,
+      order_id: note.order_id ? String(note.order_id) : '',
       content: note.content,
     });
     setIsNoteDialogOpen(true);
@@ -167,6 +220,7 @@ export function NotesPage() {
 
     const payload = {
       client_id: form.client_id,
+      order_id: form.order_id ? Number(form.order_id) : null,
       content: form.content,
     };
 
@@ -209,6 +263,12 @@ export function NotesPage() {
                     onCheckedChange={() => toggleColumn('client')}
                   >
                     Client
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={visibleColumns.order}
+                    onCheckedChange={() => toggleColumn('order')}
+                  >
+                    Order
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.content}
@@ -270,6 +330,26 @@ export function NotesPage() {
                     </div>
 
                     <div className="grid gap-2">
+                      <Label htmlFor="order_id">Order</Label>
+                      <select
+                        id="order_id"
+                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        disabled={ordersQuery.isLoading || !form.client_id}
+                        value={form.order_id}
+                        onChange={(event) =>
+                          setForm((current) => ({ ...current, order_id: event.target.value }))
+                        }
+                      >
+                        <option value="">No order</option>
+                        {orderOptions.map((order) => (
+                          <option key={order.id} value={order.id}>
+                            {resolveOrderLabel(Number(order.id))}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid gap-2">
                       <Label htmlFor="content">Content</Label>
                       <Textarea
                         id="content"
@@ -290,7 +370,8 @@ export function NotesPage() {
                       disabled={
                         createNote.isPending ||
                         updateNote.isPending ||
-                        clientOptions.length === 0
+                        clientOptions.length === 0 ||
+                        !form.client_id
                       }
                       form="create-note-form"
                       type="submit"
@@ -356,7 +437,7 @@ export function NotesPage() {
             </p>
           ) : null}
 
-          {notesQuery.isLoading || clientsQuery.isLoading ? (
+          {notesQuery.isLoading || clientsQuery.isLoading || ordersQuery.isLoading ? (
             <p className="text-sm text-muted-foreground">Loading notes...</p>
           ) : notesQuery.isError ? (
             <p className="text-sm text-rose-700">Failed to load notes from the backend.</p>
@@ -366,6 +447,7 @@ export function NotesPage() {
               onDeleteNote={openDeleteDialog}
               onEditNote={openEditDialog}
               resolveClientLabel={resolveClientLabel}
+              resolveOrderLabel={resolveOrderLabel}
               visibleColumns={visibleColumns}
             />
           ) : (

@@ -18,6 +18,7 @@ export enum OrderStatus {
 export class Order implements EventReady {
   getPayload: () => Record<string, string | number | null> = () => ({
     order_id: this.id,
+    title: this.title,
     price: this.price,
     content: this.content,
     status: this.status,
@@ -31,6 +32,9 @@ export class Order implements EventReady {
 
   @Column({ type: 'uuid' })
   client_id: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, default: 'order' })
+  title: string | null;
 
   @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
   price: string;

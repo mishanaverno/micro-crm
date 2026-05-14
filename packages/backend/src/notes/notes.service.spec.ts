@@ -3,6 +3,8 @@ import { Repository } from 'typeorm';
 import { Client } from '../clients/entities/client.entity';
 import { ClientsService } from '../clients/clients.service';
 import { EventsService } from '../events/events.service';
+import { Order } from '../orders/entities/order.entity';
+import { OrdersService } from '../orders/orders.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
@@ -25,6 +27,10 @@ type MockEventsService = {
   createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
 };
 
+type MockOrdersService = {
+  findOneOwnedByUser: jest.Mock<Promise<Order | null>, [number, string]>;
+};
+
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -39,6 +45,7 @@ describe('NotesService', () => {
   let repository: MockRepository<Note>;
   let clientsService: MockClientsService;
   let eventsService: MockEventsService;
+  let ordersService: MockOrdersService;
 
   beforeEach(() => {
     repository = createRepositoryMock<Note>();
@@ -48,12 +55,16 @@ describe('NotesService', () => {
     eventsService = {
       createEvent: jest.fn(),
     };
+    ordersService = {
+      findOneOwnedByUser: jest.fn(),
+    };
     eventsService.createEvent.mockResolvedValue(undefined);
 
     service = new NotesService(
       repository as unknown as Repository<Note>,
       clientsService as unknown as ClientsService,
       eventsService as unknown as EventsService,
+      ordersService as unknown as OrdersService,
     );
   });
 
@@ -80,6 +91,30 @@ describe('NotesService', () => {
     });
     expect(repository.save).toHaveBeenCalledWith(createdNote);
     expect(eventsService.createEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('validates owned order when note is linked to an order', async () => {
+    const dto: CreateNoteDto = {
+      client_id: 'client-1',
+      content: 'Linked to order',
+      order_id: 2001,
+    };
+    const createdNote = {
+      id: 1,
+      user_id: 'user-1',
+      ...dto,
+    } as Note;
+
+    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
+    ordersService.findOneOwnedByUser.mockResolvedValue({
+      id: 2001,
+      client_id: 'client-1',
+    } as Order);
+    repository.create.mockReturnValue(createdNote);
+    repository.save.mockResolvedValue(createdNote);
+
+    await expect(service.create(dto, 'user-1')).resolves.toEqual(createdNote);
+    expect(ordersService.findOneOwnedByUser).toHaveBeenCalledWith(2001, 'user-1');
   });
 
   it('rejects note creation when client does not belong to the user', async () => {
@@ -121,7 +156,7 @@ describe('NotesService', () => {
   });
 
   it('updates an existing note', async () => {
-    const existingNote = { id: 1, user_id: 'user-1', client_id: 'client-1', content: 'Old' } as Note;
+    const existingNote = { id: 1, user_id: 'user-1', client_id: 'client-1', content: 'Old', order_id: null } as Note;
     const dto: UpdateNoteDto = { content: 'Updated' };
     const mergedNote = { ...existingNote, ...dto } as Note;
 
@@ -135,7 +170,7 @@ describe('NotesService', () => {
   });
 
   it('validates client ownership when moving a note to another client', async () => {
-    const existingNote = { id: 1, user_id: 'user-1', client_id: 'client-1', content: 'Old' } as Note;
+    const existingNote = { id: 1, user_id: 'user-1', client_id: 'client-1', content: 'Old', order_id: null } as Note;
     const dto: UpdateNoteDto = { client_id: 'client-2' };
     const mergedNote = { ...existingNote, ...dto } as Note;
 
@@ -146,6 +181,29 @@ describe('NotesService', () => {
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedNote);
     expect(clientsService.findOneOwnedByUser).toHaveBeenCalledWith('client-2', 'user-1');
+  });
+
+  it('validates that linked order belongs to the selected client on update', async () => {
+    const existingNote = {
+      id: 1,
+      user_id: 'user-1',
+      client_id: 'client-1',
+      content: 'Old',
+      order_id: null,
+    } as Note;
+    const dto: UpdateNoteDto = { order_id: 2002 };
+    const mergedNote = { ...existingNote, ...dto } as Note;
+
+    repository.findOneBy.mockResolvedValue(existingNote);
+    ordersService.findOneOwnedByUser.mockResolvedValue({
+      id: 2002,
+      client_id: 'client-1',
+    } as Order);
+    repository.merge.mockReturnValue(mergedNote);
+    repository.save.mockResolvedValue(mergedNote);
+
+    await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedNote);
+    expect(ordersService.findOneOwnedByUser).toHaveBeenCalledWith(2002, 'user-1');
   });
 
   it('throws when updating a missing note', async () => {

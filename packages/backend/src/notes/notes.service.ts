@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientsService } from '../clients/clients.service';
 import { EventsService } from '../events/events.service';
+import { OrdersService } from '../orders/orders.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
@@ -15,10 +16,12 @@ export class NotesService {
     private readonly notesRepository: Repository<Note>,
     private readonly clientsService: ClientsService,
     private readonly eventsService: EventsService,
+    private readonly ordersService: OrdersService,
   ) {}
 
   async create(createNoteDto: CreateNoteDto, userId: string): Promise<Note> {
     await this.ensureClientOwnership(createNoteDto.client_id, userId);
+    await this.ensureOrderOwnership(createNoteDto.order_id, userId, createNoteDto.client_id);
 
     const note = this.notesRepository.create({
       ...createNoteDto,
@@ -59,6 +62,12 @@ export class NotesService {
       await this.ensureClientOwnership(updateNoteDto.client_id, userId);
     }
 
+    const nextClientId = updateNoteDto.client_id ?? note.client_id;
+    const nextOrderId =
+      updateNoteDto.order_id !== undefined ? updateNoteDto.order_id : note.order_id;
+
+    await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
+
     const updatedNote = this.notesRepository.merge(note, updateNoteDto);
     return this.notesRepository.save(updatedNote);
   }
@@ -79,6 +88,26 @@ export class NotesService {
 
     if (!client) {
       throw new NotFoundException('Client not found');
+    }
+  }
+
+  private async ensureOrderOwnership(
+    orderId: number | null | undefined,
+    userId: string,
+    clientId: string,
+  ): Promise<void> {
+    if (orderId === null || orderId === undefined) {
+      return;
+    }
+
+    const order = await this.ordersService.findOneOwnedByUser(orderId, userId);
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.client_id !== clientId) {
+      throw new NotFoundException('Order does not belong to the selected client');
     }
   }
 }

@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { CreateNoteDto } from './create-note.dto';
 
 export class UpdateNoteDto extends PartialType(CreateNoteDto) {
@@ -13,4 +14,11 @@ export class UpdateNoteDto extends PartialType(CreateNoteDto) {
   @IsString()
   @IsOptional()
   content?: string;
+
+  @ApiPropertyOptional({ example: 2001, nullable: true, description: 'Optional order ID linked to the note' })
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  order_id?: number | null;
 }

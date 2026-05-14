@@ -24,6 +24,7 @@ create table if not exists
     "id" serial not null,
     "user_id" UUID not null,
     "client_id" UUID not null,
+    "title" varchar(255) null default 'order',
     "price" numeric(12, 2) not null default 0,
     "content" varchar(255) not null default '',
     "status" public.order_status not null default 'created',

@@ -49,6 +49,10 @@ export class OrdersService {
     return this.ordersRepository.findOneBy({ id, user_id: userId });
   }
 
+  findOneOwnedByUser(id: number, userId: string): Promise<Order | null> {
+    return this.findOne(id, userId);
+  }
+
   async update(id: number, userId: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
     const order = await this.findOne(id, userId);
 
@@ -56,12 +60,12 @@ export class OrdersService {
       throw new NotFoundException('Order not found');
     }
 
-    if (updateOrderDto.client_id && updateOrderDto.client_id !== order.client_id) {
-      await this.ensureClientOwnership(updateOrderDto.client_id, userId);
-    }
+    const { client_id: _clientId, ...restPayload } = updateOrderDto as UpdateOrderDto & {
+      client_id?: string;
+    };
 
     const payload = {
-      ...updateOrderDto,
+      ...restPayload,
       price:
         typeof updateOrderDto.price === 'number'
           ? updateOrderDto.price.toFixed(2)

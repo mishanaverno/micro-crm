@@ -10,9 +10,10 @@ import {
 
 @Entity('notes')
 export class Note implements EventReady{
-  getPayload: () => Record<string, string | number> = () => { return { 
+  getPayload: () => Record<string, string | number | null> = () => { return { 
     note_id: this.id,
-    content: this.content
+    content: this.content,
+    order_id: this.order_id ?? null,
   }};
   @PrimaryGeneratedColumn()
   id: number;
@@ -22,6 +23,9 @@ export class Note implements EventReady{
 
   @Column({ type: 'uuid' })
   client_id: string;
+
+  @Column({ type: 'integer', nullable: true })
+  order_id: number | null;
 
   @Column({ type: 'text' })
   content: string;

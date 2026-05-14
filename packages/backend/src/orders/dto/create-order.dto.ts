@@ -11,6 +11,16 @@ export class CreateOrderDto {
   @IsUUID()
   client_id: string;
 
+  @ApiPropertyOptional({
+    example: 'CRM onboarding',
+    description: 'Order title',
+    default: 'order',
+  })
+  @IsString()
+  @MaxLength(255)
+  @IsOptional()
+  title?: string | null;
+
   @ApiProperty({
     example: 15000,
     description: 'Order price',

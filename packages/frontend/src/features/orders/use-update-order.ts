@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth/auth-provider';
 import { updateOrderRequest } from '../../shared/api/orders';
-import { OrderDraft, OrderRecord } from '../../shared/types/order';
+import { OrderRecord, UpdateOrderDraft } from '../../shared/types/order';
 
 interface UpdateOrderInput {
   orderId: string;
-  payload: OrderDraft;
+  payload: UpdateOrderDraft;
 }
 
 export function useUpdateOrder() {

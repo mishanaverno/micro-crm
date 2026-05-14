@@ -157,7 +157,7 @@ describe('OrdersService', () => {
     expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.ORDER_UPDATED, mergedOrder);
   });
 
-  it('validates client ownership when moving an order to another client', async () => {
+  it('ignores client changes on update', async () => {
     const existingOrder = {
       id: 1,
       user_id: 'user-1',
@@ -166,16 +166,20 @@ describe('OrdersService', () => {
       content: 'Old',
       status: OrderStatus.CREATED,
     } as Order;
-    const dto: UpdateOrderDto = { client_id: 'client-2' };
-    const mergedOrder = { ...existingOrder, ...dto } as Order;
+    const dto = { client_id: 'client-2' } as unknown as UpdateOrderDto;
 
     repository.findOneBy.mockResolvedValue(existingOrder);
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-2' } as Client);
+
+    const mergedOrder = { ...existingOrder } as Order;
+
     repository.merge.mockReturnValue(mergedOrder);
     repository.save.mockResolvedValue(mergedOrder);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedOrder);
-    expect(clientsService.findOneOwnedByUser).toHaveBeenCalledWith('client-2', 'user-1');
+    expect(repository.merge).toHaveBeenCalledWith(existingOrder, {
+      price: undefined,
+    });
+    expect(repository.save).toHaveBeenCalledWith(mergedOrder);
   });
 
   it('throws when updating a missing order', async () => {

@@ -18,10 +18,12 @@ import {
 interface NotesDataTableProps {
   notes: NoteRecord[];
   resolveClientLabel: (clientId: string) => string;
+  resolveOrderLabel: (orderId: number | null | undefined) => string;
   onEditNote: (note: NoteRecord) => void;
   onDeleteNote: (note: NoteRecord) => void;
   visibleColumns: {
     client: boolean;
+    order: boolean;
     content: boolean;
     created_at: boolean;
     updated_at: boolean;
@@ -81,6 +83,7 @@ function TrashIcon() {
 export function NotesDataTable({
   notes,
   resolveClientLabel,
+  resolveOrderLabel,
   onEditNote,
   onDeleteNote,
   visibleColumns,
@@ -90,6 +93,7 @@ export function NotesDataTable({
       <TableHeader>
         <TableRow>
           {visibleColumns.client ? <TableHead>Client</TableHead> : null}
+          {visibleColumns.order ? <TableHead>Order</TableHead> : null}
           {visibleColumns.content ? <TableHead>Content</TableHead> : null}
           {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
           {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
@@ -104,6 +108,7 @@ export function NotesDataTable({
                 {resolveClientLabel(note.client_id)}
               </TableCell>
             ) : null}
+            {visibleColumns.order ? <TableCell>{resolveOrderLabel(note.order_id)}</TableCell> : null}
             {visibleColumns.content ? (
               <TableCell className="max-w-[560px] text-muted-foreground">
                 <span className="line-clamp-2">{note.content}</span>

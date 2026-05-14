@@ -22,6 +22,7 @@ interface OrdersDataTableProps {
   onDeleteOrder: (order: OrderRecord) => void;
   visibleColumns: {
     client: boolean;
+    title: boolean;
     price: boolean;
     status: boolean;
     created_at: boolean;
@@ -99,6 +100,7 @@ export function OrdersDataTable({
       <TableHeader>
         <TableRow>
           {visibleColumns.client ? <TableHead>Client</TableHead> : null}
+          {visibleColumns.title ? <TableHead>Title</TableHead> : null}
           <TableHead>Content</TableHead>
           {visibleColumns.price ? <TableHead>Price</TableHead> : null}
           {visibleColumns.status ? <TableHead>Status</TableHead> : null}
@@ -115,6 +117,7 @@ export function OrdersDataTable({
                 {resolveClientLabel(order.client_id)}
               </TableCell>
             ) : null}
+            {visibleColumns.title ? <TableCell>{order.title || 'order'}</TableCell> : null}
             <TableCell className="max-w-[420px] text-muted-foreground">
               <span className="line-clamp-2">{order.content}</span>
             </TableCell>

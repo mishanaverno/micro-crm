@@ -1,5 +1,5 @@
 import { httpRequest } from './http';
-import { OrderDraft, OrderRecord } from '../types/order';
+import { OrderDraft, OrderRecord, UpdateOrderDraft } from '../types/order';
 
 interface ApiOrderRecord extends Omit<OrderRecord, 'id' | 'sync_status'> {
   id: number | string;
@@ -43,7 +43,7 @@ export async function createOrderRequest(payload: OrderDraft, accessToken: strin
 
 export async function updateOrderRequest(
   orderId: string,
-  payload: OrderDraft,
+  payload: UpdateOrderDraft,
   accessToken: string,
 ) {
   const order = await httpRequest<ApiOrderRecord>({
