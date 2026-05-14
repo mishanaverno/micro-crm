@@ -12,7 +12,7 @@ export function DashboardPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Use the sidebar to navigate between clients, notes and the activity log.
+            Use the sidebar to navigate between clients, notes and the events log.
           </p>
         </CardContent>
       </Card>
