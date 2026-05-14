@@ -1,3 +1,4 @@
+import { EventReady } from '../../events/interfaces/event-ready.interface';
 import {
   Column,
   CreateDateColumn,
@@ -14,7 +15,14 @@ export enum OrderStatus {
 }
 
 @Entity('orders')
-export class Order {
+export class Order implements EventReady {
+  getPayload: () => Record<string, string | number | null> = () => ({
+    order_id: this.id,
+    price: this.price,
+    content: this.content,
+    status: this.status,
+  });
+
   @PrimaryGeneratedColumn()
   id: number;
 

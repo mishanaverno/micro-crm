@@ -83,6 +83,36 @@ describe('EventsService', () => {
     });
   });
 
+  it('creates an order_updated event with order payload', async () => {
+    const instance = {
+      user_id: 'user-1',
+      client_id: 'client-1',
+      getPayload: () => ({
+        order_id: 1,
+        price: '12000.00',
+        content: 'Landing redesign',
+        status: 'inprogress',
+      }),
+    };
+    const event = { id: 3 } as Event;
+
+    repository.create.mockReturnValue(event);
+    repository.save.mockResolvedValue(event);
+
+    await expect(service.createEvent(EventType.ORDER_UPDATED, instance)).resolves.toEqual(event);
+    expect(repository.create).toHaveBeenCalledWith({
+      user_id: 'user-1',
+      client_id: 'client-1',
+      type: EventType.ORDER_UPDATED,
+      payload: {
+        order_id: 1,
+        price: '12000.00',
+        content: 'Landing redesign',
+        status: 'inprogress',
+      },
+    });
+  });
+
   it('returns recent events for the current user', async () => {
     const events = [{ id: 1 }, { id: 2 }] as Event[];
     repository.find.mockResolvedValue(events);

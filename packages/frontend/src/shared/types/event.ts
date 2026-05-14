@@ -1,4 +1,4 @@
-export type EventType = 'note' | 'client_created';
+export type EventType = 'note' | 'client_created' | 'order_created' | 'order_updated';
 
 export interface BaseEventRecord<TType extends EventType, TPayload extends object> {
   id: number;
@@ -26,6 +26,13 @@ export interface ClientCreatedEventPayload {
   company?: string;
 }
 
+export interface OrderEventPayload {
+  order_id: number;
+  price: string | number;
+  content: string;
+  status: string;
+}
+
 export type NoteEventRecord = BaseEventRecord<'note', NoteEventPayload>;
 
 export type ClientCreatedEventRecord = BaseEventRecord<
@@ -33,4 +40,12 @@ export type ClientCreatedEventRecord = BaseEventRecord<
   ClientCreatedEventPayload
 >;
 
-export type EventRecord = NoteEventRecord | ClientCreatedEventRecord;
+export type OrderCreatedEventRecord = BaseEventRecord<'order_created', OrderEventPayload>;
+
+export type OrderUpdatedEventRecord = BaseEventRecord<'order_updated', OrderEventPayload>;
+
+export type EventRecord =
+  | NoteEventRecord
+  | ClientCreatedEventRecord
+  | OrderCreatedEventRecord
+  | OrderUpdatedEventRecord;

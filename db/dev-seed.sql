@@ -79,6 +79,14 @@ WHERE user_id = '11111111-1111-1111-1111-111111111111'
     '22222222-2222-2222-2222-222222222223'
   );
 
+DELETE FROM orders
+WHERE user_id = '11111111-1111-1111-1111-111111111111'
+  AND client_id IN (
+    '22222222-2222-2222-2222-222222222221',
+    '22222222-2222-2222-2222-222222222222',
+    '22222222-2222-2222-2222-222222222223'
+  );
+
 INSERT INTO notes (
   id,
   user_id,
@@ -129,6 +137,40 @@ VALUES
     'Budget owner joins the next call, prepare enterprise options.'
   );
 
+INSERT INTO orders (
+  id,
+  user_id,
+  client_id,
+  price,
+  content,
+  status
+)
+VALUES
+  (
+    2001,
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222221',
+    150000.00,
+    'CRM onboarding and sales pipeline setup',
+    'created'
+  ),
+  (
+    2002,
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222222',
+    245000.00,
+    'Website redesign with lead forms and analytics',
+    'inprogress'
+  ),
+  (
+    2003,
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222223',
+    98000.00,
+    'Reporting dashboard implementation',
+    'done'
+  );
+
 DELETE FROM events
 WHERE user_id = '11111111-1111-1111-1111-111111111111'
   AND client_id IN (
@@ -136,7 +178,7 @@ WHERE user_id = '11111111-1111-1111-1111-111111111111'
     '22222222-2222-2222-2222-222222222222',
     '22222222-2222-2222-2222-222222222223'
   )
-  AND type IN ('client_created', 'note');
+  AND type IN ('client_created', 'note', 'order_created');
 
 INSERT INTO events (
   user_id,
@@ -215,6 +257,27 @@ VALUES
     'note',
     'Note created',
     '{"note_id":1007,"content":"Budget owner joins the next call, prepare enterprise options."}'::jsonb
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222221',
+    'order_created',
+    'Order created',
+    '{"order_id":2001,"price":"150000.00","content":"CRM onboarding and sales pipeline setup","status":"created"}'::jsonb
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222222',
+    'order_created',
+    'Order created',
+    '{"order_id":2002,"price":"245000.00","content":"Website redesign with lead forms and analytics","status":"inprogress"}'::jsonb
+  ),
+  (
+    '11111111-1111-1111-1111-111111111111',
+    '22222222-2222-2222-2222-222222222223',
+    'order_created',
+    'Order created',
+    '{"order_id":2003,"price":"98000.00","content":"Reporting dashboard implementation","status":"done"}'::jsonb
   );
 
 COMMIT;

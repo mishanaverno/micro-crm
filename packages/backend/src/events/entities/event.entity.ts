@@ -10,6 +10,8 @@ import {
 export enum EventType {
   NOTE = 'note',
   CLIENT_CREATED = 'client_created',
+  ORDER_CREATED = 'order_created',
+  ORDER_UPDATED = 'order_updated',
 }
 
 @Entity('events')

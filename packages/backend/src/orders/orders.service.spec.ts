@@ -2,6 +2,8 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from '../clients/entities/client.entity';
 import { ClientsService } from '../clients/clients.service';
+import { EventType } from '../events/entities/event.entity';
+import { EventsService } from '../events/events.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
@@ -20,6 +22,10 @@ type MockClientsService = {
   findOneOwnedByUser: jest.Mock<Promise<Client | null>, [string, string]>;
 };
 
+type MockEventsService = {
+  createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
+};
+
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -33,16 +39,22 @@ describe('OrdersService', () => {
   let service: OrdersService;
   let repository: MockRepository<Order>;
   let clientsService: MockClientsService;
+  let eventsService: MockEventsService;
 
   beforeEach(() => {
     repository = createRepositoryMock<Order>();
     clientsService = {
       findOneOwnedByUser: jest.fn(),
     };
+    eventsService = {
+      createEvent: jest.fn(),
+    };
+    eventsService.createEvent.mockResolvedValue(undefined);
 
     service = new OrdersService(
       repository as unknown as Repository<Order>,
       clientsService as unknown as ClientsService,
+      eventsService as unknown as EventsService,
     );
   });
 
@@ -72,6 +84,7 @@ describe('OrdersService', () => {
       price: '15000.00',
     });
     expect(repository.save).toHaveBeenCalledWith(createdOrder);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.ORDER_CREATED, createdOrder);
   });
 
   it('rejects order creation when client does not belong to the user', async () => {
@@ -141,6 +154,7 @@ describe('OrdersService', () => {
       price: '2000.00',
     });
     expect(repository.save).toHaveBeenCalledWith(mergedOrder);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.ORDER_UPDATED, mergedOrder);
   });
 
   it('validates client ownership when moving an order to another client', async () => {

@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientsService } from '../clients/clients.service';
+import { EventType } from '../events/entities/event.entity';
+import { EventsService } from '../events/events.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
@@ -12,6 +14,7 @@ export class OrdersService {
     @InjectRepository(Order)
     private readonly ordersRepository: Repository<Order>,
     private readonly clientsService: ClientsService,
+    private readonly eventsService: EventsService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
@@ -23,7 +26,9 @@ export class OrdersService {
       price: createOrderDto.price.toFixed(2),
     });
 
-    return this.ordersRepository.save(order);
+    const createdOrder = await this.ordersRepository.save(order);
+    await this.eventsService.createEvent(EventType.ORDER_CREATED, createdOrder);
+    return createdOrder;
   }
 
   findAll(userId: string, clientId?: string): Promise<Order[]> {
@@ -64,7 +69,9 @@ export class OrdersService {
     };
 
     const updatedOrder = this.ordersRepository.merge(order, payload);
-    return this.ordersRepository.save(updatedOrder);
+    const savedOrder = await this.ordersRepository.save(updatedOrder);
+    await this.eventsService.createEvent(EventType.ORDER_UPDATED, savedOrder);
+    return savedOrder;
   }
 
   async remove(id: number, userId: string): Promise<Order> {
