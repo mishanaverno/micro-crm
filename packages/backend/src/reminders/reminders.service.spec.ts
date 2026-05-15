@@ -30,6 +30,7 @@ type MockOrdersService = {
 
 type MockEventsService = {
   createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
+  updateEventPayload: jest.Mock<Promise<unknown>, [unknown, string, number, unknown]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -51,7 +52,7 @@ describe('RemindersService', () => {
   beforeEach(() => {
     repository = createRepositoryMock<Reminder>();
     clientsService = { findOneOwnedByUser: jest.fn() };
-    eventsService = { createEvent: jest.fn() };
+    eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
 
@@ -90,6 +91,8 @@ describe('RemindersService', () => {
     expect(eventsService.createEvent).toHaveBeenCalledWith(
       EventType.REMINDER,
       createdReminder,
+      undefined,
+      createdReminder.id,
     );
   });
 
@@ -152,12 +155,19 @@ describe('RemindersService', () => {
     repository.findOneBy.mockResolvedValue(existingReminder);
     repository.merge.mockReturnValue(mergedReminder);
     repository.save.mockResolvedValue(mergedReminder);
+    eventsService.updateEventPayload.mockResolvedValue(undefined);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedReminder);
     expect(repository.merge).toHaveBeenCalledWith(existingReminder, {
       ...dto,
       timestamp: new Date('2026-05-21T09:00:00.000Z'),
     });
+    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
+      EventType.REMINDER,
+      'user-1',
+      mergedReminder.id,
+      mergedReminder,
+    );
   });
 
   it('throws when deleting a missing reminder', async () => {

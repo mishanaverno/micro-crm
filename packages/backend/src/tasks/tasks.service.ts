@@ -30,7 +30,12 @@ export class TasksService {
     });
 
     const createdTask = await this.tasksRepository.save(task);
-    await this.eventsService.createEvent(EventType.TASK, createdTask, { content: createdTask.content, status: createdTask.status });
+    await this.eventsService.createEvent(
+      EventType.TASK,
+      createdTask,
+      { content: createdTask.content, status: createdTask.status },
+      createdTask.id,
+    );
     return createdTask;
   }
 
@@ -70,7 +75,12 @@ export class TasksService {
     await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
     const updatedTask = this.tasksRepository.merge(task, updateTaskDto);
-    return this.tasksRepository.save(updatedTask);
+    const savedTask = await this.tasksRepository.save(updatedTask);
+    await this.eventsService.updateEventPayload(EventType.TASK, userId, savedTask.id, savedTask, {
+      content: savedTask.content,
+      status: savedTask.status,
+    });
+    return savedTask;
   }
 
   async remove(id: number, userId: string): Promise<Task> {

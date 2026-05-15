@@ -29,7 +29,7 @@ export class NotesService {
     });
 
     const createdNote = await this.notesRepository.save(note);
-    await this.eventsService.createEvent(EventType.NOTE, createdNote);
+    await this.eventsService.createEvent(EventType.NOTE, createdNote, undefined, createdNote.id);
     return createdNote;
   }
 
@@ -69,7 +69,9 @@ export class NotesService {
     await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
     const updatedNote = this.notesRepository.merge(note, updateNoteDto);
-    return this.notesRepository.save(updatedNote);
+    const savedNote = await this.notesRepository.save(updatedNote);
+    await this.eventsService.updateEventPayload(EventType.NOTE, userId, savedNote.id, savedNote);
+    return savedNote;
   }
 
   async remove(id: number, userId: string): Promise<Note> {

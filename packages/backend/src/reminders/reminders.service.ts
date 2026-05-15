@@ -34,7 +34,12 @@ export class RemindersService {
     });
 
     const createdReminder = await this.remindersRepository.save(reminder);
-    await this.eventsService.createEvent(EventType.REMINDER, createdReminder);
+    await this.eventsService.createEvent(
+      EventType.REMINDER,
+      createdReminder,
+      undefined,
+      createdReminder.id,
+    );
     return createdReminder;
   }
 
@@ -89,7 +94,14 @@ export class RemindersService {
     ) as Partial<Reminder>;
 
     const updatedReminder = this.remindersRepository.merge(reminder, sanitizedPayload);
-    return this.remindersRepository.save(updatedReminder);
+    const savedReminder = await this.remindersRepository.save(updatedReminder);
+    await this.eventsService.updateEventPayload(
+      EventType.REMINDER,
+      userId,
+      savedReminder.id,
+      savedReminder,
+    );
+    return savedReminder;
   }
 
   async remove(id: number, userId: string): Promise<Reminder> {

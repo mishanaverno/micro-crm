@@ -30,6 +30,7 @@ type MockOrdersService = {
 
 type MockEventsService = {
   createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
+  updateEventPayload: jest.Mock<Promise<unknown>, [unknown, string, number, unknown, (Record<string, unknown> | undefined)?]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -51,7 +52,7 @@ describe('TasksService', () => {
   beforeEach(() => {
     repository = createRepositoryMock<Task>();
     clientsService = { findOneOwnedByUser: jest.fn() };
-    eventsService = { createEvent: jest.fn() };
+    eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
 
@@ -85,7 +86,15 @@ describe('TasksService', () => {
       user_id: 'user-1',
       status: TaskStatus.PENDING,
     });
-    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.TASK, createdTask);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.TASK,
+      createdTask,
+      {
+        content: createdTask.content,
+        status: createdTask.status,
+      },
+      createdTask.id,
+    );
   });
 
   it('validates owned order when task is linked to an order', async () => {
@@ -139,9 +148,20 @@ describe('TasksService', () => {
     repository.findOneBy.mockResolvedValue(existingTask);
     repository.merge.mockReturnValue(mergedTask);
     repository.save.mockResolvedValue(mergedTask);
+    eventsService.updateEventPayload.mockResolvedValue(undefined);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedTask);
     expect(repository.merge).toHaveBeenCalledWith(existingTask, dto);
+    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
+      EventType.TASK,
+      'user-1',
+      mergedTask.id,
+      mergedTask,
+      {
+        content: mergedTask.content,
+        status: mergedTask.status,
+      },
+    );
   });
 
   it('throws when updating a missing task', async () => {

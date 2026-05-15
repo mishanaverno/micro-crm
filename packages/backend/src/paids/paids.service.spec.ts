@@ -30,6 +30,7 @@ type MockOrdersService = {
 
 type MockEventsService = {
   createEvent: jest.Mock<Promise<unknown>, [unknown, unknown, (Record<string, unknown> | undefined)?]>;
+  updateEventPayload: jest.Mock<Promise<unknown>, [unknown, string, number, unknown]>;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -52,7 +53,7 @@ describe('PaidsService', () => {
     repository = createRepositoryMock<Paid>();
     clientsService = { findOneOwnedByUser: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
-    eventsService = { createEvent: jest.fn() };
+    eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
 
     service = new PaidsService(
@@ -90,7 +91,12 @@ describe('PaidsService', () => {
       user_id: 'user-1',
       value: '1500.00',
     });
-    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.PAID, createdPaid);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.PAID,
+      createdPaid,
+      undefined,
+      createdPaid.id,
+    );
   });
 
   it('rejects paid creation when order belongs to another client', async () => {
@@ -141,11 +147,18 @@ describe('PaidsService', () => {
     } as Order);
     repository.merge.mockReturnValue(mergedPaid);
     repository.save.mockResolvedValue(mergedPaid);
+    eventsService.updateEventPayload.mockResolvedValue(undefined);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedPaid);
     expect(repository.merge).toHaveBeenCalledWith(existingPaid, {
       value: '500.00',
     });
+    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
+      EventType.PAID,
+      'user-1',
+      mergedPaid.id,
+      mergedPaid,
+    );
   });
 
   it('soft deletes a paid record when it exists', async () => {

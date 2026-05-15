@@ -17,6 +17,7 @@ export interface OrderChangedField {
 
 export interface BaseEventRecord<TType extends EventType, TPayload extends object> {
   id: number;
+  original_id: number | null;
   user_id: string;
   client_id: string;
   type: TType;

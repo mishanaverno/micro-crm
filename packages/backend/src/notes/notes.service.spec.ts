@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from '../clients/entities/client.entity';
 import { ClientsService } from '../clients/clients.service';
+import { EventType } from '../events/entities/event.entity';
 import { EventsService } from '../events/events.service';
 import { Order } from '../orders/entities/order.entity';
 import { OrdersService } from '../orders/orders.service';
@@ -25,6 +26,7 @@ type MockClientsService = {
 
 type MockEventsService = {
   createEvent: jest.Mock<Promise<unknown>, [unknown, unknown]>;
+  updateEventPayload: jest.Mock<Promise<unknown>, [unknown, string, number, unknown]>;
 };
 
 type MockOrdersService = {
@@ -54,6 +56,7 @@ describe('NotesService', () => {
     };
     eventsService = {
       createEvent: jest.fn(),
+      updateEventPayload: jest.fn(),
     };
     ordersService = {
       findOneOwnedByUser: jest.fn(),
@@ -163,10 +166,17 @@ describe('NotesService', () => {
     repository.findOneBy.mockResolvedValue(existingNote);
     repository.merge.mockReturnValue(mergedNote);
     repository.save.mockResolvedValue(mergedNote);
+    eventsService.updateEventPayload.mockResolvedValue(undefined);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedNote);
     expect(repository.merge).toHaveBeenCalledWith(existingNote, dto);
     expect(repository.save).toHaveBeenCalledWith(mergedNote);
+    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
+      EventType.NOTE,
+      'user-1',
+      mergedNote.id,
+      mergedNote,
+    );
   });
 
   it('validates client ownership when moving a note to another client', async () => {

@@ -14,8 +14,10 @@ export class EventsService {
     type: T,
     instance: EventReady,
     payloadOverrides?: Record<string, unknown>,
+    originalId?: number | null,
   ) {
     const event = this.eventsRepository.create({
+      original_id: originalId ?? null,
       user_id: instance.user_id,
       client_id: instance.client_id,
       type,
@@ -24,6 +26,32 @@ export class EventsService {
         ...payloadOverrides,
       },
     });
+
+    return this.eventsRepository.save(event);
+  }
+
+  async updateEventPayload<T extends EventType>(
+    type: T,
+    userId: string,
+    originalId: number,
+    instance: EventReady,
+    payloadOverrides?: Record<string, unknown>,
+  ) {
+    const event = await this.eventsRepository.findOneBy({
+      user_id: userId,
+      type,
+      original_id: originalId,
+    });
+
+    if (!event) {
+      return null;
+    }
+
+    event.client_id = instance.client_id;
+    event.payload = {
+      ...instance.getPayload(),
+      ...payloadOverrides,
+    };
 
     return this.eventsRepository.save(event);
   }

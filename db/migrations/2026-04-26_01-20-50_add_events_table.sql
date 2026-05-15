@@ -42,6 +42,7 @@ ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid';
 create table if not exists
   "public"."events" (
     "id" serial not null,
+    "original_id" integer null,
     "user_id" UUID not null,
     "client_id" UUID not null,
     "type" public.event_type not null,

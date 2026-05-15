@@ -30,7 +30,7 @@ export class PaidsService {
     });
 
     const createdPaid = await this.paidsRepository.save(paid);
-    await this.eventsService.createEvent(EventType.PAID, createdPaid);
+    await this.eventsService.createEvent(EventType.PAID, createdPaid, undefined, createdPaid.id);
     return createdPaid;
   }
 
@@ -78,7 +78,9 @@ export class PaidsService {
     ) as Partial<Paid>;
 
     const updatedPaid = this.paidsRepository.merge(paid, sanitizedPayload);
-    return this.paidsRepository.save(updatedPaid);
+    const savedPaid = await this.paidsRepository.save(updatedPaid);
+    await this.eventsService.updateEventPayload(EventType.PAID, userId, savedPaid.id, savedPaid);
+    return savedPaid;
   }
 
   async remove(id: number, userId: string): Promise<Paid> {

@@ -24,6 +24,9 @@ export class Event {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ type: 'integer', nullable: true })
+  original_id: number | null;
+
   @Column({ type: 'uuid' })
   user_id: string;
 
