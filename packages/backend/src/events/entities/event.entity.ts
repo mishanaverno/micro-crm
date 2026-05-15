@@ -9,6 +9,7 @@ import {
 
 export enum EventType {
   NOTE = 'note',
+  TASK = 'task',
   CLIENT_CREATED = 'client_created',
   ORDER_CREATED = 'order_created',
   ORDER_UPDATED = 'order_updated',

@@ -76,6 +76,7 @@ function resolveOrderId(
     case 'order_complete':
     case 'order_reopened':
     case 'paid':
+    case 'task':
       return event.payload.order_id;
     case 'note':
       return noteOrderIdsByNoteId.get(event.payload.note_id) ?? null;

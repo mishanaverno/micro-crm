@@ -1,5 +1,6 @@
 export type EventType =
   | 'note'
+  | 'task'
   | 'client_created'
   | 'order_created'
   | 'order_updated'
@@ -31,6 +32,13 @@ export interface NoteEventPayload {
   order_id?: number | null;
 }
 
+export interface TaskEventPayload {
+  task_id: number;
+  content: string;
+  status: 'pending' | 'complete';
+  order_id?: number | null;
+}
+
 export interface ClientCreatedEventPayload {
   client_id: string;
   first_name?: string;
@@ -59,6 +67,7 @@ export interface PaidEventPayload {
 }
 
 export type NoteEventRecord = BaseEventRecord<'note', NoteEventPayload>;
+export type TaskEventRecord = BaseEventRecord<'task', TaskEventPayload>;
 
 export type ClientCreatedEventRecord = BaseEventRecord<
   'client_created',
@@ -83,6 +92,7 @@ export type PaidEventRecord = BaseEventRecord<'paid', PaidEventPayload>;
 
 export type EventRecord =
   | NoteEventRecord
+  | TaskEventRecord
   | ClientCreatedEventRecord
   | OrderCreatedEventRecord
   | OrderUpdatedEventRecord
