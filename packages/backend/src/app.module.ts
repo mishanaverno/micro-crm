@@ -10,6 +10,7 @@ import { OrdersModule } from './orders/orders.module';
 import { PaidsModule } from './paids/paids.module';
 import { SpentsModule } from './spents/spents.module';
 import { TasksModule } from './tasks/tasks.module';
+import { RemindersModule } from './reminders/reminders.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TasksModule } from './tasks/tasks.module';
     PaidsModule,
     SpentsModule,
     TasksModule,
+    RemindersModule,
   ],
   controllers: [],
   providers: [],

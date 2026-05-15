@@ -6,6 +6,7 @@ import { ClientsPage } from '../pages/clients-page';
 import { NotesPage } from '../pages/notes-page';
 import { OrdersPage } from '../pages/orders-page';
 import { FinancesPage } from '../pages/finances-page';
+import { RemindersPage } from '../pages/reminders-page';
 import { TasksPage } from '../pages/tasks-page';
 import { LoginPage } from '../pages/login-page';
 import { RegisterPage } from '../pages/register-page';
@@ -48,6 +49,10 @@ export const router = createHashRouter([
           {
             path: 'tasks',
             element: <TasksPage />,
+          },
+          {
+            path: 'reminders',
+            element: <RemindersPage />,
           },
           {
             path: 'orders',

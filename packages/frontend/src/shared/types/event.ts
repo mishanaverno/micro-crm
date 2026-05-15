@@ -1,6 +1,7 @@
 export type EventType =
   | 'note'
   | 'task'
+  | 'reminder'
   | 'client_created'
   | 'order_created'
   | 'order_updated'
@@ -39,6 +40,13 @@ export interface TaskEventPayload {
   order_id?: number | null;
 }
 
+export interface ReminderEventPayload {
+  reminder_id: number;
+  content: string;
+  timestamp: string;
+  order_id?: number | null;
+}
+
 export interface ClientCreatedEventPayload {
   client_id: string;
   first_name?: string;
@@ -68,6 +76,7 @@ export interface PaidEventPayload {
 
 export type NoteEventRecord = BaseEventRecord<'note', NoteEventPayload>;
 export type TaskEventRecord = BaseEventRecord<'task', TaskEventPayload>;
+export type ReminderEventRecord = BaseEventRecord<'reminder', ReminderEventPayload>;
 
 export type ClientCreatedEventRecord = BaseEventRecord<
   'client_created',
@@ -93,6 +102,7 @@ export type PaidEventRecord = BaseEventRecord<'paid', PaidEventPayload>;
 export type EventRecord =
   | NoteEventRecord
   | TaskEventRecord
+  | ReminderEventRecord
   | ClientCreatedEventRecord
   | OrderCreatedEventRecord
   | OrderUpdatedEventRecord

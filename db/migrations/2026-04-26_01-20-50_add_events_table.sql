@@ -17,6 +17,7 @@ BEGIN
     CREATE TYPE public.event_type AS ENUM (
       'note',
       'task',
+      'reminder',
       'client_created',
       'order_created',
       'order_updated',
@@ -30,6 +31,7 @@ $$;
 
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'note';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'task';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'reminder';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'client_created';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_created';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_updated';

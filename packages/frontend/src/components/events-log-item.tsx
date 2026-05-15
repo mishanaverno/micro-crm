@@ -6,6 +6,7 @@ import { OrderCompleteEventsLogItem } from './order-complete-events-log-item';
 import { OrderReopenedEventsLogItem } from './order-reopened-events-log-item';
 import { OrderUpdatedEventsLogItem } from './order-updated-events-log-item';
 import { PaidEventsLogItem } from './paid-events-log-item';
+import { ReminderEventsLogItem } from './reminder-events-log-item';
 import { TaskEventsLogItem } from './task-events-log-item';
 import { EventRecord } from '../shared/types/event';
 
@@ -31,6 +32,8 @@ export function EventsLogItem({
       return <NoteEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'task':
       return <TaskEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
+    case 'reminder':
+      return <ReminderEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'order_created':
       return <OrderCreatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
     case 'order_updated':

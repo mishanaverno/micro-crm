@@ -22,6 +22,7 @@ const navigation = [
   { to: '/clients', label: 'clients', icon: '◫' },
   { to: '/notes', label: 'notes', icon: '✎' },
   { to: '/tasks', label: 'tasks', icon: '☑' },
+  { to: '/reminders', label: 'reminders', icon: '⏰' },
   { to: '/orders', label: 'orders', icon: '▣' },
   { to: '/finances', label: 'finances', icon: '₽' },
   { to: '/events-log', label: 'events log', icon: '≣' },

@@ -92,6 +92,35 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
           />
         </svg>
       );
+    case 'reminder':
+      return (
+        <svg
+          aria-hidden="true"
+          className={iconClassName(className)}
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 6v6l3 2.25"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="1.7"
+          />
+          <path
+            d="M18 18.75H6"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="1.7"
+          />
+          <path
+            d="M19.5 11.25a7.5 7.5 0 1 0-15 0c0 2.08-.6 3.63-1.5 5.25h18c-.9-1.62-1.5-3.17-1.5-5.25Z"
+            stroke="currentColor"
+            strokeLinejoin="round"
+            strokeWidth="1.7"
+          />
+        </svg>
+      );
     case 'order_created':
       return (
         <svg
