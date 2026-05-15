@@ -1,7 +1,8 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
-import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
+import { TaskStatusBadge } from './status-badges';
+import { LogItemTitle } from '../shared/ui/log-item';
 import { TaskEventRecord } from '../shared/types/event';
 
 interface TaskEventsLogItemProps {
@@ -16,10 +17,6 @@ function describeTaskEvent(event: TaskEventRecord) {
   const trimmedContent = event.payload.content.trim();
 
   return trimmedContent ? trimmedContent : `Task created for ${event.client_id}`;
-}
-
-function formatStatus(status: TaskEventRecord['payload']['status']) {
-  return status === 'complete' ? 'Complete' : 'Pending';
 }
 
 export function TaskEventsLogItem({
@@ -42,13 +39,22 @@ export function TaskEventsLogItem({
       typeLabel="task"
     >
       <LogItemTitle>
-        {compact && event.payload.order_id != null
-          ? `Task: Order #${event.payload.order_id}`
-          : describeTaskEvent(event)}
+        {compact ? (
+          event.payload.order_id != null ? `Task: Order #${event.payload.order_id}` : 'Task'
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            <input
+              checked={event.payload.status === 'complete'}
+              className="h-4 w-4 cursor-default accent-foreground"
+              disabled
+              readOnly
+              type="checkbox"
+            />
+            <span>{describeTaskEvent(event)}</span>
+            <TaskStatusBadge status={event.payload.status} />
+          </span>
+        )}
       </LogItemTitle>
-      {!compact ? (
-        <LogItemDescription>Status: {formatStatus(event.payload.status)}</LogItemDescription>
-      ) : null}
     </AbstractEventsLogItem>
   );
 }

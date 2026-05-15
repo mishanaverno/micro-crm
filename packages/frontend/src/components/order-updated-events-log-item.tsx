@@ -1,6 +1,7 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
+import { OrderStatusBadge } from './status-badges';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderChangedField, OrderUpdatedEventRecord } from '../shared/types/event';
 
@@ -18,6 +19,11 @@ function describeOrderUpdatedEvent(event: OrderUpdatedEventRecord) {
   return trimmedTitle
     ? `Order updated: ${trimmedTitle}`
     : `Order updated for ${event.client_id}`;
+}
+
+function resolveOrderTitle(event: OrderUpdatedEventRecord) {
+  const trimmedTitle = event.payload.title?.trim();
+  return trimmedTitle ? trimmedTitle : 'order';
 }
 
 function formatFieldLabel(field: OrderChangedField['field']) {
@@ -57,12 +63,27 @@ export function OrderUpdatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      headerContent={
+        compact ? undefined : (
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <span className="text-muted-foreground/90">
+              <EventTypeIcon type="order_updated" />
+            </span>
+            <span>Order:</span>
+            <span>#{event.payload.order_id}</span>
+            <span>{resolveOrderTitle(event)}</span>
+            <OrderStatusBadge status={event.payload.status as 'created' | 'inprogress' | 'done'} />
+          </div>
+        )
+      }
       icon={<EventTypeIcon type="order_updated" />}
       markerClassName="bg-violet-500"
       specificActions={[]}
-      typeLabel="order updated"
+      typeLabel={compact ? 'order updated' : undefined}
     >
-      <LogItemTitle>{describeOrderUpdatedEvent(event)}</LogItemTitle>
+      <LogItemTitle>
+        {compact ? `Order updated: #${event.payload.order_id}` : describeOrderUpdatedEvent(event)}
+      </LogItemTitle>
       {!compact && changedFields.length > 0 ? (
         <div className="mt-3 grid gap-2">
           <LogItemDescription>

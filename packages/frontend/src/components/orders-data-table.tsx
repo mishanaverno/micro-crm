@@ -1,4 +1,5 @@
 import { OrderRecord } from '../shared/types/order';
+import { OrderStatusBadge } from './status-badges';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -100,10 +101,10 @@ export function OrdersDataTable({
       <TableHeader>
         <TableRow>
           {visibleColumns.client ? <TableHead>Client</TableHead> : null}
+          {visibleColumns.status ? <TableHead>Status</TableHead> : null}
           {visibleColumns.title ? <TableHead>Title</TableHead> : null}
           <TableHead>Content</TableHead>
           {visibleColumns.price ? <TableHead>Price</TableHead> : null}
-          {visibleColumns.status ? <TableHead>Status</TableHead> : null}
           {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
           {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
           <TableHead className="w-0" />
@@ -117,12 +118,16 @@ export function OrdersDataTable({
                 {resolveClientLabel(order.client_id)}
               </TableCell>
             ) : null}
+            {visibleColumns.status ? (
+              <TableCell>
+                <OrderStatusBadge status={order.status} />
+              </TableCell>
+            ) : null}
             {visibleColumns.title ? <TableCell>{order.title || 'order'}</TableCell> : null}
             <TableCell className="max-w-[420px] text-muted-foreground">
               <span className="line-clamp-2">{order.content}</span>
             </TableCell>
             {visibleColumns.price ? <TableCell>{formatPrice(order.price)}</TableCell> : null}
-            {visibleColumns.status ? <TableCell>{order.status}</TableCell> : null}
             {visibleColumns.created_at ? (
               <TableCell>{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</TableCell>
             ) : null}

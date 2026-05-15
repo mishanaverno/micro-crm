@@ -1,6 +1,7 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
+import { OrderStatusBadge } from './status-badges';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderCompleteEventRecord } from '../shared/types/event';
 
@@ -20,6 +21,11 @@ function describeOrderCompleteEvent(event: OrderCompleteEventRecord) {
     : `Order completed for ${event.client_id}`;
 }
 
+function resolveOrderTitle(event: OrderCompleteEventRecord) {
+  const trimmedTitle = event.payload.title?.trim();
+  return trimmedTitle ? trimmedTitle : 'order';
+}
+
 export function OrderCompleteEventsLogItem({
   event,
   clientLabel,
@@ -34,13 +40,32 @@ export function OrderCompleteEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      headerContent={
+        compact ? undefined : (
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <span className="text-muted-foreground/90">
+              <EventTypeIcon type="order_complete" />
+            </span>
+            <span>Order:</span>
+            <span>#{event.payload.order_id}</span>
+            <span>{resolveOrderTitle(event)}</span>
+            <OrderStatusBadge status="done" />
+          </div>
+        )
+      }
       icon={<EventTypeIcon type="order_complete" />}
       markerClassName="bg-emerald-500"
       specificActions={[]}
-      typeLabel="order complete"
+      typeLabel={compact ? 'order complete' : undefined}
     >
-      <LogItemTitle>{describeOrderCompleteEvent(event)}</LogItemTitle>
-      {!compact ? <LogItemDescription>Status changed to done.</LogItemDescription> : null}
+      <LogItemTitle>
+        {compact ? `Order complete: #${event.payload.order_id}` : describeOrderCompleteEvent(event)}
+      </LogItemTitle>
+      {!compact ? (
+        <LogItemDescription>
+          Status changed to done.
+        </LogItemDescription>
+      ) : null}
     </AbstractEventsLogItem>
   );
 }

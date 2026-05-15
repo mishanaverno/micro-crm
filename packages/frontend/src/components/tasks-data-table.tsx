@@ -1,4 +1,5 @@
 import { TaskRecord } from '../shared/types/task';
+import { TaskStatusBadge } from './status-badges';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -81,10 +82,6 @@ function TrashIcon() {
   );
 }
 
-function formatStatus(status: TaskRecord['status']) {
-  return status === 'complete' ? 'Complete' : 'Pending';
-}
-
 export function TasksDataTable({
   tasks,
   resolveClientLabel,
@@ -117,9 +114,7 @@ export function TasksDataTable({
             {visibleColumns.order ? <TableCell>{resolveOrderLabel(task.order_id)}</TableCell> : null}
             {visibleColumns.status ? (
               <TableCell>
-                <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-foreground/80">
-                  {formatStatus(task.status)}
-                </span>
+                <TaskStatusBadge status={task.status} />
               </TableCell>
             ) : null}
             {visibleColumns.content ? (

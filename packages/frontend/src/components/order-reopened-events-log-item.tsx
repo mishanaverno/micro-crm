@@ -1,6 +1,7 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
+import { OrderStatusBadge } from './status-badges';
 import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
 import { OrderReopenedEventRecord } from '../shared/types/event';
 
@@ -40,7 +41,14 @@ export function OrderReopenedEventsLogItem({
       typeLabel="order reopened"
     >
       <LogItemTitle>{describeOrderReopenedEvent(event)}</LogItemTitle>
-      {!compact ? <LogItemDescription>Status changed from done.</LogItemDescription> : null}
+      {!compact ? (
+        <LogItemDescription>
+          <span className="inline-flex items-center gap-2">
+            <OrderStatusBadge status={event.payload.status as 'created' | 'inprogress' | 'done'} />
+            <span>Status changed from done.</span>
+          </span>
+        </LogItemDescription>
+      ) : null}
     </AbstractEventsLogItem>
   );
 }

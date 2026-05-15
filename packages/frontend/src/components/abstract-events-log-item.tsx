@@ -26,6 +26,7 @@ interface AbstractEventsLogItemProps<TEvent extends EventRecord> {
   clientLabel: string;
   typeLabel?: string;
   icon?: ReactNode;
+  headerContent?: ReactNode;
   markerClassName?: string;
   cardBorderClassName?: string;
   compact?: boolean;
@@ -38,6 +39,7 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
   clientLabel,
   typeLabel,
   icon,
+  headerContent,
   markerClassName: _markerClassName,
   cardBorderClassName,
   compact = false,
@@ -66,14 +68,18 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
           }
         >
           <LogItemHeaderMain className={compact ? 'gap-1 self-center transition-[gap] duration-300 ease-out' : 'self-center transition-[gap] duration-300 ease-out'}>
-            <LogItemMeta className={compact ? 'flex items-center gap-1.5 leading-none text-[10px] tracking-[0.2em] transition-[font-size,letter-spacing] duration-300 ease-out' : 'flex items-center gap-2 leading-none transition-[font-size,letter-spacing] duration-300 ease-out'}>
-              {icon ? (
-                <span className={compact ? 'text-muted-foreground/90' : 'text-muted-foreground/90'}>
-                  {icon}
-                </span>
-              ) : null}
-              {typeLabel ?? event.type.replace('_', ' ')}
-            </LogItemMeta>
+            {headerContent ? (
+              headerContent
+            ) : (
+              <LogItemMeta className={compact ? 'flex items-center gap-1.5 leading-none text-[10px] tracking-[0.2em] transition-[font-size,letter-spacing] duration-300 ease-out' : 'flex items-center gap-2 leading-none transition-[font-size,letter-spacing] duration-300 ease-out'}>
+                {icon ? (
+                  <span className={compact ? 'text-muted-foreground/90' : 'text-muted-foreground/90'}>
+                    {icon}
+                  </span>
+                ) : null}
+                {typeLabel ?? event.type.replace('_', ' ')}
+              </LogItemMeta>
+            )}
           </LogItemHeaderMain>
           <LogItemHeaderActions>
             <DropdownMenu>

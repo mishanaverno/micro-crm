@@ -1,7 +1,8 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
-import { LogItemTitle } from '../shared/ui/log-item';
+import { OrderStatusBadge } from './status-badges';
+import { LogItemDescription, LogItemMeta } from '../shared/ui/log-item';
 import { OrderCreatedEventRecord } from '../shared/types/event';
 
 interface OrderCreatedEventsLogItemProps {
@@ -12,12 +13,9 @@ interface OrderCreatedEventsLogItemProps {
   compact?: boolean;
 }
 
-function describeOrderCreatedEvent(event: OrderCreatedEventRecord) {
-  const trimmedContent = event.payload.content.trim();
-
-  return trimmedContent
-    ? `Order created: ${trimmedContent}`
-    : `Order created for ${event.client_id}`;
+function resolveOrderTitle(event: OrderCreatedEventRecord) {
+  const trimmedTitle = event.payload.title?.trim();
+  return trimmedTitle ? trimmedTitle : 'order';
 }
 
 export function OrderCreatedEventsLogItem({
@@ -34,14 +32,31 @@ export function OrderCreatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
+      headerContent={
+        compact ? undefined : (
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <span className="text-muted-foreground/90">
+              <EventTypeIcon type="order_created" />
+            </span>
+            <span>Order:</span>
+            <span>#{event.payload.order_id}</span>
+            <span>{resolveOrderTitle(event)}</span>
+            <OrderStatusBadge status="created" />
+          </div>
+        )
+      }
       icon={<EventTypeIcon type="order_created" />}
       markerClassName="bg-amber-500"
       specificActions={[]}
-      typeLabel="order created"
+      typeLabel={compact ? 'order created' : undefined}
     >
-      <LogItemTitle>
-        {compact ? `Order created: #${event.payload.order_id}` : describeOrderCreatedEvent(event)}
-      </LogItemTitle>
+      {compact ? (
+        <LogItemMeta className="normal-case tracking-normal text-xs">
+          Order created: #{event.payload.order_id}
+        </LogItemMeta>
+      ) : (
+        <LogItemDescription>{event.payload.content}</LogItemDescription>
+      )}
     </AbstractEventsLogItem>
   );
 }
