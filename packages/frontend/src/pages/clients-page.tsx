@@ -5,7 +5,7 @@ import { useDeleteClient } from '../features/clients/use-delete-client';
 import { useClients } from '../features/clients/use-clients';
 import { useUpdateClient } from '../features/clients/use-update-client';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,

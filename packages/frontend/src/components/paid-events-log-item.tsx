@@ -35,7 +35,6 @@ export function PaidEventsLogItem({
       commonActions={commonActions}
       event={event}
       icon={<EventTypeIcon type="paid" />}
-      markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel="paid"
     >

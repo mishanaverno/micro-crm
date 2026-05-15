@@ -1,7 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { ClientRecord } from '../types/client';
 import { Mutation } from '../types/mutation';
-import { OfflineRecord } from '../types/common';
 
 class OfflineDatabase extends Dexie {
   queued_mutations!: Table<Mutation, number>;
@@ -18,15 +17,3 @@ class OfflineDatabase extends Dexie {
 }
 
 export const offlineDb = new OfflineDatabase();
-
-export class OfflineRespository<D extends {}, R extends OfflineRecord> {
-  createLocal = (draft: D): R => {
-    return {
-      id: crypto.randomUUID(),
-      ...draft,
-      sync_status: 'pending',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as unknown as R
-  }
-}

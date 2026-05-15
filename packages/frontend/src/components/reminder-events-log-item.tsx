@@ -33,7 +33,6 @@ export function ReminderEventsLogItem({
       commonActions={commonActions}
       event={event}
       icon={<EventTypeIcon type="reminder" />}
-      markerClassName="bg-rose-500"
       specificActions={[]}
       typeLabel="reminder"
     >

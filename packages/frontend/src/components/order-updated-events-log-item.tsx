@@ -77,7 +77,6 @@ export function OrderUpdatedEventsLogItem({
         )
       }
       icon={<EventTypeIcon type="order_updated" />}
-      markerClassName="bg-violet-500"
       specificActions={[]}
       typeLabel={compact ? 'order updated' : undefined}
     >

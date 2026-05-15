@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClientRequest } from '../../shared/api/clients';
 import { NetworkError } from '../../shared/api/http';
 import { useAuth } from '../auth/auth-provider';
-import { queueClientCreate } from '../../shared/offline/offline-clients.deprecated';
+import { queueClientCreate } from '../../shared/offline/offline-clients';
 import { ClientDraft } from '../../shared/types/client';
 
 export function useCreateClient() {

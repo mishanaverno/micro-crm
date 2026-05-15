@@ -37,7 +37,7 @@ export async function markClientSynced(queuedMutationId: number, client: ClientR
     .equals(queuedMutationId)
     .first();
 
-  if (localClient && localClient.id) {
+  if (localClient?.id) {
     await offlineDb.clients.delete(localClient.id);
   }
 

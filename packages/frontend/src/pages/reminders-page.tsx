@@ -288,14 +288,15 @@ export function RemindersPage() {
   function openEditDialog(reminder: ReminderRecord) {
     createReminder.reset();
     updateReminder.reset();
+    const localTimestamp = toDatetimeLocalValue(reminder.timestamp);
     setEditingReminder(reminder);
     setForm({
       client_id: reminder.client_id,
       order_id: reminder.order_id ? String(reminder.order_id) : '',
       content: reminder.content,
-      timestamp: toDatetimeLocalValue(reminder.timestamp),
+      timestamp: localTimestamp,
     });
-    setTimeInput(getTimePart(toDatetimeLocalValue(reminder.timestamp)) || '09:00');
+    setTimeInput(getTimePart(localTimestamp) || '09:00');
     setIsDatePickerOpen(false);
     setIsReminderDialogOpen(true);
   }

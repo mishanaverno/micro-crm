@@ -54,7 +54,6 @@ export function OrderCompleteEventsLogItem({
         )
       }
       icon={<EventTypeIcon type="order_complete" />}
-      markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel={compact ? 'order complete' : undefined}
     >

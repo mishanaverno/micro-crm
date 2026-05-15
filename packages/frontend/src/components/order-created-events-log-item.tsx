@@ -46,7 +46,6 @@ export function OrderCreatedEventsLogItem({
         )
       }
       icon={<EventTypeIcon type="order_created" />}
-      markerClassName="bg-amber-500"
       specificActions={[]}
       typeLabel={compact ? 'order created' : undefined}
     >

@@ -27,7 +27,6 @@ interface AbstractEventsLogItemProps<TEvent extends EventRecord> {
   typeLabel?: string;
   icon?: ReactNode;
   headerContent?: ReactNode;
-  markerClassName?: string;
   cardBorderClassName?: string;
   compact?: boolean;
   commonActions?: EventsLogAction[];
@@ -40,7 +39,6 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
   typeLabel,
   icon,
   headerContent,
-  markerClassName: _markerClassName,
   cardBorderClassName,
   compact = false,
   commonActions = [],
@@ -93,11 +91,11 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
                   }
                   type="button"
                   variant="secondary"
-              >
-                <span aria-hidden="true" className="-mt-0.5">
-                  ⋯
-                </span>
-              </Button>
+                >
+                  <span aria-hidden="true" className="-mt-0.5">
+                    ⋯
+                  </span>
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {actions.length > 0 ? (

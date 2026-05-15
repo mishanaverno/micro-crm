@@ -36,7 +36,6 @@ export function OrderReopenedEventsLogItem({
       commonActions={commonActions}
       event={event}
       icon={<EventTypeIcon type="order_reopened" />}
-      markerClassName="bg-sky-500"
       specificActions={[]}
       typeLabel="order reopened"
     >

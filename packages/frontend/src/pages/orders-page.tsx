@@ -6,7 +6,7 @@ import { useDeleteOrder } from '../features/orders/use-delete-order';
 import { useOrders } from '../features/orders/use-orders';
 import { useUpdateOrder } from '../features/orders/use-update-order';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,

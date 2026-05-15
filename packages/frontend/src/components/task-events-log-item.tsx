@@ -34,7 +34,6 @@ export function TaskEventsLogItem({
       commonActions={commonActions}
       event={event}
       icon={<EventTypeIcon type="task" />}
-      markerClassName="bg-cyan-500"
       specificActions={[]}
       typeLabel="task"
     >

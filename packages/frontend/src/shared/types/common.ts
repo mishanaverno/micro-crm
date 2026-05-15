@@ -9,7 +9,3 @@ export interface OfflineRecord {
   deleted_at?: string;
   queued_mutation_id?: number;
 }
-
-export interface OfflineRespository<P extends object, R extends OfflineRecord> {
-  createLocal: (payload: P) => R;
-}

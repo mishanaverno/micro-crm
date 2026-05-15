@@ -2,7 +2,7 @@ import { createClientRequest } from '../api/clients';
 import { HttpError, NetworkError } from '../api/http';
 import { offlineDb } from './offline-db';
 import { loadStoredAuthSession } from '../../features/auth/auth-storage';
-import { markClientFailed, markClientSynced } from './offline-clients.deprecated';
+import { markClientFailed, markClientSynced } from './offline-clients';
 import { Mutation } from '../types/mutation';
 
 async function processMutation(mutation: Mutation & { id: number }) {

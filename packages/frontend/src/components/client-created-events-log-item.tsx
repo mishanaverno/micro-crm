@@ -37,7 +37,6 @@ export function ClientCreatedEventsLogItem({
       commonActions={commonActions}
       event={event}
       icon={<EventTypeIcon type="client_created" />}
-      markerClassName="bg-sky-500"
       specificActions={[]}
       typeLabel="client created"
     >
