@@ -16,6 +16,16 @@ export default {
         'muted-foreground': 'hsl(var(--muted-foreground))',
         border: 'hsl(var(--border))',
         ring: 'hsl(var(--ring))',
+        sidebar: 'hsl(var(--sidebar))',
+        'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
+        'sidebar-primary': 'hsl(var(--sidebar-primary))',
+        'sidebar-primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+        'sidebar-accent': 'hsl(var(--sidebar-accent))',
+        'sidebar-accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+        'sidebar-ring': 'hsl(var(--sidebar-ring))',
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)'],
       },
       borderRadius: {
         lg: 'var(--radius)',

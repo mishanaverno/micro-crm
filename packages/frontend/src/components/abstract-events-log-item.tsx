@@ -61,8 +61,8 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
         <LogItemHeader
           className={
             compact
-              ? '-mx-3 -mt-2 mb-0 items-center border-b border-border/70 bg-muted/70 px-3 py-2 transition-[gap,padding,margin,background-color,border-color] duration-300 ease-out gap-2'
-              : '-mx-4 -mt-4 mb-0 items-center border-b border-border/70 bg-muted/70 px-4 py-3 transition-[gap,padding,margin,background-color,border-color] duration-300 ease-out'
+              ? '-mx-3 -mt-2 mb-0 items-center border-b border-border/80 bg-zinc-200 px-3 py-1.5 transition-[gap,padding,margin,background-color,border-color] duration-300 ease-out gap-2'
+              : '-mx-4 -mt-4 mb-0 items-center border-b border-border/80 bg-zinc-200 px-4 py-2 transition-[gap,padding,margin,background-color,border-color] duration-300 ease-out'
           }
         >
           <LogItemHeaderMain className={compact ? 'gap-1 self-center transition-[gap] duration-300 ease-out' : 'self-center transition-[gap] duration-300 ease-out'}>

@@ -118,7 +118,7 @@ export function PaidsDataTable({
             ) : null}
             {visibleColumns.order ? <TableCell>{resolveOrderLabel(paid.order_id)}</TableCell> : null}
             {visibleColumns.value ? (
-              <TableCell className={paid.value < 0 ? 'text-rose-600' : 'text-emerald-600'}>
+              <TableCell className="text-foreground">
                 {formatValue(paid.value)}
               </TableCell>
             ) : null}

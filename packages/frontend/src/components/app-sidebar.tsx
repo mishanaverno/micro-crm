@@ -96,16 +96,16 @@ export function AppSidebar() {
                   className={[
                     'rounded-full px-2.5 py-1',
                     isOnline
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-amber-100 text-amber-900',
+                      ? 'bg-foreground text-background'
+                      : 'bg-muted text-foreground',
                   ].join(' ')}
                 >
                   {isOnline ? 'network: online' : 'network: offline'}
                 </span>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700">
+                <span className="rounded-full border border-border bg-background px-2.5 py-1 text-foreground/80">
                   outbox: {stats?.pending_count ?? 0}
                 </span>
-                <span className="rounded-full bg-rose-100 px-2.5 py-1 text-rose-700">
+                <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-foreground/80">
                   failed: {stats?.failed_count ?? 0}
                 </span>
               </div>
@@ -123,12 +123,12 @@ export function AppSidebar() {
               <div
                 className={[
                   'h-2.5 w-2.5 rounded-full',
-                  isOnline ? 'bg-emerald-500' : 'bg-amber-500',
+                  isOnline ? 'bg-foreground' : 'bg-muted-foreground',
                 ].join(' ')}
                 title={isOnline ? 'network: online' : 'network: offline'}
               />
               <div
-                className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700"
+                className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground/80"
                 title={`outbox: ${stats?.pending_count ?? 0}, failed: ${stats?.failed_count ?? 0}`}
               >
                 {stats?.pending_count ?? 0}/{stats?.failed_count ?? 0}

@@ -243,8 +243,8 @@ export function PaidsPage() {
       return;
     }
 
-    if (!form.value || Number.isNaN(Number(form.value))) {
-      setFormError('Enter a valid paid value.');
+    if (!form.value || Number.isNaN(Number(form.value)) || Number(form.value) <= 0) {
+      setFormError('Enter a paid value greater than zero.');
       return;
     }
 
@@ -394,6 +394,8 @@ export function PaidsPage() {
                       <Label htmlFor="value">Value</Label>
                       <Input
                         id="value"
+                        min="0.01"
+                        placeholder="15000.00"
                         required
                         step="0.01"
                         type="number"
