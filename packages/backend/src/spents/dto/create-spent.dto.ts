@@ -2,7 +2,7 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNumber, IsUUID, Min } from 'class-validator';
 
-export class CreatePaidDto {
+export class CreateSpentDto {
   @ApiProperty({
     example: '22222222-2222-4222-8222-222222222222',
     description: 'Client ID',
@@ -21,7 +21,7 @@ export class CreatePaidDto {
 
   @ApiProperty({
     example: 15000,
-    description: 'Paid value. Must be greater than zero.',
+    description: 'Spent value. Must be greater than zero.',
   })
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })

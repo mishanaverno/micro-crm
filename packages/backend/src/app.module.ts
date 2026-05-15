@@ -8,6 +8,7 @@ import { NotesModule } from './notes/notes.module';
 import { EventsModule } from './events/events.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaidsModule } from './paids/paids.module';
+import { SpentsModule } from './spents/spents.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PaidsModule } from './paids/paids.module';
     EventsModule,
     OrdersModule,
     PaidsModule,
+    SpentsModule,
   ],
   controllers: [],
   providers: [],

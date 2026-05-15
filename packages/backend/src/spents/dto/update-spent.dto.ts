@@ -2,7 +2,7 @@ import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
 
-export class UpdatePaidDto {
+export class UpdateSpentDto {
   @ApiPropertyOptional({
     example: '22222222-2222-4222-8222-222222222222',
     description: 'Client ID',
@@ -23,7 +23,7 @@ export class UpdatePaidDto {
 
   @ApiPropertyOptional({
     example: 1500,
-    description: 'Paid value. Must be greater than zero.',
+    description: 'Spent value. Must be greater than zero.',
   })
   @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })

@@ -1,4 +1,3 @@
-import { EventReady } from '../../events/interfaces/event-ready.interface';
 import {
   Column,
   CreateDateColumn,
@@ -8,14 +7,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('paids')
-export class Paid implements EventReady {
-  getPayload: () => Record<string, unknown> = () => ({
-    paid_id: this.id,
-    order_id: this.order_id,
-    value: this.value,
-  });
-
+@Entity('spents')
+export class Spent {
   @PrimaryGeneratedColumn()
   id: number;
 

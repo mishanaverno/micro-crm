@@ -2,14 +2,12 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from '../clients/entities/client.entity';
 import { ClientsService } from '../clients/clients.service';
-import { EventType } from '../events/entities/event.entity';
-import { EventsService } from '../events/events.service';
 import { Order } from '../orders/entities/order.entity';
 import { OrdersService } from '../orders/orders.service';
-import { CreatePaidDto } from './dto/create-paid.dto';
-import { UpdatePaidDto } from './dto/update-paid.dto';
-import { Paid } from './entities/paid.entity';
-import { PaidsService } from './paids.service';
+import { CreateSpentDto } from './dto/create-spent.dto';
+import { UpdateSpentDto } from './dto/update-spent.dto';
+import { Spent } from './entities/spent.entity';
+import { SpentsService } from './spents.service';
 
 type MockRepository<T> = {
   create: jest.Mock<T, [Partial<T>]>;
@@ -28,10 +26,6 @@ type MockOrdersService = {
   findOneOwnedByUser: jest.Mock<Promise<Order | null>, [number, string]>;
 };
 
-type MockEventsService = {
-  createEvent: jest.Mock<Promise<unknown>, [unknown, unknown, (Record<string, unknown> | undefined)?]>;
-};
-
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -41,59 +35,54 @@ const createRepositoryMock = <T>(): MockRepository<T> => ({
   softDelete: jest.fn(),
 });
 
-describe('PaidsService', () => {
-  let service: PaidsService;
-  let repository: MockRepository<Paid>;
+describe('SpentsService', () => {
+  let service: SpentsService;
+  let repository: MockRepository<Spent>;
   let clientsService: MockClientsService;
   let ordersService: MockOrdersService;
-  let eventsService: MockEventsService;
 
   beforeEach(() => {
-    repository = createRepositoryMock<Paid>();
+    repository = createRepositoryMock<Spent>();
     clientsService = { findOneOwnedByUser: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
-    eventsService = { createEvent: jest.fn() };
-    eventsService.createEvent.mockResolvedValue(undefined);
 
-    service = new PaidsService(
-      repository as unknown as Repository<Paid>,
+    service = new SpentsService(
+      repository as unknown as Repository<Spent>,
       clientsService as unknown as ClientsService,
       ordersService as unknown as OrdersService,
-      eventsService as unknown as EventsService,
     );
   });
 
-  it('creates and saves a paid record for an owned client and order', async () => {
-    const dto: CreatePaidDto = {
+  it('creates and saves a spent record for an owned client and order', async () => {
+    const dto: CreateSpentDto = {
       client_id: 'client-1',
       order_id: 2001,
       value: 1500,
     };
-    const createdPaid = {
+    const createdSpent = {
       id: 1,
       user_id: 'user-1',
       ...dto,
       value: '1500.00',
-    } as unknown as Paid;
+    } as unknown as Spent;
 
     clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
       client_id: 'client-1',
     } as Order);
-    repository.create.mockReturnValue(createdPaid);
-    repository.save.mockResolvedValue(createdPaid);
+    repository.create.mockReturnValue(createdSpent);
+    repository.save.mockResolvedValue(createdSpent);
 
-    await expect(service.create(dto, 'user-1')).resolves.toEqual(createdPaid);
+    await expect(service.create(dto, 'user-1')).resolves.toEqual(createdSpent);
     expect(repository.create).toHaveBeenCalledWith({
       ...dto,
       user_id: 'user-1',
       value: '1500.00',
     });
-    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.PAID, createdPaid);
   });
 
-  it('rejects paid creation when order belongs to another client', async () => {
+  it('rejects spent creation when order belongs to another client', async () => {
     clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
@@ -112,48 +101,48 @@ describe('PaidsService', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('returns all paid records for the user', async () => {
-    const paids = [{ id: 1 }, { id: 2 }] as Paid[];
-    repository.find.mockResolvedValue(paids);
+  it('returns all spent records for the user', async () => {
+    const spents = [{ id: 1 }, { id: 2 }] as Spent[];
+    repository.find.mockResolvedValue(spents);
 
-    await expect(service.findAll('user-1')).resolves.toEqual(paids);
+    await expect(service.findAll('user-1')).resolves.toEqual(spents);
     expect(repository.find).toHaveBeenCalledWith({
       where: { user_id: 'user-1' },
       order: { created_at: 'DESC' },
     });
   });
 
-  it('updates an existing paid record', async () => {
-    const existingPaid = {
+  it('updates an existing spent record', async () => {
+    const existingSpent = {
       id: 1,
       user_id: 'user-1',
       client_id: 'client-1',
       order_id: 2001,
       value: '1000.00',
-    } as Paid;
-    const dto: UpdatePaidDto = { value: 500 };
-    const mergedPaid = { ...existingPaid, value: '500.00' } as unknown as Paid;
+    } as Spent;
+    const dto: UpdateSpentDto = { value: 500 };
+    const mergedSpent = { ...existingSpent, value: '500.00' } as unknown as Spent;
 
-    repository.findOneBy.mockResolvedValue(existingPaid);
+    repository.findOneBy.mockResolvedValue(existingSpent);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
       client_id: 'client-1',
     } as Order);
-    repository.merge.mockReturnValue(mergedPaid);
-    repository.save.mockResolvedValue(mergedPaid);
+    repository.merge.mockReturnValue(mergedSpent);
+    repository.save.mockResolvedValue(mergedSpent);
 
-    await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedPaid);
-    expect(repository.merge).toHaveBeenCalledWith(existingPaid, {
+    await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedSpent);
+    expect(repository.merge).toHaveBeenCalledWith(existingSpent, {
       value: '500.00',
     });
   });
 
-  it('soft deletes a paid record when it exists', async () => {
-    const paid = { id: 1, user_id: 'user-1' } as Paid;
-    repository.findOneBy.mockResolvedValue(paid);
+  it('soft deletes a spent record when it exists', async () => {
+    const spent = { id: 1, user_id: 'user-1' } as Spent;
+    repository.findOneBy.mockResolvedValue(spent);
     repository.softDelete.mockResolvedValue({ affected: 1 });
 
-    await expect(service.remove(1, 'user-1')).resolves.toEqual(paid);
+    await expect(service.remove(1, 'user-1')).resolves.toEqual(spent);
     expect(repository.softDelete).toHaveBeenCalledWith({ id: 1, user_id: 'user-1' });
   });
 });
