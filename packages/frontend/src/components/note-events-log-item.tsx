@@ -33,7 +33,6 @@ export function NoteEventsLogItem({
       commonActions={commonActions}
       event={event}
       icon={<EventTypeIcon type="note" />}
-      markerClassName="bg-emerald-500"
       specificActions={[]}
       typeLabel="note"
     >

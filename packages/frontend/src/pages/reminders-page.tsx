@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { format } from 'date-fns';
 import { RemindersDataTable } from '../components/reminders-data-table';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
@@ -27,6 +28,15 @@ import {
 } from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
+import { Calendar } from '../shared/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '../shared/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
 import { ReminderRecord } from '../shared/types/reminder';
 
@@ -50,6 +60,36 @@ const defaultVisibleColumns = {
 
 type VisibleColumns = typeof defaultVisibleColumns;
 
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      height="16"
+      viewBox="0 0 16 16"
+      width="16"
+    >
+      <rect
+        height="11"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        width="12"
+        x="2"
+        y="3"
+      />
+      <path
+        d="M5 2v3M11 2v3M2 6.5h12"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
 function toDatetimeLocalValue(timestamp: string | undefined) {
   if (!timestamp) {
     return '';
@@ -60,9 +100,67 @@ function toDatetimeLocalValue(timestamp: string | undefined) {
   return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
 }
 
+function getDatePart(timestamp: string) {
+  return timestamp.split('T')[0] ?? '';
+}
+
+function getTimePart(timestamp: string) {
+  return timestamp.split('T')[1] ?? '';
+}
+
+function mergeDateAndTime(nextDate: string, nextTime: string) {
+  if (!nextDate && !nextTime) {
+    return '';
+  }
+
+  if (!nextDate) {
+    return '';
+  }
+
+  return `${nextDate}T${nextTime || '09:00'}`;
+}
+
+function formatTimeInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 4);
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
+
+function isValidTimeValue(value: string) {
+  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+}
+
+function formatDateLabel(timestamp: string) {
+  const datePart = getDatePart(timestamp);
+
+  if (!datePart) {
+    return 'Pick a date';
+  }
+
+  const [year, month, day] = datePart.split('-').map(Number);
+  return format(new Date(year, (month ?? 1) - 1, day ?? 1), 'PPP');
+}
+
+function getSelectedDate(timestamp: string) {
+  const datePart = getDatePart(timestamp);
+
+  if (!datePart) {
+    return undefined;
+  }
+
+  const [year, month, day] = datePart.split('-').map(Number);
+  return new Date(year, (month ?? 1) - 1, day ?? 1);
+}
+
 export function RemindersPage() {
   const [form, setForm] = useState(initialFormState);
+  const [timeInput, setTimeInput] = useState('09:00');
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<ReminderRecord | null>(null);
   const [reminderToDelete, setReminderToDelete] = useState<ReminderRecord | null>(null);
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
@@ -182,6 +280,8 @@ export function RemindersPage() {
       content: '',
       timestamp: '',
     });
+    setTimeInput('09:00');
+    setIsDatePickerOpen(false);
     setIsReminderDialogOpen(true);
   }
 
@@ -195,13 +295,17 @@ export function RemindersPage() {
       content: reminder.content,
       timestamp: toDatetimeLocalValue(reminder.timestamp),
     });
+    setTimeInput(getTimePart(toDatetimeLocalValue(reminder.timestamp)) || '09:00');
+    setIsDatePickerOpen(false);
     setIsReminderDialogOpen(true);
   }
 
   function closeDialog() {
     setIsReminderDialogOpen(false);
+    setIsDatePickerOpen(false);
     setEditingReminder(null);
     setForm(initialFormState);
+    setTimeInput('09:00');
     createReminder.reset();
     updateReminder.reset();
   }
@@ -233,11 +337,17 @@ export function RemindersPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const datePart = getDatePart(form.timestamp);
+
+    if (!datePart || !isValidTimeValue(timeInput)) {
+      return;
+    }
+
     const payload = {
       client_id: form.client_id,
       order_id: form.order_id ? Number(form.order_id) : null,
       content: form.content,
-      timestamp: new Date(form.timestamp).toISOString(),
+      timestamp: new Date(mergeDateAndTime(datePart, timeInput)).toISOString(),
     };
 
     if (editingReminder) {
@@ -330,58 +440,118 @@ export function RemindersPage() {
                   <form className="grid gap-4" id="create-reminder-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
                       <Label htmlFor="client_id">Client</Label>
-                      <select
-                        id="client_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={clientsQuery.isLoading || clientOptions.length === 0}
-                        required
-                        value={form.client_id}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, client_id: event.target.value }))
+                        value={form.client_id || undefined}
+                        onValueChange={(value) =>
+                          setForm((current) => ({ ...current, client_id: value }))
                         }
                       >
-                        <option value="" disabled>
-                          {clientsQuery.isLoading ? 'Loading clients...' : 'Select client'}
-                        </option>
-                        {clientOptions.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {resolveClientLabel(client.id)}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="client_id">
+                          <SelectValue
+                            placeholder={
+                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientOptions.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {resolveClientLabel(client.id)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="order_id">Order</Label>
-                      <select
-                        id="order_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={ordersQuery.isLoading || !form.client_id}
-                        value={form.order_id}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, order_id: event.target.value }))
+                        value={form.order_id || '__none__'}
+                        onValueChange={(value) =>
+                          setForm((current) => ({
+                            ...current,
+                            order_id: value === '__none__' ? '' : value,
+                          }))
                         }
                       >
-                        <option value="">No order</option>
-                        {orderOptions.map((order) => (
-                          <option key={order.id} value={order.id}>
-                            {resolveOrderLabel(Number(order.id))}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="order_id">
+                          <SelectValue placeholder="No order" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">No order</SelectItem>
+                          {orderOptions.map((order) => (
+                            <SelectItem key={order.id} value={String(order.id)}>
+                              {resolveOrderLabel(Number(order.id))}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="timestamp">Timestamp</Label>
-                      <Input
-                        id="timestamp"
-                        required
-                        type="datetime-local"
-                        value={form.timestamp}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, timestamp: event.target.value }))
-                        }
-                      />
+                      <div className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+                        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              className="h-11 w-full justify-start rounded-2xl px-4 text-left font-normal shadow-sm"
+                              data-empty={!form.timestamp}
+                              id="timestamp-date"
+                              type="button"
+                              variant="outline"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                              {form.timestamp ? (
+                                formatDateLabel(form.timestamp)
+                              ) : (
+                                <span className="text-muted-foreground">Pick a date</span>
+                              )}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent align="start" className="w-auto overflow-hidden rounded-2xl p-0">
+                            <Calendar
+                              mode="single"
+                              selected={getSelectedDate(form.timestamp)}
+                              onSelect={(date) => {
+                                if (!date) {
+                                  return;
+                                }
+
+                                const nextDate = format(date, 'yyyy-MM-dd');
+
+                                setForm((current) => ({
+                                  ...current,
+                                  timestamp: mergeDateAndTime(nextDate, timeInput),
+                                }));
+                                setIsDatePickerOpen(false);
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <Input
+                          id="timestamp-time"
+                          aria-invalid={timeInput.length > 0 && !isValidTimeValue(timeInput)}
+                          inputMode="numeric"
+                          maxLength={5}
+                          placeholder="09:00"
+                          required
+                          type="text"
+                          value={timeInput}
+                          onChange={(event) => {
+                            const nextTime = formatTimeInput(event.target.value);
+                            setTimeInput(nextTime);
+                            setForm((current) => ({
+                              ...current,
+                              timestamp: mergeDateAndTime(
+                                getDatePart(current.timestamp),
+                                nextTime,
+                              ),
+                            }));
+                          }}
+                        />
+                      </div>
                     </div>
 
                     <div className="grid gap-2">
@@ -407,7 +577,8 @@ export function RemindersPage() {
                         updateReminder.isPending ||
                         clientOptions.length === 0 ||
                         !form.client_id ||
-                        !form.timestamp
+                        !getDatePart(form.timestamp) ||
+                        !isValidTimeValue(timeInput)
                       }
                       form="create-reminder-form"
                       type="submit"

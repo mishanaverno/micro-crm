@@ -171,9 +171,6 @@ export function ClientsPage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-1.5">
                 <CardTitle>Clients</CardTitle>
-                <CardDescription>
-                  This list is loaded from the API and refreshed after successful writes.
-                </CardDescription>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">

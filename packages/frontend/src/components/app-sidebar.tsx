@@ -43,8 +43,7 @@ export function AppSidebar() {
           </div>
           {open ? (
             <div>
-              <p className="text-sm font-semibold">Проект</p>
-              <p className="text-xs text-sidebar-foreground/60">Operations workspace</p>
+              <p className="text-sm font-semibold">Под рукой</p>
             </div>
           ) : null}
           <SidebarTrigger />
@@ -66,7 +65,6 @@ export function AppSidebar() {
                         <span
                           className={[
                             'flex items-center gap-3',
-                            isActive ? 'text-sidebar-primary-foreground' : '',
                           ].join(' ')}
                           data-active={isActive}
                         >

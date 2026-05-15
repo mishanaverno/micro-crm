@@ -30,6 +30,13 @@ import {
 } from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../shared/ui/select';
 import { PaidRecord } from '../shared/types/paid';
 import { SpentRecord } from '../shared/types/spent';
 
@@ -431,54 +438,60 @@ export function FinancesPage() {
                   <form className="grid gap-4" id="finance-record-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
                       <Label htmlFor="client_id">Client</Label>
-                      <select
-                        id="client_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={clientsQuery.isLoading || clientOptions.length === 0}
-                        required
-                        value={form.client_id}
-                        onChange={(event) =>
+                        value={form.client_id || undefined}
+                        onValueChange={(value) =>
                           setForm((current) => ({
                             ...current,
-                            client_id: event.target.value,
+                            client_id: value,
                           }))
                         }
                       >
-                        <option value="" disabled>
-                          {clientsQuery.isLoading ? 'Loading clients...' : 'Select client'}
-                        </option>
-                        {clientOptions.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {resolveClientLabel(client.id)}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="client_id">
+                          <SelectValue
+                            placeholder={
+                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientOptions.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {resolveClientLabel(client.id)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="order_id">Order</Label>
-                      <select
-                        id="order_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={ordersQuery.isLoading || !form.client_id}
-                        required
-                        value={form.order_id}
-                        onChange={(event) =>
+                        value={form.order_id || undefined}
+                        onValueChange={(value) =>
                           setForm((current) => ({
                             ...current,
-                            order_id: event.target.value,
+                            order_id: value,
                           }))
                         }
                       >
-                        <option value="">
-                          {ordersQuery.isLoading ? 'Loading orders...' : 'Select order'}
-                        </option>
-                        {orderOptions.map((order) => (
-                          <option key={order.id} value={order.id}>
-                            {resolveOrderLabel(Number(order.id))}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="order_id">
+                          <SelectValue
+                            placeholder={
+                              ordersQuery.isLoading ? 'Loading orders...' : 'Select order'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {orderOptions.map((order) => (
+                            <SelectItem key={order.id} value={String(order.id)}>
+                              {resolveOrderLabel(Number(order.id))}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">

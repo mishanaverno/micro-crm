@@ -26,6 +26,13 @@ import {
   DropdownMenuTrigger,
 } from '../shared/ui/dropdown-menu';
 import { Label } from '../shared/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
 import { TaskRecord, TaskStatus } from '../shared/types/task';
 
@@ -319,63 +326,75 @@ export function TasksPage() {
                   <form className="grid gap-4" id="create-task-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
                       <Label htmlFor="client_id">Client</Label>
-                      <select
-                        id="client_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={clientsQuery.isLoading || clientOptions.length === 0}
-                        required
-                        value={form.client_id}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, client_id: event.target.value }))
+                        value={form.client_id || undefined}
+                        onValueChange={(value) =>
+                          setForm((current) => ({ ...current, client_id: value }))
                         }
                       >
-                        <option value="" disabled>
-                          {clientsQuery.isLoading ? 'Loading clients...' : 'Select client'}
-                        </option>
-                        {clientOptions.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {resolveClientLabel(client.id)}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="client_id">
+                          <SelectValue
+                            placeholder={
+                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientOptions.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {resolveClientLabel(client.id)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="order_id">Order</Label>
-                      <select
-                        id="order_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={ordersQuery.isLoading || !form.client_id}
-                        value={form.order_id}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, order_id: event.target.value }))
+                        value={form.order_id || '__none__'}
+                        onValueChange={(value) =>
+                          setForm((current) => ({
+                            ...current,
+                            order_id: value === '__none__' ? '' : value,
+                          }))
                         }
                       >
-                        <option value="">No order</option>
-                        {orderOptions.map((order) => (
-                          <option key={order.id} value={order.id}>
-                            {resolveOrderLabel(Number(order.id))}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="order_id">
+                          <SelectValue placeholder="No order" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">No order</SelectItem>
+                          {orderOptions.map((order) => (
+                            <SelectItem key={order.id} value={String(order.id)}>
+                              {resolveOrderLabel(Number(order.id))}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">
                       <Label htmlFor="status">Status</Label>
-                      <select
-                        id="status"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         value={form.status}
-                        onChange={(event) =>
+                        onValueChange={(value) =>
                           setForm((current) => ({
                             ...current,
-                            status: event.target.value as TaskStatus,
+                            status: value as TaskStatus,
                           }))
                         }
                       >
-                        <option value="pending">Pending</option>
-                        <option value="complete">Complete</option>
-                      </select>
+                        <SelectTrigger id="status">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="complete">Complete</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">

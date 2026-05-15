@@ -59,6 +59,9 @@ services:
     depends_on:
       migrator:
         condition: service_completed_successfully
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
       - crm-network
     volumes:
@@ -86,6 +89,9 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     networks:
       - crm-network
     volumes:

@@ -26,6 +26,13 @@ import {
 } from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
 import { OrderRecord, OrderStatus } from '../shared/types/order';
 
@@ -40,6 +47,7 @@ const initialFormState = {
 const ORDERS_TABLE_COLUMNS_STORAGE_KEY = 'orders-table-visible-columns';
 
 const defaultVisibleColumns = {
+  id: true,
   client: true,
   title: true,
   price: true,
@@ -233,9 +241,6 @@ export function OrdersPage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1.5">
               <CardTitle>Orders</CardTitle>
-              <CardDescription>
-                Orders linked to clients, loaded from the API and editable from one workspace.
-              </CardDescription>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -248,6 +253,12 @@ export function OrdersPage() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuCheckboxItem
+                    checked={visibleColumns.id}
+                    onCheckedChange={() => toggleColumn('id')}
+                  >
+                    Order ID
+                  </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.client}
                     onCheckedChange={() => toggleColumn('client')}
@@ -304,29 +315,32 @@ export function OrdersPage() {
                   <form className="grid gap-4" id="create-order-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
                       <Label htmlFor="client_id">Client</Label>
-                      <select
-                        id="client_id"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      <Select
                         disabled={
                           Boolean(editingOrder) ||
                           clientsQuery.isLoading ||
                           clientOptions.length === 0
                         }
-                        required
-                        value={form.client_id}
-                        onChange={(event) =>
-                          setForm((current) => ({ ...current, client_id: event.target.value }))
+                        value={form.client_id || undefined}
+                        onValueChange={(value) =>
+                          setForm((current) => ({ ...current, client_id: value }))
                         }
                       >
-                        <option value="" disabled>
-                          {clientsQuery.isLoading ? 'Loading clients...' : 'Select client'}
-                        </option>
-                        {clientOptions.map((client) => (
-                          <option key={client.id} value={client.id}>
-                            {resolveClientLabel(client.id)}
-                          </option>
-                        ))}
-                      </select>
+                        <SelectTrigger id="client_id">
+                          <SelectValue
+                            placeholder={
+                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {clientOptions.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {resolveClientLabel(client.id)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">
@@ -357,22 +371,24 @@ export function OrdersPage() {
 
                     <div className="grid gap-2">
                       <Label htmlFor="status">Status</Label>
-                      <select
-                        id="status"
-                        className="flex h-12 w-full rounded-3xl border border-input bg-background px-4 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        required
+                      <Select
                         value={form.status}
-                        onChange={(event) =>
+                        onValueChange={(value) =>
                           setForm((current) => ({
                             ...current,
-                            status: event.target.value as OrderStatus,
+                            status: value as OrderStatus,
                           }))
                         }
                       >
-                        <option value="created">created</option>
-                        <option value="inprogress">inprogress</option>
-                        <option value="done">done</option>
-                      </select>
+                        <SelectTrigger id="status">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="created">created</SelectItem>
+                          <SelectItem value="inprogress">inprogress</SelectItem>
+                          <SelectItem value="done">done</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="grid gap-2">

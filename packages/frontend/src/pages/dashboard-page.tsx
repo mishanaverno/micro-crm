@@ -196,6 +196,20 @@ export function DashboardPage() {
 
   return (
     <main className="grid gap-4 md:grid-cols-2">
+      <MetricCard
+        description="This month paid amounts minus spent amounts."
+        error={
+          paidsQuery.error instanceof Error
+            ? paidsQuery.error.message
+            : spentsQuery.error instanceof Error
+              ? spentsQuery.error.message
+              : null
+        }
+        helper="Calculated from finance records created this month."
+        isLoading={paidsQuery.isLoading || spentsQuery.isLoading}
+        title="Month income"
+        value={formatCurrency(monthIncome)}
+      />
       <ListCard
         description="Orders that still require work."
         error={ordersQuery.error instanceof Error ? ordersQuery.error.message : null}
@@ -219,20 +233,6 @@ export function DashboardPage() {
         isLoading={tasksQuery.isLoading}
         items={incompleteTasks}
         title="Incomplete tasks"
-      />
-      <MetricCard
-        description="This month paid amounts minus spent amounts."
-        error={
-          paidsQuery.error instanceof Error
-            ? paidsQuery.error.message
-            : spentsQuery.error instanceof Error
-              ? spentsQuery.error.message
-              : null
-        }
-        helper="Calculated from finance records created this month."
-        isLoading={paidsQuery.isLoading || spentsQuery.isLoading}
-        title="Month income"
-        value={formatCurrency(monthIncome)}
       />
     </main>
   );

@@ -30,7 +30,7 @@ export function LogItemContent({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-3xl border border-border/70 bg-card/80 px-4 py-4 shadow-sm backdrop-blur-sm',
+        'overflow-hidden rounded-[8px] border border-border/70 bg-card/80 px-4 py-4 shadow-sm backdrop-blur-sm',
         className,
       )}
       {...props}

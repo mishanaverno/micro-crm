@@ -195,7 +195,7 @@ export function SidebarMenuItem({
   className,
   ...props
 }: React.HTMLAttributes<HTMLLIElement>) {
-  return <li className={cn('list-none', className)} {...props} />;
+  return <li className={cn('list-none ', className)} {...props} />;
 }
 
 export function SidebarMenuButton({
@@ -214,8 +214,8 @@ export function SidebarMenuButton({
     <Comp
       data-active={isActive}
       className={cn(
-        'flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-ring',
-        isActive && 'bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90',
+        'flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus:outline-none',
+        isActive && 'bg-sidebar-primary hover:bg-sidebar-primary/90',
         !open && 'justify-center px-2',
         className,
       )}
