@@ -1,5 +1,5 @@
 import { TaskRecord } from '../shared/types/task';
-import { TaskStatusBadge } from './status-badges';
+import { StatusBadge } from './status-badges';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -114,7 +114,7 @@ export function TasksDataTable({
             {visibleColumns.order ? <TableCell>{resolveOrderLabel(task.order_id)}</TableCell> : null}
             {visibleColumns.status ? (
               <TableCell>
-                <TaskStatusBadge status={task.status} />
+                <StatusBadge status={task.status} />
               </TableCell>
             ) : null}
             {visibleColumns.content ? (

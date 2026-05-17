@@ -1,8 +1,7 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
-import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
-import { LogItemTitle } from '../shared/ui/log-item';
 import { NoteEventRecord } from '../shared/types/event';
+import { LogItemDescription } from './ui/log-item';
 
 interface NoteEventsLogItemProps {
   event: NoteEventRecord;
@@ -13,9 +12,19 @@ interface NoteEventsLogItemProps {
 }
 
 function describeNoteEvent(event: NoteEventRecord) {
-  const trimmedContent = event.payload.content.trim();
+  return event.payload.content.trim();
+}
 
-  return trimmedContent ? trimmedContent : `Note created for ${event.client_id}`;
+function describeCompactNoteTitle(event: NoteEventRecord) {
+  return event.payload.order_id != null
+    ? `: Order #${event.payload.order_id}`
+    : '';
+}
+
+function describeNoteTitle(event: NoteEventRecord) {
+  return event.payload.order_id != null
+    ? ` created for order #${event.payload.order_id}`
+    : '';
 }
 
 export function NoteEventsLogItem({
@@ -32,15 +41,12 @@ export function NoteEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      icon={<EventTypeIcon type="note" />}
+      title={describeNoteTitle(event)}
+      compactTitle={describeCompactNoteTitle(event)}
+      type="note"
       specificActions={[]}
-      typeLabel="note"
     >
-      <LogItemTitle>
-        {compact && event.payload.order_id != null
-          ? `Note: Order #${event.payload.order_id}`
-          : describeNoteEvent(event)}
-      </LogItemTitle>
+      <LogItemDescription>{describeNoteEvent(event)}</LogItemDescription>
     </AbstractEventsLogItem>
   );
 }

@@ -1,5 +1,5 @@
 import { OrderRecord } from '../shared/types/order';
-import { OrderStatusBadge } from './status-badges';
+import { StatusBadge } from './status-badges';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -123,7 +123,7 @@ export function OrdersDataTable({
             ) : null}
             {visibleColumns.status ? (
               <TableCell>
-                <OrderStatusBadge status={order.status} />
+                <StatusBadge status={order.status} />
               </TableCell>
             ) : null}
             {visibleColumns.title ? <TableCell>{order.title || 'order'}</TableCell> : null}

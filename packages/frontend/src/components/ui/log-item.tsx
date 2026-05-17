@@ -30,7 +30,7 @@ export function LogItemContent({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-[8px] border border-border/70 bg-card/80 px-4 py-4 shadow-sm backdrop-blur-sm',
+        'overflow-hidden rounded-[8px] border border-border/70 bg-card/80 px-4 shadow-sm backdrop-blur-sm',
         className,
       )}
       {...props}
@@ -54,7 +54,7 @@ export function LogItemHeaderMain({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('grid gap-1.5', className)} {...props} />;
+  return <div className={cn('flex items-start align-center', className)} {...props} />;
 }
 
 export function LogItemHeaderActions({
@@ -78,7 +78,7 @@ export function LogItemFooter({
   return (
     <div
       className={cn(
-        'mt-3 flex flex-col gap-1.5 border-t border-border/60 pt-2 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between',
+        'mt-3 flex flex-col gap-1.5 border-t border-border/60 py-1 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}
@@ -112,7 +112,7 @@ export function LogItemDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn('text-xs font-medium text-muted-foreground', className)} {...props} />;
+  return <p className={cn('text-sm font-medium', className)} {...props} />;
 }
 
 export function LogItemMeta({

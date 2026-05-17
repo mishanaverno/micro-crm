@@ -1,8 +1,6 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
-import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { ClientCreatedEventRecord } from '../shared/types/event';
-import { LogItemTitle } from '../shared/ui/log-item';
 
 interface ClientCreatedEventsLogItemProps {
   event: ClientCreatedEventRecord;
@@ -12,14 +10,11 @@ interface ClientCreatedEventsLogItemProps {
   compact?: boolean;
 }
 
-function describeClientCreatedEvent(event: ClientCreatedEventRecord) {
-  const fullName = [event.payload.first_name, event.payload.last_name]
+
+function describeClientCreatedTitle(event: ClientCreatedEventRecord) {
+  return [event.payload.first_name, event.payload.last_name]
     .filter(Boolean)
     .join(' ');
-
-  return fullName || event.payload.email
-    ? `Client created: ${fullName || event.payload.email}`
-    : `Client created for ${event.client_id}`;
 }
 
 export function ClientCreatedEventsLogItem({
@@ -36,11 +31,14 @@ export function ClientCreatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      icon={<EventTypeIcon type="client_created" />}
+      type="client_created"
       specificActions={[]}
-      typeLabel="client created"
+      title={`: ${describeClientCreatedTitle(event)}`}
     >
-      <LogItemTitle>{describeClientCreatedEvent(event)}</LogItemTitle>
+      <p>{event.payload.first_name} {event.payload.last_name}</p>
+      <p>{event.payload.company}</p>
+      <p>{event.payload.email}</p>
+      <p>{event.payload.phone_number}</p>
     </AbstractEventsLogItem>
   );
 }

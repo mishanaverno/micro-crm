@@ -1,7 +1,6 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
-import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
-import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
+import { LogItemDescription } from '../shared/ui/log-item';
 import { PaidEventRecord } from '../shared/types/event';
 
 interface PaidEventsLogItemProps {
@@ -34,14 +33,12 @@ export function PaidEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      icon={<EventTypeIcon type="paid" />}
+      compactTitle={`Paid: Order #${event.payload.order_id}`}
+      type="paid"
       specificActions={[]}
-      typeLabel="paid"
+      title={`Paid recorded: ${formatValue(event.payload.value)}`}
     >
-      <LogItemTitle>
-        {compact ? `Paid: Order #${event.payload.order_id}` : `Paid recorded: ${formatValue(event.payload.value)}`}
-      </LogItemTitle>
-      {!compact ? <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription> : null}
+      <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription>
     </AbstractEventsLogItem>
   );
 }

@@ -222,7 +222,7 @@ export function EventsLog() {
     const events = visibleEvents;
     const orderLaneIndices = new Map<number, number>();
     const orderIdsByLaneIndex = new Map<number, number>();
-    const orderLaneRanges = new Map<number, { start: number; end: number }>();
+    const orderLaneRanges = new Map<number, Array<{ start: number; end: number }>>();
     const orderIdsWithVisibleCompletion = new Set<number>();
     let nextLaneIndex = 1;
 
@@ -232,7 +232,7 @@ export function EventsLog() {
         : ORDER_LANE_CLASSES[(laneIndex - 1) % ORDER_LANE_CLASSES.length];
     }
 
-    events.forEach((event, rowIndex) => {
+    events.forEach((event) => {
       const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
 
       if (!orderId) {
@@ -249,29 +249,37 @@ export function EventsLog() {
         nextLaneIndex += 1;
       }
 
-      const currentRange = orderLaneRanges.get(orderId);
-
-      if (!currentRange) {
-        orderLaneRanges.set(orderId, { start: rowIndex, end: rowIndex });
-        return;
-      }
-
-      orderLaneRanges.set(orderId, {
-        start: Math.min(currentRange.start, rowIndex),
-        end: Math.max(currentRange.end, rowIndex),
-      });
+      const currentRanges = orderLaneRanges.get(orderId) ?? [];
+      orderLaneRanges.set(orderId, currentRanges);
     });
 
-    orderLaneRanges.forEach((range, orderId) => {
+    orderLaneRanges.forEach((_, orderId) => {
       const isClosed = orderStatusesByOrderId.get(orderId) === 'done';
       const hasVisibleCompletion = orderIdsWithVisibleCompletion.has(orderId);
+      const ranges: Array<{ start: number; end: number }> = [];
+      let activeRangeStart: number | null = !isClosed || !hasVisibleCompletion ? 0 : null;
 
-      if (!isClosed || !hasVisibleCompletion) {
-        orderLaneRanges.set(orderId, {
-          start: 0,
-          end: range.end,
-        });
-      }
+      events.forEach((event, rowIndex) => {
+        if (resolveOrderId(event, noteOrderIdsByNoteId) !== orderId) {
+          return;
+        }
+
+        if (event.type === 'order_complete') {
+          if (activeRangeStart == null) {
+            activeRangeStart = rowIndex;
+          }
+          return;
+        }
+
+        if (event.type === 'order_created' || event.type === 'order_reopened') {
+          if (activeRangeStart != null) {
+            ranges.push({ start: activeRangeStart, end: rowIndex });
+            activeRangeStart = null;
+          }
+        }
+      });
+
+      orderLaneRanges.set(orderId, ranges);
     });
 
     return events.map((event, rowIndex) => {
@@ -285,13 +293,17 @@ export function EventsLog() {
       );
       const activeLaneIndices = [0];
 
-      orderLaneRanges.forEach((range, rangeOrderId) => {
-        if (rowIndex >= range.start && rowIndex <= range.end) {
-          const activeLaneIndex = orderLaneIndices.get(rangeOrderId);
+      orderLaneRanges.forEach((ranges, rangeOrderId) => {
+        const isActive = ranges.some((range) => rowIndex >= range.start && rowIndex <= range.end);
 
-          if (activeLaneIndex != null) {
-            activeLaneIndices.push(activeLaneIndex);
-          }
+        if (!isActive) {
+          return;
+        }
+
+        const activeLaneIndex = orderLaneIndices.get(rangeOrderId);
+
+        if (activeLaneIndex != null) {
+          activeLaneIndices.push(activeLaneIndex);
         }
       });
 
@@ -318,7 +330,9 @@ export function EventsLog() {
                       : getLaneAppearance(activeLaneIndex).railClassName;
                   })(),
             segment:
-              event.type === 'order_created' && activeLaneIndex === laneIndex && laneIndex > 0
+              (event.type === 'order_created' || event.type === 'order_reopened') &&
+              activeLaneIndex === laneIndex &&
+              laneIndex > 0
                 ? ('top' as const)
                 : event.type === 'order_complete' &&
                     activeLaneIndex === laneIndex &&
@@ -327,7 +341,9 @@ export function EventsLog() {
                   : ('full' as const),
           })),
         compact,
-        branchFromMain: event.type === 'order_created' && laneIndex > 0,
+        branchFromMain:
+          (event.type === 'order_created' || event.type === 'order_reopened') &&
+          laneIndex > 0,
         mergeToMain: event.type === 'order_complete' && laneIndex > 0,
         branchClassName: compact
           ? BASE_LANE_APPEARANCE.curveClassName

@@ -6,7 +6,7 @@ interface EventTypeIconProps {
 }
 
 function iconClassName(className?: string) {
-  return `h-4 w-4 shrink-0 ${className ?? ''}`.trim();
+  return `h-4 w-4 shrink-0 mr-1 ${className ?? ''}`.trim();
 }
 
 export function EventTypeIcon({ type, className }: EventTypeIconProps) {

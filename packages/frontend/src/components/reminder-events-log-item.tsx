@@ -1,7 +1,7 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
-import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
+import { LogItemDescription } from '../shared/ui/log-item';
 import { ReminderEventRecord } from '../shared/types/event';
 
 interface ReminderEventsLogItemProps {
@@ -18,6 +18,18 @@ function describeReminderEvent(event: ReminderEventRecord) {
   return trimmedContent ? trimmedContent : `Reminder created for ${event.client_id}`;
 }
 
+function describeReminderTitle(event: ReminderEventRecord) {
+  return event.payload.order_id != null
+    ? `for order #${event.payload.order_id}`
+    : '';
+}
+
+function describeCompactReminderTitle(event: ReminderEventRecord) {
+  return event.payload.order_id != null
+    ? `: Order #${event.payload.order_id}`
+    : '';
+}
+
 export function ReminderEventsLogItem({
   event,
   clientLabel,
@@ -32,20 +44,15 @@ export function ReminderEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      icon={<EventTypeIcon type="reminder" />}
+      compactTitle={describeCompactReminderTitle(event)}
+      type="reminder"
       specificActions={[]}
-      typeLabel="reminder"
+      title={describeReminderTitle(event)}
     >
-      <LogItemTitle>
-        {compact && event.payload.order_id != null
-          ? `Reminder: Order #${event.payload.order_id}`
-          : describeReminderEvent(event)}
-      </LogItemTitle>
-      {!compact ? (
-        <LogItemDescription>
-          Scheduled for {new Date(event.payload.timestamp).toLocaleString()}
-        </LogItemDescription>
-      ) : null}
+      <LogItemDescription>
+        <p>{event.payload.content}</p>
+        <p>Scheduled for {new Date(event.payload.timestamp).toLocaleString()}</p>
+      </LogItemDescription>
     </AbstractEventsLogItem>
   );
 }

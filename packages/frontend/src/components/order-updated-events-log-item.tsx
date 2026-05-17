@@ -1,9 +1,8 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
-import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
-import { OrderStatusBadge } from './status-badges';
-import { LogItemDescription, LogItemTitle } from '../shared/ui/log-item';
+import { LogItemDescription } from '../shared/ui/log-item';
 import { OrderChangedField, OrderUpdatedEventRecord } from '../shared/types/event';
+import { OrderStatus } from '@/shared/types/order';
 
 interface OrderUpdatedEventsLogItemProps {
   event: OrderUpdatedEventRecord;
@@ -11,19 +10,6 @@ interface OrderUpdatedEventsLogItemProps {
   commonActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
-}
-
-function describeOrderUpdatedEvent(event: OrderUpdatedEventRecord) {
-  const trimmedTitle = event.payload.title?.trim();
-
-  return trimmedTitle
-    ? `Order updated: ${trimmedTitle}`
-    : `Order updated for ${event.client_id}`;
-}
-
-function resolveOrderTitle(event: OrderUpdatedEventRecord) {
-  const trimmedTitle = event.payload.title?.trim();
-  return trimmedTitle ? trimmedTitle : 'order';
 }
 
 function formatFieldLabel(field: OrderChangedField['field']) {
@@ -63,27 +49,26 @@ export function OrderUpdatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      headerContent={
-        compact ? undefined : (
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <span className="text-muted-foreground/90">
-              <EventTypeIcon type="order_updated" />
-            </span>
-            <span>Order:</span>
-            <span>#{event.payload.order_id}</span>
-            <span>{resolveOrderTitle(event)}</span>
-            <OrderStatusBadge status={event.payload.status as 'created' | 'inprogress' | 'done'} />
-          </div>
-        )
-      }
-      icon={<EventTypeIcon type="order_updated" />}
+      // headerContent={
+      //   (
+      //     <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+      //       <span className="text-muted-foreground/90">
+      //         <EventTypeIcon type="order_updated" />
+      //       </span>
+      //       <span>Order:</span>
+      //       <span>#{event.payload.order_id}</span>
+      //       <span>{resolveOrderTitle(event)}</span>
+      //       <OrderStatusBadge status={event.payload.status as 'created' | 'inprogress' | 'done'} />
+      //     </div>
+      //   )
+      // }
+      compactTitle={`: #${event.payload.order_id}`}
+      type="order_updated"
       specificActions={[]}
-      typeLabel={compact ? 'order updated' : undefined}
+      title={`: #${event.payload.order_id} - ${event.payload.title?.trim()}`}
+      badge={event.payload.status as OrderStatus}
     >
-      <LogItemTitle>
-        {compact ? `Order updated: #${event.payload.order_id}` : describeOrderUpdatedEvent(event)}
-      </LogItemTitle>
-      {!compact && changedFields.length > 0 ? (
+      {changedFields.length > 0 ? (
         <div className="mt-3 grid gap-2">
           <LogItemDescription>
             Changed fields: {changedFields.map((item) => formatFieldLabel(item.field)).join(', ')}

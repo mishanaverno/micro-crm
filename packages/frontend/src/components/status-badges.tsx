@@ -5,13 +5,22 @@ import { TaskStatus } from '../shared/types/task';
 interface StatusBadgeProps {
   className?: string;
 }
+function StatusLabel({ status }: { status: OrderStatus | TaskStatus }) {
+  switch (status) {
+    default:
+      return (
+        status.trim()
+      )
+  }
+}
 
-export function OrderStatusBadge({
+export function StatusBadge({
   status,
   className,
-}: { status: OrderStatus } & StatusBadgeProps) {
+}: { status: OrderStatus | TaskStatus } & StatusBadgeProps) {
   switch (status) {
     case 'done':
+    case 'complete':
       return (
         <Badge
           className={['border-transparent bg-emerald-100 text-emerald-700', className]
@@ -19,12 +28,18 @@ export function OrderStatusBadge({
             .join(' ')}
           variant="secondary"
         >
-          Done
+          <StatusLabel status={status}/>
         </Badge>
       );
     case 'inprogress':
-      return <Badge className={className} variant="outline">In progress</Badge>;
+    case 'pending':
+      return (
+        <Badge className={className} variant="outline">
+          <StatusLabel status={status}/>
+        </Badge>
+      );
     case 'created':
+    case 'reopened':
     default:
       return (
         <Badge
@@ -33,26 +48,9 @@ export function OrderStatusBadge({
             .join(' ')}
           variant="secondary"
         >
-          Created
+          <StatusLabel status={status}/>
         </Badge>
       );
+      
   }
-}
-
-export function TaskStatusBadge({
-  status,
-  className,
-}: { status: TaskStatus } & StatusBadgeProps) {
-  return status === 'complete' ? (
-    <Badge
-      className={['border-transparent bg-emerald-100 text-emerald-700', className]
-        .filter(Boolean)
-        .join(' ')}
-      variant="secondary"
-    >
-      Complete
-    </Badge>
-  ) : (
-    <Badge className={className} variant="outline">Pending</Badge>
-  );
 }
