@@ -59,9 +59,9 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
       <LogItemContent
         className={
           cardBorderClassName
-            ? `${cardBorderClassName} border-[3px] transition-[max-width,padding,border-color,box-shadow,background-color] duration-300 ease-out ${compact ? 'inline-block w-fit max-w-[22rem] px-3 py-2' : ''}`
+            ? `${cardBorderClassName} border-[3px] transition-[max-width,padding,border-color,box-shadow,background-color] duration-300 ease-out ${compact ? 'inline-block w-fit max-w-[22rem] px-3' : ''}`
             : compact
-              ? 'inline-block w-fit max-w-[22rem] px-3 py-2 transition-[max-width,padding,box-shadow,background-color] duration-300 ease-out'
+              ? 'inline-block w-fit max-w-[22rem] px-3 transition-[max-width,padding,box-shadow,background-color] duration-300 ease-out'
               : undefined
         }
       >
@@ -129,7 +129,7 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
           </LogItemBody>
         ) : null}
         {!compact && event.comment ? <LogItemNote>{event.comment}</LogItemNote> : null}
-        <LogItemFooter className="transition-[margin,padding,gap] duration-300 ease-out">
+        <LogItemFooter className={`transition-[margin,padding,gap] duration-300 ease-out ${compact ? '' : 'border-t mt-3'}`}>
           <p>{clientLabel}</p>
           <LogItemTimestamp className="transition-[font-size] duration-300 ease-out" dateTime={event.created_at}>
             {new Date(event.created_at).toLocaleString()}

@@ -30,7 +30,7 @@ export function LogItemContent({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-[8px] border border-border/70 bg-card/80 px-4 shadow-sm backdrop-blur-sm',
+        'overflow-hidden rounded-[8px] border border-border/70 bg-card/80 px-4 shadow-sm',
         className,
       )}
       {...props}
@@ -78,7 +78,7 @@ export function LogItemFooter({
   return (
     <div
       className={cn(
-        'mt-3 flex flex-col gap-1.5 border-t border-border/60 py-1 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-1.5 border-border/60 py-1 text-[11px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}

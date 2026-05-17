@@ -5,6 +5,8 @@ const LANE_WIDTH = 12;
 const LANE_CENTER = 6;
 const GRAPH_STROKE_PX = 2.5;
 const HALF_SEGMENT_OFFSET_PX = 18;
+const GRAPH_COLUMN_GAP_PX = 1;
+const CARD_TO_MARKER_GAP_PX = 12;
 
 interface EventGraphRowProps {
   laneCount: number;
@@ -34,6 +36,11 @@ export function EventGraphRow({
   const railWidth = Math.max(laneCount, 1) * LANE_WIDTH;
   const branchWidth = Math.max(laneIndex, 0) * LANE_WIDTH;
   const markerLaneIndex = branchFromMain || mergeToMain ? 0 : laneIndex;
+  const markerX = markerLaneIndex * LANE_WIDTH + LANE_CENTER;
+  const contentOffsetPx = Math.max(
+    0,
+    railWidth + GRAPH_COLUMN_GAP_PX - (markerX + CARD_TO_MARKER_GAP_PX),
+  );
   const branchStartX = laneIndex * LANE_WIDTH + LANE_CENTER;
   const baseX = LANE_CENTER;
   const branchStartY = 50 - HALF_SEGMENT_OFFSET_PX;
@@ -129,7 +136,12 @@ export function EventGraphRow({
         />
       </div>
 
-      <div className="min-w-0 mt-2 mb-2">{children}</div>
+      <div
+        className="relative min-w-0 mt-2 mb-2"
+        style={{ left: `${-contentOffsetPx}px` }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

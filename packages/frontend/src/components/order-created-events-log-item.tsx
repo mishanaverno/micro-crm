@@ -25,8 +25,8 @@ export function OrderCreatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      title={`: #${event.payload.order_id}`}
-      compactTitle={`: #${event.payload.order_id} - ${event.payload.title?.trim()} `}
+      title={`: #${event.payload.order_id} - ${event.payload.title?.trim()} `}
+      compactTitle={`: #${event.payload.order_id} `}
       type="order_created"
       specificActions={[]}
       badge='created'
