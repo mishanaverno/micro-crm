@@ -9,6 +9,7 @@ import { useCreateNote } from '../features/notes/use-create-note';
 import { useCreateReminder } from '../features/reminders/use-create-reminder';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreateTask } from '../features/tasks/use-create-task';
+import { useUpdateTask } from '../features/tasks/use-update-task';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
 import {
@@ -30,6 +31,11 @@ import { Label } from '../shared/ui/label';
 import { Textarea } from '../shared/ui/textarea';
 import { EventsLogItem } from './events-log-item';
 import { EventGraphRow } from './ui/event-graph';
+import { ReminderDialog } from './reminder-dialog';
+import {
+  isReminderTimestampReady,
+  toReminderApiTimestamp,
+} from './reminder-timestamp-field';
 import {
   OrderCompleteEventRecord,
   OrderCreatedEventRecord,
@@ -127,6 +133,7 @@ export function EventsLog() {
   const ordersQuery = useOrders();
   const createNote = useCreateNote();
   const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
   const createReminder = useCreateReminder();
   const updateEventComment = useUpdateEventComment();
   const [eventToComment, setEventToComment] = useState<EventRecord | null>(null);
@@ -137,7 +144,7 @@ export function EventsLog() {
   const [taskDraft, setTaskDraft] = useState('');
   const [orderEventToReminder, setOrderEventToReminder] = useState<OrderActionEventRecord | null>(null);
   const [reminderDraft, setReminderDraft] = useState('');
-  const [reminderTimeDraft, setReminderTimeDraft] = useState('09:00');
+  const [reminderTimestampDraft, setReminderTimestampDraft] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   const didInitializeClientFilter = useRef(false);
@@ -380,6 +387,107 @@ export function EventsLog() {
     });
   }, [hasOrderFocus, noteOrderIdsByNoteId, orderStatusesByOrderId, selectedOrderIdsSet, visibleEvents]);
 
+  const eventCommonActions = useMemo(
+    () =>
+      new Map(
+        visibleEvents.map((event) => {
+          const actions = [
+            {
+              id: `comment-${event.id}`,
+              label: event.comment ? 'Edit comment' : 'Add comment',
+              onSelect: () => openCommentDialog(event),
+            } satisfies EventsLogAction,
+          ];
+
+          if (event.comment) {
+            actions.push({
+              id: `clear-comment-${event.id}`,
+              label: 'Clear comment',
+              onSelect: () => {
+                void clearComment(event);
+              },
+            } satisfies EventsLogAction);
+          }
+
+          return [event.id, actions];
+        }),
+      ),
+    [visibleEvents, updateEventComment.isPending],
+  );
+
+  const eventSpecificActions = useMemo(
+    () =>
+      new Map(
+        visibleEvents.map((event) => {
+          const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
+          const actions: EventsLogAction[] = [];
+
+          if (orderId != null) {
+            if (selectedOrderIdsSet.has(orderId)) {
+              actions.push({
+                id: `unfocus-order-${event.id}`,
+                label: 'Unfocus',
+                onSelect: () => {
+                  setSelectedOrderIds((currentSelectedOrderIds) =>
+                    currentSelectedOrderIds.filter((selectedOrderId) => selectedOrderId !== orderId),
+                  );
+                },
+              } satisfies EventsLogAction);
+            } else {
+              actions.push({
+                id: `focus-order-${event.id}`,
+                label: 'Focus',
+                onSelect: () => {
+                  setSelectedOrderIds((currentSelectedOrderIds) =>
+                    currentSelectedOrderIds.includes(orderId)
+                      ? currentSelectedOrderIds
+                      : [...currentSelectedOrderIds, orderId],
+                  );
+                },
+              } satisfies EventsLogAction);
+            }
+          }
+
+          if (event.type === 'task' && event.payload.status === 'pending') {
+            actions.push({
+              id: `complete-task-${event.id}`,
+              label: 'Complete',
+              onSelect: () => {
+                void completeTask(event);
+              },
+            } satisfies EventsLogAction);
+          }
+
+          if (
+            event.type === 'order_created' ||
+            event.type === 'order_updated' ||
+            event.type === 'order_reopened'
+          ) {
+            actions.push(
+              {
+                id: `create-note-${event.id}`,
+                label: 'Create note',
+                onSelect: () => openCreateNoteDialog(event),
+              } satisfies EventsLogAction,
+              {
+                id: `create-task-${event.id}`,
+                label: 'Create task',
+                onSelect: () => openCreateTaskDialog(event),
+              } satisfies EventsLogAction,
+              {
+                id: `create-reminder-${event.id}`,
+                label: 'Create reminder',
+                onSelect: () => openCreateReminderDialog(event),
+              } satisfies EventsLogAction,
+            );
+          }
+
+          return [event.id, actions];
+        }),
+      ),
+    [noteOrderIdsByNoteId, selectedOrderIdsSet, visibleEvents],
+  );
+
   function resolveClientLabel(clientId: string) {
     return clientLabels.get(clientId) ?? clientId;
   }
@@ -436,7 +544,7 @@ export function EventsLog() {
     createReminder.reset();
     setOrderEventToReminder(event);
     setReminderDraft('');
-    setReminderTimeDraft('09:00');
+    setReminderTimestampDraft('');
   }
 
   function closeCreateReminderDialog() {
@@ -446,7 +554,7 @@ export function EventsLog() {
 
     setOrderEventToReminder(null);
     setReminderDraft('');
-    setReminderTimeDraft('09:00');
+    setReminderTimestampDraft('');
     createReminder.reset();
   }
 
@@ -512,30 +620,34 @@ export function EventsLog() {
   async function handleCreateReminderSubmit(submitEvent: FormEvent<HTMLFormElement>) {
     submitEvent.preventDefault();
 
-    if (!orderEventToReminder) {
+    if (!orderEventToReminder || !isReminderTimestampReady(reminderTimestampDraft)) {
       return;
     }
-
-    const now = new Date();
-    const [hours, minutes] = reminderTimeDraft.split(':').map(Number);
-    const timestamp = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      hours,
-      minutes,
-      0,
-      0,
-    ).toISOString();
 
     await createReminder.mutateAsync({
       client_id: orderEventToReminder.client_id,
       order_id: orderEventToReminder.payload.order_id,
       content: reminderDraft.trim(),
-      timestamp,
+      timestamp: toReminderApiTimestamp(reminderTimestampDraft),
     });
 
     closeCreateReminderDialog();
+  }
+
+  async function completeTask(event: EventRecord) {
+    if (event.type !== 'task') {
+      return;
+    }
+
+    await updateTask.mutateAsync({
+      taskId: String(event.payload.task_id),
+      payload: {
+        client_id: event.client_id,
+        order_id: event.payload.order_id ?? null,
+        content: event.payload.content,
+        status: 'complete',
+      },
+    });
   }
 
   function toggleClient(clientId: string) {
@@ -570,83 +682,6 @@ export function EventsLog() {
     setSelectedOrderIds(filteredOrderIds);
   }
 
-  function commonActions(event: EventRecord) {
-    const actions = [
-      {
-        id: `comment-${event.id}`,
-        label: event.comment ? 'Edit comment' : 'Add comment',
-        onSelect: () => openCommentDialog(event),
-      } satisfies EventsLogAction
-    ]
-    if (event.comment) {
-      actions.push({
-        id: `clear-comment-${event.id}`,
-        label: 'Clear comment',
-        onSelect: () => {
-          void clearComment(event);
-        },
-      } satisfies EventsLogAction)
-    }
-    return actions;
-  }
-
-  function specificActions(event: EventRecord) {
-    const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
-    const actions: EventsLogAction[] = [];
-
-    if (orderId != null) {
-      if (selectedOrderIdsSet.has(orderId)) {
-        actions.push({
-          id: `unfocus-order-${event.id}`,
-          label: 'Unfocus',
-          onSelect: () => {
-            setSelectedOrderIds((currentSelectedOrderIds) =>
-              currentSelectedOrderIds.filter((selectedOrderId) => selectedOrderId !== orderId),
-            );
-          },
-        } satisfies EventsLogAction);
-      } else {
-        actions.push({
-          id: `focus-order-${event.id}`,
-          label: 'Focus',
-          onSelect: () => {
-            setSelectedOrderIds((currentSelectedOrderIds) =>
-              currentSelectedOrderIds.includes(orderId)
-                ? currentSelectedOrderIds
-                : [...currentSelectedOrderIds, orderId],
-            );
-          },
-        } satisfies EventsLogAction);
-      }
-    }
-
-    if (
-      event.type === 'order_created' ||
-      event.type === 'order_updated' ||
-      event.type === 'order_reopened'
-    ) {
-      actions.push(
-        {
-          id: `create-note-${event.id}`,
-          label: 'Create note',
-          onSelect: () => openCreateNoteDialog(event),
-        } satisfies EventsLogAction,
-        {
-          id: `create-task-${event.id}`,
-          label: 'Create task',
-          onSelect: () => openCreateTaskDialog(event),
-        } satisfies EventsLogAction,
-        {
-          id: `create-reminder-${event.id}`,
-          label: 'Create reminder',
-          onSelect: () => openCreateReminderDialog(event),
-        } satisfies EventsLogAction,
-      );
-    }
-
-    return actions;
-  }
-  
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -837,9 +872,9 @@ export function EventsLog() {
                   cardBorderClassName={nodeBorderClassName}
                   clientLabel={resolveClientLabel(event.client_id)}
                   compact={compact}
-                  commonActions={commonActions(event)}
+                  commonActions={eventCommonActions.get(event.id) ?? []}
                   event={event}
-                  specificActions={specificActions(event)}
+                  specificActions={eventSpecificActions.get(event.id) ?? []}
                 />
               </EventGraphRow>
             ))}
@@ -1014,75 +1049,36 @@ export function EventsLog() {
           </DialogContent>
         </Dialog>
 
-        <Dialog
+        <ReminderDialog
+          clientField={{
+            mode: 'fixed',
+            label: orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : '—',
+          }}
+          content={reminderDraft}
+          description={`New reminder for ${orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : 'client'}${orderEventToReminder ? ` and order #${orderEventToReminder.payload.order_id}` : ''}.`}
+          formId="event-create-reminder-form"
+          isPending={createReminder.isPending}
+          isSubmitDisabled={!reminderDraft.trim()}
           open={Boolean(orderEventToReminder)}
+          onContentChange={setReminderDraft}
           onOpenChange={(open) => {
             if (!open) {
               closeCreateReminderDialog();
             }
           }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create reminder</DialogTitle>
-              <DialogDescription>
-                New reminder for {orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : 'client'}{' '}
-                {orderEventToReminder ? `and order #${orderEventToReminder.payload.order_id}` : ''}.
-              </DialogDescription>
-            </DialogHeader>
-
-            <form className="grid gap-4" id="event-create-reminder-form" onSubmit={handleCreateReminderSubmit}>
-              <div className="grid gap-2">
-                <Label>Client</Label>
-                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                  {orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : '—'}
-                </p>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Order</Label>
-                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                  {orderEventToReminder
-                    ? orderLabels.get(orderEventToReminder.payload.order_id) ?? `#${orderEventToReminder.payload.order_id}`
-                    : '—'}
-                </p>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="event-reminder-content">Content</Label>
-                <Textarea
-                  id="event-reminder-content"
-                  value={reminderDraft}
-                  onChange={(event) => setReminderDraft(event.target.value)}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="event-reminder-time">Time</Label>
-                <input
-                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
-                  id="event-reminder-time"
-                  onChange={(event) => setReminderTimeDraft(event.target.value)}
-                  type="time"
-                  value={reminderTimeDraft}
-                />
-              </div>
-            </form>
-
-            <DialogFooter>
-              <Button onClick={closeCreateReminderDialog} type="button" variant="ghost">
-                Cancel
-              </Button>
-              <Button
-                disabled={createReminder.isPending || !reminderDraft.trim()}
-                form="event-create-reminder-form"
-                type="submit"
-              >
-                {createReminder.isPending ? 'Creating...' : 'Create reminder'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          onSubmit={handleCreateReminderSubmit}
+          onTimestampChange={setReminderTimestampDraft}
+          orderField={{
+            mode: 'fixed',
+            label: orderEventToReminder
+              ? orderLabels.get(orderEventToReminder.payload.order_id) ??
+                `#${orderEventToReminder.payload.order_id}`
+              : '—',
+          }}
+          submitLabel="Create reminder"
+          timestamp={reminderTimestampDraft}
+          title="Create reminder"
+        />
       </CardContent>
     </Card>
   );

@@ -31,6 +31,7 @@ export function useUpdateTask() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

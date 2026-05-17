@@ -13,39 +13,39 @@ export function EventTypelabel({ type, className }: EventTypeLabelProps) {
   switch (type) {
     case 'client_created':
       return (
-        <p className={labelClassName(className)}>Client created</p>
+        <span className={labelClassName(className)}>Client created</span>
       );
     case 'note':
       return (
-       <p className={labelClassName(className)}>Note</p>
+       <span className={labelClassName(className)}>Note</span>
       );
     case 'task':
       return (
-        <p className={labelClassName(className)}>Task</p>
+        <span className={labelClassName(className)}>Task</span>
       );
     case 'reminder':
       return (
-        <p className={labelClassName(className)}>Reminder</p>
+        <span className={labelClassName(className)}>Reminder</span>
       );
     case 'order_created':
       return (
-        <p className={labelClassName(className)}>Order created</p>
+        <span className={labelClassName(className)}>Order created</span>
       );
     case 'order_updated':
       return (
-        <p className={labelClassName(className)}>Order updated</p>
+        <span className={labelClassName(className)}>Order updated</span>
       );
     case 'order_complete':
       return (
-        <p className={labelClassName(className)}>Order complete</p>
+        <span className={labelClassName(className)}>Order complete</span>
       );
     case 'order_reopened':
       return (
-        <p className={labelClassName(className)}>Order reopened</p>
+        <span className={labelClassName(className)}>Order reopened</span>
       );
     case 'paid':
       return (
-        <p className={labelClassName(className)}>Paid</p>
+        <span className={labelClassName(className)}>Paid</span>
       );
   }
 }

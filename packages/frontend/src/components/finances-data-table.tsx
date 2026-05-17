@@ -1,3 +1,4 @@
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -132,9 +133,9 @@ export function FinancesDataTable({
           <TableRow key={`${record.kind}-${record.id}`}>
             {visibleColumns.type ? (
               <TableCell>
-                <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-foreground/80">
-                  {formatKind(record.kind)}
-                </span>
+                {record.kind == 'paid' 
+                ? <Badge variant="secondary" className='border-transparent bg-emerald-100 text-emerald-700'>Paid</Badge> 
+                : <Badge variant="secondary" className='border-transparent bg-red-100 text-red-700'>Spent</Badge>}
               </TableCell>
             ) : null}
             {visibleColumns.client ? (

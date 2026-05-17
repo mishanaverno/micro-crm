@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ClientCreatedEventsLogItem } from './client-created-events-log-item';
 import { EventsLogAction } from './events-log-actions';
 import { NoteEventsLogItem } from './note-events-log-item';
@@ -19,7 +20,7 @@ interface EventsLogItemProps {
   compact?: boolean;
 }
 
-export function EventsLogItem({
+function EventsLogItemComponent({
   event,
   clientLabel,
   commonActions = [],
@@ -50,3 +51,5 @@ export function EventsLogItem({
       return null;
   }
 }
+
+export const EventsLogItem = memo(EventsLogItemComponent);

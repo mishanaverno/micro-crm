@@ -105,7 +105,7 @@ export function LogItemTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
-  return <p className={cn('text-sm font-medium text-foreground', className)} {...props} />;
+  return <span className={cn('text-sm font-medium text-foreground', className)} {...props} />;
 }
 
 export function LogItemDescription({

@@ -23,7 +23,7 @@ interface EventGraphRowProps {
   children: React.ReactNode;
 }
 
-export function EventGraphRow({
+function EventGraphRowComponent({
   laneCount,
   laneIndex,
   activeLanes,
@@ -59,7 +59,13 @@ export function EventGraphRow({
         : null;
 
   return (
-    <div className="grid grid-cols-[auto,minmax(0,1fr)] items-stretch gap-4">
+    <div
+      className="grid grid-cols-[auto,minmax(0,1fr)] items-stretch gap-4"
+      style={{
+        contentVisibility: 'auto',
+        containIntrinsicSize: '220px',
+      }}
+    >
       <div aria-hidden="true" className="relative" style={{ width: railWidth }}>
         {activeLanes.map(({ laneIndex: activeLaneIndex, railClassName, segment = 'full' }) => {
           const segmentClassName = segment === 'full' ? 'inset-y-0' : undefined;
@@ -145,3 +151,5 @@ export function EventGraphRow({
     </div>
   );
 }
+
+export const EventGraphRow = React.memo(EventGraphRowComponent);
