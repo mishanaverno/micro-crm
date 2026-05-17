@@ -8,6 +8,7 @@ interface OrderUpdatedEventsLogItemProps {
   event: OrderUpdatedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -37,6 +38,7 @@ export function OrderUpdatedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: OrderUpdatedEventsLogItemProps) {
@@ -64,7 +66,7 @@ export function OrderUpdatedEventsLogItem({
       // }
       compactTitle={`: #${event.payload.order_id}`}
       type="order_updated"
-      specificActions={[]}
+      specificActions={specificActions}
       title={`: #${event.payload.order_id} - ${event.payload.title?.trim()}`}
       badge={event.payload.status as OrderStatus}
     >

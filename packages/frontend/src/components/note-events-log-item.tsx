@@ -7,6 +7,7 @@ interface NoteEventsLogItemProps {
   event: NoteEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -31,6 +32,7 @@ export function NoteEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: NoteEventsLogItemProps) {
@@ -44,7 +46,7 @@ export function NoteEventsLogItem({
       title={describeNoteTitle(event)}
       compactTitle={describeCompactNoteTitle(event)}
       type="note"
-      specificActions={[]}
+      specificActions={specificActions}
     >
       <LogItemDescription>{describeNoteEvent(event)}</LogItemDescription>
     </AbstractEventsLogItem>

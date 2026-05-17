@@ -7,6 +7,7 @@ interface OrderCreatedEventsLogItemProps {
   event: OrderCreatedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -15,6 +16,7 @@ export function OrderCreatedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: OrderCreatedEventsLogItemProps) {
@@ -28,7 +30,7 @@ export function OrderCreatedEventsLogItem({
       title={`: #${event.payload.order_id} - ${event.payload.title?.trim()} `}
       compactTitle={`: #${event.payload.order_id} `}
       type="order_created"
-      specificActions={[]}
+      specificActions={specificActions}
       badge='created'
     >
       <LogItemDescription>{event.payload.content}</LogItemDescription>

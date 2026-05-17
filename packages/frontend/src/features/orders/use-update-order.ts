@@ -33,6 +33,7 @@ export function useUpdateOrder() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

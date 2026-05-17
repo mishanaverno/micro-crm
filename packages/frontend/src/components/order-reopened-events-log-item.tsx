@@ -7,6 +7,7 @@ interface OrderReopenedEventsLogItemProps {
   event: OrderReopenedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -15,6 +16,7 @@ export function OrderReopenedEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: OrderReopenedEventsLogItemProps) {
@@ -28,7 +30,7 @@ export function OrderReopenedEventsLogItem({
       compactTitle={`: #${event.payload.order_id}`}
       type="order_reopened"
       badge='reopened'
-      specificActions={[]}
+      specificActions={specificActions}
       title={`: #${event.payload.order_id} - ${event.payload.title?.trim()}`}
     >
       {!compact ? (

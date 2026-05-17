@@ -33,6 +33,7 @@ export function useUpdateNote() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['notes'] });
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

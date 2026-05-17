@@ -7,6 +7,7 @@ interface OrderCompleteEventsLogItemProps {
   event: OrderCompleteEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -16,6 +17,7 @@ export function OrderCompleteEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: OrderCompleteEventsLogItemProps) {
@@ -27,7 +29,7 @@ export function OrderCompleteEventsLogItem({
       commonActions={commonActions}
       event={event}
       type="order_complete"
-      specificActions={[]}
+      specificActions={specificActions}
       title={`: #${event.payload.order_id} - ${event.payload.title?.trim()}`}
       compactTitle={`: #${event.payload.order_id}`}
       badge='created'

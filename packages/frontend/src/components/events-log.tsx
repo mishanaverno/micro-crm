@@ -5,7 +5,10 @@ import { EventsLogAction } from './events-log-actions';
 import { useClients } from '../features/clients/use-clients';
 import { useEvents } from '../features/events/use-events';
 import { useNotes } from '../features/notes/use-notes';
+import { useCreateNote } from '../features/notes/use-create-note';
+import { useCreateReminder } from '../features/reminders/use-create-reminder';
 import { useOrders } from '../features/orders/use-orders';
+import { useCreateTask } from '../features/tasks/use-create-task';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
 import {
@@ -27,6 +30,18 @@ import { Label } from '../shared/ui/label';
 import { Textarea } from '../shared/ui/textarea';
 import { EventsLogItem } from './events-log-item';
 import { EventGraphRow } from './ui/event-graph';
+import {
+  OrderCompleteEventRecord,
+  OrderCreatedEventRecord,
+  OrderReopenedEventRecord,
+  OrderUpdatedEventRecord,
+} from '../shared/types/event';
+
+type OrderActionEventRecord =
+  | OrderCreatedEventRecord
+  | OrderUpdatedEventRecord
+  | OrderCompleteEventRecord
+  | OrderReopenedEventRecord;
 
 const ORDER_LANE_CLASSES = [
   {
@@ -110,9 +125,19 @@ export function EventsLog() {
   const clientsQuery = useClients();
   const notesQuery = useNotes();
   const ordersQuery = useOrders();
+  const createNote = useCreateNote();
+  const createTask = useCreateTask();
+  const createReminder = useCreateReminder();
   const updateEventComment = useUpdateEventComment();
   const [eventToComment, setEventToComment] = useState<EventRecord | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
+  const [orderEventToNote, setOrderEventToNote] = useState<OrderActionEventRecord | null>(null);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [orderEventToTask, setOrderEventToTask] = useState<OrderActionEventRecord | null>(null);
+  const [taskDraft, setTaskDraft] = useState('');
+  const [orderEventToReminder, setOrderEventToReminder] = useState<OrderActionEventRecord | null>(null);
+  const [reminderDraft, setReminderDraft] = useState('');
+  const [reminderTimeDraft, setReminderTimeDraft] = useState('09:00');
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   const didInitializeClientFilter = useRef(false);
@@ -375,6 +400,56 @@ export function EventsLog() {
     updateEventComment.reset();
   }
 
+  function openCreateNoteDialog(event: OrderActionEventRecord) {
+    createNote.reset();
+    setOrderEventToNote(event);
+    setNoteDraft('');
+  }
+
+  function closeCreateNoteDialog() {
+    if (createNote.isPending) {
+      return;
+    }
+
+    setOrderEventToNote(null);
+    setNoteDraft('');
+    createNote.reset();
+  }
+
+  function openCreateTaskDialog(event: OrderActionEventRecord) {
+    createTask.reset();
+    setOrderEventToTask(event);
+    setTaskDraft('');
+  }
+
+  function closeCreateTaskDialog() {
+    if (createTask.isPending) {
+      return;
+    }
+
+    setOrderEventToTask(null);
+    setTaskDraft('');
+    createTask.reset();
+  }
+
+  function openCreateReminderDialog(event: OrderActionEventRecord) {
+    createReminder.reset();
+    setOrderEventToReminder(event);
+    setReminderDraft('');
+    setReminderTimeDraft('09:00');
+  }
+
+  function closeCreateReminderDialog() {
+    if (createReminder.isPending) {
+      return;
+    }
+
+    setOrderEventToReminder(null);
+    setReminderDraft('');
+    setReminderTimeDraft('09:00');
+    createReminder.reset();
+  }
+
   async function handleCommentSubmit(submitEvent: FormEvent<HTMLFormElement>) {
     submitEvent.preventDefault();
 
@@ -399,6 +474,68 @@ export function EventsLog() {
     if (eventToComment?.id === event.id) {
       closeCommentDialog();
     }
+  }
+
+  async function handleCreateNoteSubmit(submitEvent: FormEvent<HTMLFormElement>) {
+    submitEvent.preventDefault();
+
+    if (!orderEventToNote) {
+      return;
+    }
+
+    await createNote.mutateAsync({
+      client_id: orderEventToNote.client_id,
+      order_id: orderEventToNote.payload.order_id,
+      content: noteDraft.trim(),
+    });
+
+    closeCreateNoteDialog();
+  }
+
+  async function handleCreateTaskSubmit(submitEvent: FormEvent<HTMLFormElement>) {
+    submitEvent.preventDefault();
+
+    if (!orderEventToTask) {
+      return;
+    }
+
+    await createTask.mutateAsync({
+      client_id: orderEventToTask.client_id,
+      order_id: orderEventToTask.payload.order_id,
+      content: taskDraft.trim(),
+      status: 'pending',
+    });
+
+    closeCreateTaskDialog();
+  }
+
+  async function handleCreateReminderSubmit(submitEvent: FormEvent<HTMLFormElement>) {
+    submitEvent.preventDefault();
+
+    if (!orderEventToReminder) {
+      return;
+    }
+
+    const now = new Date();
+    const [hours, minutes] = reminderTimeDraft.split(':').map(Number);
+    const timestamp = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hours,
+      minutes,
+      0,
+      0,
+    ).toISOString();
+
+    await createReminder.mutateAsync({
+      client_id: orderEventToReminder.client_id,
+      order_id: orderEventToReminder.payload.order_id,
+      content: reminderDraft.trim(),
+      timestamp,
+    });
+
+    closeCreateReminderDialog();
   }
 
   function toggleClient(clientId: string) {
@@ -450,6 +587,63 @@ export function EventsLog() {
         },
       } satisfies EventsLogAction)
     }
+    return actions;
+  }
+
+  function specificActions(event: EventRecord) {
+    const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
+    const actions: EventsLogAction[] = [];
+
+    if (orderId != null) {
+      if (selectedOrderIdsSet.has(orderId)) {
+        actions.push({
+          id: `unfocus-order-${event.id}`,
+          label: 'Unfocus',
+          onSelect: () => {
+            setSelectedOrderIds((currentSelectedOrderIds) =>
+              currentSelectedOrderIds.filter((selectedOrderId) => selectedOrderId !== orderId),
+            );
+          },
+        } satisfies EventsLogAction);
+      } else {
+        actions.push({
+          id: `focus-order-${event.id}`,
+          label: 'Focus',
+          onSelect: () => {
+            setSelectedOrderIds((currentSelectedOrderIds) =>
+              currentSelectedOrderIds.includes(orderId)
+                ? currentSelectedOrderIds
+                : [...currentSelectedOrderIds, orderId],
+            );
+          },
+        } satisfies EventsLogAction);
+      }
+    }
+
+    if (
+      event.type === 'order_created' ||
+      event.type === 'order_updated' ||
+      event.type === 'order_reopened'
+    ) {
+      actions.push(
+        {
+          id: `create-note-${event.id}`,
+          label: 'Create note',
+          onSelect: () => openCreateNoteDialog(event),
+        } satisfies EventsLogAction,
+        {
+          id: `create-task-${event.id}`,
+          label: 'Create task',
+          onSelect: () => openCreateTaskDialog(event),
+        } satisfies EventsLogAction,
+        {
+          id: `create-reminder-${event.id}`,
+          label: 'Create reminder',
+          onSelect: () => openCreateReminderDialog(event),
+        } satisfies EventsLogAction,
+      );
+    }
+
     return actions;
   }
   
@@ -645,6 +839,7 @@ export function EventsLog() {
                   compact={compact}
                   commonActions={commonActions(event)}
                   event={event}
+                  specificActions={specificActions(event)}
                 />
               </EventGraphRow>
             ))}
@@ -696,6 +891,194 @@ export function EventsLog() {
                 type="submit"
               >
                 {updateEventComment.isPending ? 'Saving...' : 'Save comment'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={Boolean(orderEventToNote)}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeCreateNoteDialog();
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create note</DialogTitle>
+              <DialogDescription>
+                New note for {orderEventToNote ? resolveClientLabel(orderEventToNote.client_id) : 'client'}{' '}
+                {orderEventToNote ? `and order #${orderEventToNote.payload.order_id}` : ''}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form className="grid gap-4" id="event-create-note-form" onSubmit={handleCreateNoteSubmit}>
+              <div className="grid gap-2">
+                <Label>Client</Label>
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {orderEventToNote ? resolveClientLabel(orderEventToNote.client_id) : '—'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Order</Label>
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {orderEventToNote
+                    ? orderLabels.get(orderEventToNote.payload.order_id) ?? `#${orderEventToNote.payload.order_id}`
+                    : '—'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="event-note-content">Content</Label>
+                <Textarea
+                  id="event-note-content"
+                  value={noteDraft}
+                  onChange={(event) => setNoteDraft(event.target.value)}
+                />
+              </div>
+            </form>
+
+            <DialogFooter>
+              <Button onClick={closeCreateNoteDialog} type="button" variant="ghost">
+                Cancel
+              </Button>
+              <Button
+                disabled={createNote.isPending || !noteDraft.trim()}
+                form="event-create-note-form"
+                type="submit"
+              >
+                {createNote.isPending ? 'Creating...' : 'Create note'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={Boolean(orderEventToTask)}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeCreateTaskDialog();
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create task</DialogTitle>
+              <DialogDescription>
+                New task for {orderEventToTask ? resolveClientLabel(orderEventToTask.client_id) : 'client'}{' '}
+                {orderEventToTask ? `and order #${orderEventToTask.payload.order_id}` : ''}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form className="grid gap-4" id="event-create-task-form" onSubmit={handleCreateTaskSubmit}>
+              <div className="grid gap-2">
+                <Label>Client</Label>
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {orderEventToTask ? resolveClientLabel(orderEventToTask.client_id) : '—'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Order</Label>
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {orderEventToTask
+                    ? orderLabels.get(orderEventToTask.payload.order_id) ?? `#${orderEventToTask.payload.order_id}`
+                    : '—'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="event-task-content">Content</Label>
+                <Textarea
+                  id="event-task-content"
+                  value={taskDraft}
+                  onChange={(event) => setTaskDraft(event.target.value)}
+                />
+              </div>
+            </form>
+
+            <DialogFooter>
+              <Button onClick={closeCreateTaskDialog} type="button" variant="ghost">
+                Cancel
+              </Button>
+              <Button
+                disabled={createTask.isPending || !taskDraft.trim()}
+                form="event-create-task-form"
+                type="submit"
+              >
+                {createTask.isPending ? 'Creating...' : 'Create task'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={Boolean(orderEventToReminder)}
+          onOpenChange={(open) => {
+            if (!open) {
+              closeCreateReminderDialog();
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create reminder</DialogTitle>
+              <DialogDescription>
+                New reminder for {orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : 'client'}{' '}
+                {orderEventToReminder ? `and order #${orderEventToReminder.payload.order_id}` : ''}.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form className="grid gap-4" id="event-create-reminder-form" onSubmit={handleCreateReminderSubmit}>
+              <div className="grid gap-2">
+                <Label>Client</Label>
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : '—'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Order</Label>
+                <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                  {orderEventToReminder
+                    ? orderLabels.get(orderEventToReminder.payload.order_id) ?? `#${orderEventToReminder.payload.order_id}`
+                    : '—'}
+                </p>
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="event-reminder-content">Content</Label>
+                <Textarea
+                  id="event-reminder-content"
+                  value={reminderDraft}
+                  onChange={(event) => setReminderDraft(event.target.value)}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="event-reminder-time">Time</Label>
+                <input
+                  className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
+                  id="event-reminder-time"
+                  onChange={(event) => setReminderTimeDraft(event.target.value)}
+                  type="time"
+                  value={reminderTimeDraft}
+                />
+              </div>
+            </form>
+
+            <DialogFooter>
+              <Button onClick={closeCreateReminderDialog} type="button" variant="ghost">
+                Cancel
+              </Button>
+              <Button
+                disabled={createReminder.isPending || !reminderDraft.trim()}
+                form="event-create-reminder-form"
+                type="submit"
+              >
+                {createReminder.isPending ? 'Creating...' : 'Create reminder'}
               </Button>
             </DialogFooter>
           </DialogContent>

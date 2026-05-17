@@ -7,6 +7,7 @@ interface TaskEventsLogItemProps {
   event: TaskEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -22,6 +23,7 @@ export function TaskEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: TaskEventsLogItemProps) {
@@ -44,7 +46,7 @@ export function TaskEventsLogItem({
       }
       type="task"
       badge={event.payload.status}
-      specificActions={[]}
+      specificActions={specificActions}
     >
       <LogItemDescription>
         <span className="inline-flex items-center gap-2">

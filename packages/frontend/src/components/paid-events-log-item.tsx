@@ -7,6 +7,7 @@ interface PaidEventsLogItemProps {
   event: PaidEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
 }
@@ -23,6 +24,7 @@ export function PaidEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: PaidEventsLogItemProps) {
@@ -35,7 +37,7 @@ export function PaidEventsLogItem({
       event={event}
       compactTitle={`Paid: Order #${event.payload.order_id}`}
       type="paid"
-      specificActions={[]}
+      specificActions={specificActions}
       title={`Paid recorded: ${formatValue(event.payload.value)}`}
     >
       <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription>

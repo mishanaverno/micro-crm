@@ -1,5 +1,4 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
-import { EventTypeIcon } from './event-type-icon';
 import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription } from '../shared/ui/log-item';
 import { ReminderEventRecord } from '../shared/types/event';
@@ -8,14 +7,9 @@ interface ReminderEventsLogItemProps {
   event: ReminderEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
+  specificActions?: EventsLogAction[];
   cardBorderClassName?: string;
   compact?: boolean;
-}
-
-function describeReminderEvent(event: ReminderEventRecord) {
-  const trimmedContent = event.payload.content.trim();
-
-  return trimmedContent ? trimmedContent : `Reminder created for ${event.client_id}`;
 }
 
 function describeReminderTitle(event: ReminderEventRecord) {
@@ -34,6 +28,7 @@ export function ReminderEventsLogItem({
   event,
   clientLabel,
   commonActions = [],
+  specificActions = [],
   cardBorderClassName,
   compact = false,
 }: ReminderEventsLogItemProps) {
@@ -46,7 +41,7 @@ export function ReminderEventsLogItem({
       event={event}
       compactTitle={describeCompactReminderTitle(event)}
       type="reminder"
-      specificActions={[]}
+      specificActions={specificActions}
       title={describeReminderTitle(event)}
     >
       <LogItemDescription>
