@@ -2,6 +2,8 @@ import { NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from '../clients/entities/client.entity';
 import { ClientsService } from '../clients/clients.service';
+import { EventType } from '../events/entities/event.entity';
+import { EventsService } from '../events/events.service';
 import { Order } from '../orders/entities/order.entity';
 import { OrdersService } from '../orders/orders.service';
 import { CreateSpentDto } from './dto/create-spent.dto';
@@ -26,6 +28,11 @@ type MockOrdersService = {
   findOneOwnedByUser: jest.Mock<Promise<Order | null>, [number, string]>;
 };
 
+type MockEventsService = {
+  createEvent: jest.Mock<Promise<unknown>, [EventType, Spent, Record<string, unknown> | undefined, number | null | undefined]>;
+  updateEventPayload: jest.Mock<Promise<unknown>, [EventType, string, number, Spent, Record<string, unknown> | undefined]>;
+};
+
 const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -40,16 +47,19 @@ describe('SpentsService', () => {
   let repository: MockRepository<Spent>;
   let clientsService: MockClientsService;
   let ordersService: MockOrdersService;
+  let eventsService: MockEventsService;
 
   beforeEach(() => {
     repository = createRepositoryMock<Spent>();
     clientsService = { findOneOwnedByUser: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
+    eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
 
     service = new SpentsService(
       repository as unknown as Repository<Spent>,
       clientsService as unknown as ClientsService,
       ordersService as unknown as OrdersService,
+      eventsService as unknown as EventsService,
     );
   });
 
@@ -73,6 +83,7 @@ describe('SpentsService', () => {
     } as Order);
     repository.create.mockReturnValue(createdSpent);
     repository.save.mockResolvedValue(createdSpent);
+    eventsService.createEvent.mockResolvedValue({ id: 101 });
 
     await expect(service.create(dto, 'user-1')).resolves.toEqual(createdSpent);
     expect(repository.create).toHaveBeenCalledWith({
@@ -80,6 +91,12 @@ describe('SpentsService', () => {
       user_id: 'user-1',
       value: '1500.00',
     });
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.SPENT,
+      createdSpent,
+      undefined,
+      createdSpent.id,
+    );
   });
 
   it('rejects spent creation when order belongs to another client', async () => {
@@ -130,11 +147,18 @@ describe('SpentsService', () => {
     } as Order);
     repository.merge.mockReturnValue(mergedSpent);
     repository.save.mockResolvedValue(mergedSpent);
+    eventsService.updateEventPayload.mockResolvedValue(mergedSpent);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedSpent);
     expect(repository.merge).toHaveBeenCalledWith(existingSpent, {
       value: '500.00',
     });
+    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
+      EventType.SPENT,
+      'user-1',
+      mergedSpent.id,
+      mergedSpent,
+    );
   });
 
   it('soft deletes a spent record when it exists', async () => {

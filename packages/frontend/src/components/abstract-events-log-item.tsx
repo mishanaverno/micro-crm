@@ -73,8 +73,9 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
           }
         >
           <LogItemHeaderMain className={'self-center items-center transition-[gap] duration-300 ease-out'}>
-            <EventTypeIcon type={type}></EventTypeIcon>
-            <EventTypelabel type={type}></EventTypelabel>
+            <EventTypeIcon type={type}/>
+            <EventTypelabel type={type}/>
+            <span> </span>
             <LogItemTitle>
               {compact ? (compactTitle ? compactTitle : title) : title}
             </LogItemTitle>

@@ -47,5 +47,9 @@ export function EventTypelabel({ type, className }: EventTypeLabelProps) {
       return (
         <span className={labelClassName(className)}>Paid</span>
       );
+    case 'spent':
+      return (
+        <span className={labelClassName(className)}>Spent</span>
+      );
   }
 }

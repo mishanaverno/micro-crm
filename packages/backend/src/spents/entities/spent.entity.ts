@@ -6,9 +6,16 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { EventReady } from '../../events/interfaces/event-ready.interface';
 
 @Entity('spents')
-export class Spent {
+export class Spent implements EventReady {
+  getPayload: () => Record<string, unknown> = () => ({
+    spent_id: this.id,
+    order_id: this.order_id,
+    value: this.value,
+  });
+
   @PrimaryGeneratedColumn()
   id: number;
 

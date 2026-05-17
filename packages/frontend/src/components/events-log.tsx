@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useUpdateEventComment } from '../features/events/use-update-event-comment';
 import { EventRecord } from '../shared/types/event';
 import { EventsLogAction } from './events-log-actions';
@@ -97,6 +98,7 @@ function resolveOrderId(
     case 'order_complete':
     case 'order_reopened':
     case 'paid':
+    case 'spent':
     case 'task':
     case 'reminder':
       return event.payload.order_id;
@@ -127,6 +129,7 @@ function isCompactEvent(
 }
 
 export function EventsLog() {
+  const [searchParams] = useSearchParams();
   const eventsQuery = useEvents(50);
   const clientsQuery = useClients();
   const notesQuery = useNotes();
@@ -149,8 +152,14 @@ export function EventsLog() {
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
   const didInitializeClientFilter = useRef(false);
   const didInitializeOrderFilter = useRef(false);
+  const appliedUrlFocusKeyRef = useRef<string | null>(null);
+  const scrolledUrlTargetKeyRef = useRef<string | null>(null);
   const clients = clientsQuery.data ?? [];
   const orders = ordersQuery.data ?? [];
+  const focusOrderIdParam = searchParams.get('focusOrderId');
+  const scrollEventTypeParam = searchParams.get('scrollEvent') ?? 'order_created';
+  const urlFocusOrderId = focusOrderIdParam == null ? null : Number(focusOrderIdParam);
+  const hasValidUrlFocusOrderId = urlFocusOrderId != null && Number.isFinite(urlFocusOrderId);
   const allClientIds = useMemo(() => clients.map((client) => client.id), [clients]);
   const clientLabels = useMemo(
     () =>
@@ -240,15 +249,51 @@ export function EventsLog() {
     }
 
     if (!didInitializeOrderFilter.current) {
-      setSelectedOrderIds([]);
       didInitializeOrderFilter.current = true;
+
+      if (
+        hasValidUrlFocusOrderId &&
+        urlFocusOrderId != null &&
+        filteredOrderIds.includes(urlFocusOrderId)
+      ) {
+        setSelectedOrderIds([urlFocusOrderId]);
+      } else {
+        setSelectedOrderIds([]);
+      }
+
       return;
     }
 
     setSelectedOrderIds((currentSelectedOrderIds) =>
       currentSelectedOrderIds.filter((orderId) => filteredOrderIds.includes(orderId)),
     );
-  }, [filteredOrderIds]);
+  }, [filteredOrderIds, hasValidUrlFocusOrderId, urlFocusOrderId]);
+
+  useEffect(() => {
+    if (!hasValidUrlFocusOrderId || urlFocusOrderId == null || !orders.length) {
+      return;
+    }
+
+    const targetOrder = orders.find((order) => Number(order.id) === urlFocusOrderId);
+
+    if (!targetOrder) {
+      return;
+    }
+
+    const focusKey = `${urlFocusOrderId}:${scrollEventTypeParam}`;
+
+    if (appliedUrlFocusKeyRef.current === focusKey) {
+      return;
+    }
+
+    setSelectedClientIds((currentSelectedClientIds) =>
+      currentSelectedClientIds.includes(targetOrder.client_id)
+        ? currentSelectedClientIds
+        : [...currentSelectedClientIds, targetOrder.client_id],
+    );
+    setSelectedOrderIds([urlFocusOrderId]);
+    appliedUrlFocusKeyRef.current = focusKey;
+  }, [hasValidUrlFocusOrderId, orders, scrollEventTypeParam, urlFocusOrderId]);
 
   const graphRows = useMemo(() => {
     const events = visibleEvents;
@@ -487,6 +532,50 @@ export function EventsLog() {
       ),
     [noteOrderIdsByNoteId, selectedOrderIdsSet, visibleEvents],
   );
+
+  useEffect(() => {
+    if (!hasValidUrlFocusOrderId || urlFocusOrderId == null) {
+      return;
+    }
+
+    if (!selectedOrderIdsSet.has(urlFocusOrderId)) {
+      return;
+    }
+
+    const targetEvent = visibleEvents.find(
+      (event) =>
+        event.type === scrollEventTypeParam &&
+        resolveOrderId(event, noteOrderIdsByNoteId) === urlFocusOrderId,
+    );
+
+    if (!targetEvent) {
+      return;
+    }
+
+    const targetKey = `${urlFocusOrderId}:${scrollEventTypeParam}:${targetEvent.id}`;
+
+    if (scrolledUrlTargetKeyRef.current === targetKey) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      const targetElement = document.getElementById(`event-log-event-${targetEvent.id}`);
+
+      targetElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      window.setTimeout(() => {
+        targetElement?.scrollIntoView({ behavior: 'auto', block: 'center' });
+      }, 180);
+    });
+    scrolledUrlTargetKeyRef.current = targetKey;
+  }, [
+    hasValidUrlFocusOrderId,
+    noteOrderIdsByNoteId,
+    scrollEventTypeParam,
+    selectedOrderIdsSet,
+    urlFocusOrderId,
+    visibleEvents,
+  ]);
 
   function resolveClientLabel(clientId: string) {
     return clientLabels.get(clientId) ?? clientId;
@@ -858,25 +947,30 @@ export function EventsLog() {
         ) : visibleEvents.length > 0 ? (
           <div className="grid">
             {graphRows.map(({ event, laneIndex, laneCount, activeLanes, branchFromMain, mergeToMain, branchClassName, nodeBorderClassName, compact }) => (
-              <EventGraphRow
-                activeLanes={activeLanes}
-                branchFromMain={branchFromMain}
-                branchClassName={branchClassName}
+              <div
+                className="scroll-mt-6"
+                id={`event-log-event-${event.id}`}
                 key={event.id}
-                laneCount={laneCount}
-                laneIndex={laneIndex}
-                mergeToMain={mergeToMain}
-                nodeBorderClassName={nodeBorderClassName}
               >
-                <EventsLogItem
-                  cardBorderClassName={nodeBorderClassName}
-                  clientLabel={resolveClientLabel(event.client_id)}
-                  compact={compact}
-                  commonActions={eventCommonActions.get(event.id) ?? []}
-                  event={event}
-                  specificActions={eventSpecificActions.get(event.id) ?? []}
-                />
-              </EventGraphRow>
+                <EventGraphRow
+                  activeLanes={activeLanes}
+                  branchFromMain={branchFromMain}
+                  branchClassName={branchClassName}
+                  laneCount={laneCount}
+                  laneIndex={laneIndex}
+                  mergeToMain={mergeToMain}
+                  nodeBorderClassName={nodeBorderClassName}
+                >
+                  <EventsLogItem
+                    cardBorderClassName={nodeBorderClassName}
+                    clientLabel={resolveClientLabel(event.client_id)}
+                    compact={compact}
+                    commonActions={eventCommonActions.get(event.id) ?? []}
+                    event={event}
+                    specificActions={eventSpecificActions.get(event.id) ?? []}
+                  />
+                </EventGraphRow>
+              </div>
             ))}
           </div>
         ) : (

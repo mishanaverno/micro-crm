@@ -17,6 +17,7 @@ export enum EventType {
   ORDER_COMPLETE = 'order_complete',
   ORDER_REOPENED = 'order_reopened',
   PAID = 'paid',
+  SPENT = 'spent',
 }
 
 @Entity('events')

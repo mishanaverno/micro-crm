@@ -7,7 +7,8 @@ export type EventType =
   | 'order_updated'
   | 'order_complete'
   | 'order_reopened'
-  | 'paid';
+  | 'paid'
+  | 'spent';
 
 export interface OrderChangedField {
   field: 'title' | 'price' | 'content' | 'status';
@@ -75,6 +76,12 @@ export interface PaidEventPayload {
   value: string | number;
 }
 
+export interface SpentEventPayload {
+  spent_id: number;
+  order_id: number;
+  value: string | number;
+}
+
 export type NoteEventRecord = BaseEventRecord<'note', NoteEventPayload>;
 export type TaskEventRecord = BaseEventRecord<'task', TaskEventPayload>;
 export type ReminderEventRecord = BaseEventRecord<'reminder', ReminderEventPayload>;
@@ -99,6 +106,7 @@ export type OrderReopenedEventRecord = BaseEventRecord<
 >;
 
 export type PaidEventRecord = BaseEventRecord<'paid', PaidEventPayload>;
+export type SpentEventRecord = BaseEventRecord<'spent', SpentEventPayload>;
 
 export type EventRecord =
   | NoteEventRecord
@@ -109,4 +117,5 @@ export type EventRecord =
   | OrderUpdatedEventRecord
   | OrderCompleteEventRecord
   | OrderReopenedEventRecord
-  | PaidEventRecord;
+  | PaidEventRecord
+  | SpentEventRecord;

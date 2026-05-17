@@ -24,7 +24,7 @@ function describeCompactNoteTitle(event: NoteEventRecord) {
 
 function describeNoteTitle(event: NoteEventRecord) {
   return event.payload.order_id != null
-    ? ` created for order #${event.payload.order_id}`
+    ? `created for order #${event.payload.order_id}`
     : '';
 }
 

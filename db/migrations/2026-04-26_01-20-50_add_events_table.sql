@@ -23,7 +23,8 @@ BEGIN
       'order_updated',
       'order_complete',
       'order_reopened',
-      'paid'
+      'paid',
+      'spent'
     );
   END IF;
 END
@@ -38,6 +39,7 @@ ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_updated';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_complete';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_reopened';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent';
 
 create table if not exists
   "public"."events" (

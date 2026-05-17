@@ -8,6 +8,7 @@ import { OrderReopenedEventsLogItem } from './order-reopened-events-log-item';
 import { OrderUpdatedEventsLogItem } from './order-updated-events-log-item';
 import { PaidEventsLogItem } from './paid-events-log-item';
 import { ReminderEventsLogItem } from './reminder-events-log-item';
+import { SpentEventsLogItem } from './spent-events-log-item';
 import { TaskEventsLogItem } from './task-events-log-item';
 import { EventRecord } from '../shared/types/event';
 
@@ -47,6 +48,8 @@ function EventsLogItemComponent({
       return <OrderReopenedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     case 'paid':
       return <PaidEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
+    case 'spent':
+      return <SpentEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     default:
       return null;
   }

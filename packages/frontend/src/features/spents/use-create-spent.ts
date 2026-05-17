@@ -18,6 +18,7 @@ export function useCreateSpent() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['spents'] });
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

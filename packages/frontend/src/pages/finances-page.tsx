@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { Bar, BarChart, BarStack, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
 import { FinancesDataTable, FinanceRecord } from '../components/finances-data-table';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
@@ -11,7 +12,13 @@ import { useDeleteSpent } from '../features/spents/use-delete-spent';
 import { useSpents } from '../features/spents/use-spents';
 import { useUpdateSpent } from '../features/spents/use-update-spent';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegendContent,
+  ChartTooltipContent,
+} from '../shared/ui/chart';
 import {
   Dialog,
   DialogContent,
@@ -60,14 +67,105 @@ const defaultVisibleColumns = {
 type VisibleColumns = typeof defaultVisibleColumns;
 type FinanceFormKind = 'paid' | 'spent';
 type EditingRecord = (PaidRecord | SpentRecord) & { kind: FinanceFormKind };
+type FinanceChartMode = 'month' | 'year';
+type FinanceChartDatum = {
+  period: string;
+  tooltipLabel: string;
+  paid: number;
+  income: number;
+  spent: number;
+};
+
+const financeChartConfig = {
+  paid: {
+    label: 'Paid',
+    color: '#111827',
+    marker: {
+      colors: ['#ef4444', '#22c55e'],
+    },
+  },
+  income: {
+    label: 'Income',
+    color: '#22c55e',
+  },
+  spent: {
+    label: 'Spent',
+    color: '#ef4444',
+  }
+} satisfies ChartConfig;
+
+function parseNumericValue(value: unknown) {
+  if (typeof value === 'number') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+}
+
+function formatCurrency(value: unknown) {
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+    maximumFractionDigits: 2,
+  }).format(parseNumericValue(value));
+}
+
+function formatMonthLabel(date: Date) {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+  });
+}
+
+function formatMonthOptionLabel(value: string) {
+  const [year, month] = value.split('-').map(Number);
+  const date = new Date(year, month, 1);
+
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
+
+function getMonthKey(date: Date) {
+  return `${date.getFullYear()}-${date.getMonth()}`;
+}
+
+function getDaysInMonth(monthKey: string) {
+  const [year, month] = monthKey.split('-').map(Number);
+  return new Date(year, month + 1, 0).getDate();
+}
+
+function toFinanceChartDatum(
+  period: string,
+  tooltipLabel: string,
+  paid: number,
+  spent: number,
+): FinanceChartDatum {
+  return {
+    period,
+    tooltipLabel,
+    paid,
+    income: paid - spent,
+    spent,
+  };
+}
 
 export function FinancesPage() {
+  const now = new Date();
   const [form, setForm] = useState(initialFormState);
   const [formError, setFormError] = useState<string | null>(null);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [dialogKind, setDialogKind] = useState<FinanceFormKind>('paid');
   const [editingRecord, setEditingRecord] = useState<EditingRecord | null>(null);
   const [recordToDelete, setRecordToDelete] = useState<EditingRecord | null>(null);
+  const [chartMode, setChartMode] = useState<FinanceChartMode>('month');
+  const [selectedChartMonth, setSelectedChartMonth] = useState(getMonthKey(now));
+  const [selectedChartYear, setSelectedChartYear] = useState(String(now.getFullYear()));
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -192,6 +290,120 @@ export function FinancesPage() {
       return rightTime - leftTime;
     });
   }, [paidsQuery.data, spentsQuery.data]);
+
+  const availableChartYears = useMemo(() => {
+    const years = new Set([now.getFullYear()]);
+
+    records.forEach((record) => {
+      const createdAt = record.created_at ? new Date(record.created_at) : null;
+
+      if (createdAt && !Number.isNaN(createdAt.getTime())) {
+        years.add(createdAt.getFullYear());
+      }
+    });
+
+    return Array.from(years).sort((left, right) => right - left);
+  }, [now, records]);
+
+  const monthOptions = useMemo(
+    () =>
+      availableChartYears.flatMap((year) =>
+        Array.from({ length: 12 }, (_, month) => `${year}-${month}`),
+      ),
+    [availableChartYears],
+  );
+
+  const chartData = useMemo<FinanceChartDatum[]>(() => {
+    if (chartMode === 'year') {
+      const year = Number(selectedChartYear);
+
+      return Array.from({ length: 12 }, (_, month) => {
+        const monthStart = new Date(year, month, 1);
+
+        return {
+          period: formatMonthLabel(monthStart),
+          tooltipLabel: monthStart.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric',
+          }),
+          paid: 0,
+          spent: 0,
+          month,
+        };
+      }).map((bucket) => {
+        records.forEach((record) => {
+          const createdAt = record.created_at ? new Date(record.created_at) : null;
+
+          if (
+            !createdAt ||
+            Number.isNaN(createdAt.getTime()) ||
+            createdAt.getFullYear() !== year ||
+            createdAt.getMonth() !== bucket.month
+          ) {
+            return;
+          }
+
+          if (record.kind === 'paid') {
+            bucket.paid += parseNumericValue(record.value);
+          } else {
+            bucket.spent += parseNumericValue(record.value);
+          }
+        });
+
+        return toFinanceChartDatum(
+          bucket.period,
+          bucket.tooltipLabel,
+          bucket.paid,
+          bucket.spent,
+        );
+      });
+    }
+
+    const [year, month] = selectedChartMonth.split('-').map(Number);
+    const daysInMonth = getDaysInMonth(selectedChartMonth);
+
+    return Array.from({ length: daysInMonth }, (_, index) => {
+      const day = index + 1;
+
+      return {
+        period: String(day),
+        paid: 0,
+        spent: 0,
+        day,
+      };
+    }).map((bucket) => {
+      records.forEach((record) => {
+        const createdAt = record.created_at ? new Date(record.created_at) : null;
+
+        if (
+          !createdAt ||
+          Number.isNaN(createdAt.getTime()) ||
+          createdAt.getFullYear() !== year ||
+          createdAt.getMonth() !== month ||
+          createdAt.getDate() !== bucket.day
+        ) {
+          return;
+        }
+
+        if (record.kind === 'paid') {
+          bucket.paid += parseNumericValue(record.value);
+        } else {
+          bucket.spent += parseNumericValue(record.value);
+        }
+      });
+
+      return toFinanceChartDatum(
+        bucket.period,
+        new Date(year, month, bucket.day).toLocaleDateString('en-US', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        bucket.paid,
+        bucket.spent,
+      );
+    });
+  }, [chartMode, records, selectedChartMonth, selectedChartYear]);
 
   function resolveClientLabel(clientId: string) {
     return clientLabels.get(clientId) ?? clientId;
@@ -351,6 +563,110 @@ export function FinancesPage() {
 
   return (
     <main className="grid gap-4">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <CardTitle>Finance chart</CardTitle>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex rounded-md border border-border bg-muted p-1">
+                <Button
+                  className="h-8 rounded-sm px-3"
+                  onClick={() => setChartMode('month')}
+                  type="button"
+                  variant={chartMode === 'month' ? 'default' : 'ghost'}
+                >
+                  Month
+                </Button>
+                <Button
+                  className="h-8 rounded-sm px-3"
+                  onClick={() => setChartMode('year')}
+                  type="button"
+                  variant={chartMode === 'year' ? 'default' : 'ghost'}
+                >
+                  Year
+                </Button>
+              </div>
+
+              {chartMode === 'month' ? (
+                <Select value={selectedChartMonth} onValueChange={setSelectedChartMonth}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((month) => (
+                      <SelectItem key={month} value={month}>
+                        {formatMonthOptionLabel(month)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select value={selectedChartYear} onValueChange={setSelectedChartYear}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableChartYears.map((year) => (
+                      <SelectItem key={year} value={String(year)}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading finance chart...</p>
+          ) : isError ? (
+            <p className="text-sm text-rose-700">Failed to load finance chart data.</p>
+          ) : chartData.length > 0 ? (
+            <ChartContainer className="h-[320px] w-full" config={financeChartConfig}>
+              <BarChart accessibilityLayer data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  axisLine={false}
+                  dataKey="period"
+                  tickLine={false}
+                  tickMargin={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickFormatter={(value) => formatCurrency(Number(value))}
+                  tickLine={false}
+                  tickMargin={10}
+                  width={96}
+                />
+                <Tooltip
+                  content={<ChartTooltipContent valueFormatter={formatCurrency} />}
+                  cursor={false}
+                />
+                <Legend content={<ChartLegendContent />} />
+                <BarStack radius={4}>
+                  <Bar
+                    dataKey="income"
+                    fill="var(--color-income)"
+                    stackId="finance"
+                  />
+                  <Bar
+                    dataKey="spent"
+                    fill="var(--color-spent)"
+                    stackId="finance"
+                  />
+                </BarStack>
+              </BarChart>
+            </ChartContainer>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No finance records returned by the backend yet.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

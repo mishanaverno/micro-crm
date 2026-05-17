@@ -1,9 +1,12 @@
-import { useMemo } from 'react';
+import { ReactNode, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { usePaids } from '../features/paids/use-paids';
 import { useReminders } from '../features/reminders/use-reminders';
 import { useSpents } from '../features/spents/use-spents';
 import { useTasks } from '../features/tasks/use-tasks';
+import { StatusBadge } from '../components/status-badges';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
 
 function formatCurrency(value: number) {
@@ -74,7 +77,14 @@ function MetricCard({
 interface ListCardProps {
   title: string;
   description: string;
-  items: string[];
+  items: Array<{
+    key: string;
+    label: string;
+    description?: string;
+    leading?: ReactNode;
+    trailing?: ReactNode;
+    to?: string;
+  }>;
   emptyText: string;
   isLoading?: boolean;
   error?: string | null;
@@ -105,10 +115,39 @@ function ListCard({
           <ul className="grid gap-2">
             {items.map((item) => (
               <li
-                key={item}
+                key={item.key}
                 className="rounded-md border border-border bg-card px-3 py-2 text-sm"
               >
-                {item}
+                {item.to ? (
+                  <Link
+                    className="flex min-w-0 items-center gap-2 rounded-sm font-medium text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    to={item.to}
+                  >
+                    {item.leading}
+                    <span className="min-w-0 flex-1 truncate">
+                      {item.description ? (
+                        <span className="mr-2 text-muted-foreground">{item.description}</span>
+                      ) : null}
+                      {item.label}
+                    </span>
+                    {item.trailing ? (
+                      <span className="ml-auto shrink-0">{item.trailing}</span>
+                    ) : null}
+                  </Link>
+                ) : (
+                  <span className="flex min-w-0 items-center gap-2">
+                    {item.leading}
+                    <span className="min-w-0 flex-1 truncate">
+                      {item.description ? (
+                        <span className="mr-2 text-muted-foreground">{item.description}</span>
+                      ) : null}
+                      {item.label}
+                    </span>
+                    {item.trailing ? (
+                      <span className="ml-auto shrink-0">{item.trailing}</span>
+                    ) : null}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -119,11 +158,25 @@ function ListCard({
 }
 
 export function DashboardPage() {
+  const clientsQuery = useClients();
   const ordersQuery = useOrders();
   const remindersQuery = useReminders();
   const tasksQuery = useTasks();
   const paidsQuery = usePaids();
   const spentsQuery = useSpents();
+
+  const clientLabels = useMemo(
+    () =>
+      new Map(
+        (clientsQuery.data ?? []).map((client) => [
+          client.id,
+          [client.first_name, client.last_name].filter(Boolean).join(' ') ||
+            client.email ||
+            client.id,
+        ]),
+      ),
+    [clientsQuery.data],
+  );
 
   const openOrders = useMemo(
     () =>
@@ -134,8 +187,14 @@ export function DashboardPage() {
           const rightTime = right.created_at ? new Date(right.created_at).getTime() : 0;
           return rightTime - leftTime;
         })
-        .map((order) => `#${order.id} — ${order.title || 'order'}`),
-    [ordersQuery.data],
+        .map((order) => ({
+          key: String(order.id),
+          description: clientLabels.get(order.client_id) ?? order.client_id,
+          label: `#${order.id} — ${order.title || 'order'}`,
+          trailing: <StatusBadge status={order.status} />,
+          to: `/events-log?focusOrderId=${order.id}&scrollEvent=order_created`,
+        })),
+    [clientLabels, ordersQuery.data],
   );
 
   const incomingReminders = useMemo(() => {
@@ -153,7 +212,10 @@ export function DashboardPage() {
     .map((reminder) => {
       const dateLabel = new Date(reminder.timestamp).toLocaleString();
       const content = reminder.content.trim() || `Reminder #${reminder.id}`;
-      return `${dateLabel} — ${content}`;
+      return {
+        key: String(reminder.id),
+        label: `${dateLabel} — ${content}`,
+      };
     });
   }, [remindersQuery.data]);
 
@@ -166,7 +228,24 @@ export function DashboardPage() {
           const rightTime = right.created_at ? new Date(right.created_at).getTime() : 0;
           return rightTime - leftTime;
         })
-        .map((task) => task.content.trim() || `Task #${task.id}`),
+        .map((task) => ({
+          key: String(task.id),
+          label: task.content.trim() || `Task #${task.id}`,
+          leading: (
+            <input
+              aria-label={`Task ${task.status}`}
+              checked={task.status === 'complete'}
+              className="h-4 w-4 shrink-0 accent-foreground"
+              disabled
+              readOnly
+              type="checkbox"
+            />
+          ),
+          trailing:
+            task.order_id == null ? undefined : (
+              <span className="text-muted-foreground">{`#${task.order_id}`}</span>
+            ),
+        })),
     [tasksQuery.data],
   );
 

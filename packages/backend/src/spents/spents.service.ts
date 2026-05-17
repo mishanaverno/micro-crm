@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ClientsService } from '../clients/clients.service';
+import { EventType } from '../events/entities/event.entity';
+import { EventsService } from '../events/events.service';
 import { OrdersService } from '../orders/orders.service';
 import { CreateSpentDto } from './dto/create-spent.dto';
 import { UpdateSpentDto } from './dto/update-spent.dto';
@@ -14,6 +16,7 @@ export class SpentsService {
     private readonly spentsRepository: Repository<Spent>,
     private readonly clientsService: ClientsService,
     private readonly ordersService: OrdersService,
+    private readonly eventsService: EventsService,
   ) {}
 
   async create(createSpentDto: CreateSpentDto, userId: string): Promise<Spent> {
@@ -26,7 +29,9 @@ export class SpentsService {
       value: createSpentDto.value.toFixed(2),
     });
 
-    return this.spentsRepository.save(spent);
+    const createdSpent = await this.spentsRepository.save(spent);
+    await this.eventsService.createEvent(EventType.SPENT, createdSpent, undefined, createdSpent.id);
+    return createdSpent;
   }
 
   findAll(userId: string, clientId?: string): Promise<Spent[]> {
@@ -73,7 +78,9 @@ export class SpentsService {
     ) as Partial<Spent>;
 
     const updatedSpent = this.spentsRepository.merge(spent, sanitizedPayload);
-    return this.spentsRepository.save(updatedSpent);
+    const savedSpent = await this.spentsRepository.save(updatedSpent);
+    await this.eventsService.updateEventPayload(EventType.SPENT, userId, savedSpent.id, savedSpent);
+    return savedSpent;
   }
 
   async remove(id: number, userId: string): Promise<Spent> {

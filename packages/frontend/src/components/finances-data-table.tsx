@@ -103,10 +103,6 @@ function formatRecordValue(record: FinanceRecord) {
   return formatValue(record.kind === 'spent' ? -Math.abs(record.value) : record.value);
 }
 
-function formatKind(kind: FinanceRecord['kind']) {
-  return kind === 'paid' ? 'Paid' : 'Spent';
-}
-
 export function FinancesDataTable({
   records,
   resolveClientLabel,
