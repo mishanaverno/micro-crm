@@ -30,6 +30,7 @@ import {
 } from '../shared/ui/dropdown-menu';
 import { Label } from '../shared/ui/label';
 import { Textarea } from '../shared/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
 import { EventsLogItem } from './events-log-item';
 import { EventGraphRow } from './ui/event-graph';
 import { ReminderDialog } from './reminder-dialog';
@@ -86,6 +87,15 @@ const BASE_LANE_APPEARANCE = {
   railClassName: 'bg-border/80',
   markerBorderClassName: 'border-border',
   curveClassName: 'text-border',
+};
+const FILTERABLE_EVENT_TYPES = ['note', 'reminder', 'task', 'paid', 'spent'] as const;
+type FilterableEventType = (typeof FILTERABLE_EVENT_TYPES)[number];
+const FILTERABLE_EVENT_TYPE_LABELS: Record<FilterableEventType, string> = {
+  note: 'Note',
+  reminder: 'Reminder',
+  task: 'Task',
+  paid: 'Paid',
+  spent: 'Spent',
 };
 
 function resolveOrderId(
@@ -150,6 +160,9 @@ export function EventsLog() {
   const [reminderTimestampDraft, setReminderTimestampDraft] = useState('');
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [selectedOrderIds, setSelectedOrderIds] = useState<number[]>([]);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<FilterableEventType[]>([
+    ...FILTERABLE_EVENT_TYPES,
+  ]);
   const didInitializeClientFilter = useRef(false);
   const didInitializeOrderFilter = useRef(false);
   const appliedUrlFocusKeyRef = useRef<string | null>(null);
@@ -214,6 +227,10 @@ export function EventsLog() {
     [filteredOrders],
   );
   const selectedOrderIdsSet = useMemo(() => new Set(selectedOrderIds), [selectedOrderIds]);
+  const selectedEventTypesSet = useMemo(
+    () => new Set<string>(selectedEventTypes),
+    [selectedEventTypes],
+  );
   const hasOrderFocus = selectedOrderIds.length > 0;
   const visibleEvents = useMemo(
     () =>
@@ -221,9 +238,17 @@ export function EventsLog() {
         if (!selectedClientIdsSet.has(event.client_id)) {
           return false;
         }
+
+        if (
+          FILTERABLE_EVENT_TYPES.includes(event.type as FilterableEventType) &&
+          !selectedEventTypesSet.has(event.type)
+        ) {
+          return false;
+        }
+
         return true;
       }),
-    [eventsQuery.data, selectedClientIdsSet],
+    [eventsQuery.data, selectedClientIdsSet, selectedEventTypesSet],
   );
 
   useEffect(() => {
@@ -782,6 +807,25 @@ export function EventsLog() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ToggleGroup
+            aria-label="Filter event types"
+            className="rounded-md border border-border bg-muted p-1"
+            type="multiple"
+            value={selectedEventTypes}
+            variant="ghost"
+            onValueChange={(value) => setSelectedEventTypes(value as FilterableEventType[])}
+          >
+            {FILTERABLE_EVENT_TYPES.map((eventType) => (
+              <ToggleGroupItem
+                aria-label={`Toggle ${FILTERABLE_EVENT_TYPE_LABELS[eventType]} events`}
+                key={eventType}
+                value={eventType}
+              >
+                {FILTERABLE_EVENT_TYPE_LABELS[eventType]}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
