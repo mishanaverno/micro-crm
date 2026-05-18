@@ -30,13 +30,21 @@ export interface BaseEventRecord<TType extends EventType, TPayload extends objec
   deleted_at?: string | null;
 }
 
-export interface NoteEventPayload {
+interface EventDisplaySnapshot {
+  client_name?: string | null;
+  client_status?: 'individual' | 'legal_entity' | null;
+  client_company?: string | null;
+  order_title?: string | null;
+  order_status?: string | null;
+}
+
+export interface NoteEventPayload extends EventDisplaySnapshot {
   note_id: number;
   content: string;
   order_id?: number | null;
 }
 
-export interface TaskEventPayload {
+export interface TaskEventPayload extends EventDisplaySnapshot {
   task_id: number;
   content: string;
   status: 'pending' | 'complete';
@@ -44,14 +52,14 @@ export interface TaskEventPayload {
   order_id?: number | null;
 }
 
-export interface ReminderEventPayload {
+export interface ReminderEventPayload extends EventDisplaySnapshot {
   reminder_id: number;
   content: string;
   timestamp: string;
   order_id?: number | null;
 }
 
-export interface ClientCreatedEventPayload {
+export interface ClientCreatedEventPayload extends EventDisplaySnapshot {
   client_id: string;
   name?: string;
   email?: string;
@@ -60,7 +68,7 @@ export interface ClientCreatedEventPayload {
   status?: 'individual' | 'legal_entity';
 }
 
-export interface OrderEventPayload {
+export interface OrderEventPayload extends EventDisplaySnapshot {
   order_id: number;
   title?: string | null;
   price: string | number;
@@ -72,13 +80,13 @@ export interface OrderUpdatedEventPayload extends OrderEventPayload {
   changed_fields: OrderChangedField[];
 }
 
-export interface PaidEventPayload {
+export interface PaidEventPayload extends EventDisplaySnapshot {
   paid_id: number;
   order_id: number;
   value: string | number;
 }
 
-export interface SpentEventPayload {
+export interface SpentEventPayload extends EventDisplaySnapshot {
   spent_id: number;
   order_id: number;
   value: string | number;

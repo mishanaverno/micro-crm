@@ -55,6 +55,12 @@ describe('RemindersService', () => {
     eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
+    clientsService.findOneOwnedByUser.mockResolvedValue({
+      id: 'client-1',
+      name: 'Client One',
+      status: 'individual',
+      company: null,
+    } as Client);
 
     service = new RemindersService(
       repository as unknown as Repository<Reminder>,
@@ -78,7 +84,6 @@ describe('RemindersService', () => {
       timestamp: new Date(dto.timestamp),
     } as Reminder;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     repository.create.mockReturnValue(createdReminder);
     repository.save.mockResolvedValue(createdReminder);
 
@@ -91,7 +96,13 @@ describe('RemindersService', () => {
     expect(eventsService.createEvent).toHaveBeenCalledWith(
       EventType.REMINDER,
       createdReminder,
-      undefined,
+      {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: null,
+        order_status: null,
+      },
       createdReminder.id,
     );
   });
@@ -110,7 +121,6 @@ describe('RemindersService', () => {
       timestamp: new Date(dto.timestamp),
     } as unknown as Reminder;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
       client_id: 'client-1',
@@ -167,6 +177,13 @@ describe('RemindersService', () => {
       'user-1',
       mergedReminder.id,
       mergedReminder,
+      {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: null,
+        order_status: null,
+      },
     );
   });
 

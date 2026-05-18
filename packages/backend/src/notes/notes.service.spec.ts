@@ -62,6 +62,12 @@ describe('NotesService', () => {
       findOneOwnedByUser: jest.fn(),
     };
     eventsService.createEvent.mockResolvedValue(undefined);
+    clientsService.findOneOwnedByUser.mockResolvedValue({
+      id: 'client-1',
+      name: 'Client One',
+      status: 'individual',
+      company: null,
+    } as Client);
 
     service = new NotesService(
       repository as unknown as Repository<Note>,
@@ -82,7 +88,6 @@ describe('NotesService', () => {
       ...dto,
     } as Note;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     repository.create.mockReturnValue(createdNote);
     repository.save.mockResolvedValue(createdNote);
 
@@ -108,7 +113,6 @@ describe('NotesService', () => {
       ...dto,
     } as Note;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
       client_id: 'client-1',
@@ -176,6 +180,13 @@ describe('NotesService', () => {
       'user-1',
       mergedNote.id,
       mergedNote,
+      {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: null,
+        order_status: null,
+      },
     );
   });
 
@@ -185,7 +196,7 @@ describe('NotesService', () => {
     const mergedNote = { ...existingNote, ...dto } as Note;
 
     repository.findOneBy.mockResolvedValue(existingNote);
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-2' } as Client);
+    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-2', name: 'Client Two', status: 'legal_entity', company: 'Acme' } as Client);
     repository.merge.mockReturnValue(mergedNote);
     repository.save.mockResolvedValue(mergedNote);
 

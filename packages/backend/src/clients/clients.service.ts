@@ -26,6 +26,9 @@ export class ClientsService {
       client_id: createdClient.id,
       getPayload: () => ({
         client_id: createdClient.id,
+        client_name: createdClient.name,
+        client_status: createdClient.status,
+        client_company: createdClient.company ?? null,
         ...createClientDto,
       }),
     });

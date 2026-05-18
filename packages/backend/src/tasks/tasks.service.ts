@@ -8,6 +8,8 @@ import { OrdersService } from '../orders/orders.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskStatus } from './entities/task.entity';
+import { Client } from '../clients/entities/client.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class TasksService {
@@ -19,9 +21,19 @@ export class TasksService {
     private readonly ordersService: OrdersService,
   ) {}
 
+  private createEventSnapshot(client: Client, order: Order | null) {
+    return {
+      client_name: client.name ?? null,
+      client_status: client.status ?? null,
+      client_company: client.company ?? null,
+      order_title: order?.title ?? null,
+      order_status: order?.status ?? null,
+    };
+  }
+
   async create(createTaskDto: CreateTaskDto, userId: string): Promise<Task> {
-    await this.ensureClientOwnership(createTaskDto.client_id, userId);
-    await this.ensureOrderOwnership(createTaskDto.order_id, userId, createTaskDto.client_id);
+    const client = await this.ensureClientOwnership(createTaskDto.client_id, userId);
+    const order = await this.ensureOrderOwnership(createTaskDto.order_id, userId, createTaskDto.client_id);
 
     const task = this.tasksRepository.create({
       ...createTaskDto,
@@ -34,7 +46,11 @@ export class TasksService {
     await this.eventsService.createEvent(
       EventType.TASK,
       createdTask,
-      { content: createdTask.content, status: createdTask.status },
+      {
+        content: createdTask.content,
+        status: createdTask.status,
+        ...this.createEventSnapshot(client, order),
+      },
       createdTask.id,
     );
     return createdTask;
@@ -65,15 +81,12 @@ export class TasksService {
       throw new NotFoundException('Task not found');
     }
 
-    if (updateTaskDto.client_id && updateTaskDto.client_id !== task.client_id) {
-      await this.ensureClientOwnership(updateTaskDto.client_id, userId);
-    }
-
     const nextClientId = updateTaskDto.client_id ?? task.client_id;
     const nextOrderId =
       updateTaskDto.order_id !== undefined ? updateTaskDto.order_id : task.order_id;
 
-    await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
+    const client = await this.ensureClientOwnership(nextClientId, userId);
+    const order = await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
     const payload = {
       ...updateTaskDto,
@@ -93,6 +106,7 @@ export class TasksService {
     await this.eventsService.updateEventPayload(EventType.TASK, userId, savedTask.id, savedTask, {
       content: savedTask.content,
       status: savedTask.status,
+      ...this.createEventSnapshot(client, order),
     });
     return savedTask;
   }
@@ -108,21 +122,23 @@ export class TasksService {
     return task;
   }
 
-  private async ensureClientOwnership(clientId: string, userId: string): Promise<void> {
+  private async ensureClientOwnership(clientId: string, userId: string): Promise<Client> {
     const client = await this.clientsService.findOneOwnedByUser(clientId, userId);
 
     if (!client) {
       throw new NotFoundException('Client not found');
     }
+
+    return client;
   }
 
   private async ensureOrderOwnership(
     orderId: number | null | undefined,
     userId: string,
     clientId: string,
-  ): Promise<void> {
+  ): Promise<Order | null> {
     if (orderId === null || orderId === undefined) {
-      return;
+      return null;
     }
 
     const order = await this.ordersService.findOneOwnedByUser(orderId, userId);
@@ -134,5 +150,7 @@ export class TasksService {
     if (order.client_id !== clientId) {
       throw new NotFoundException('Order does not belong to the selected client');
     }
+
+    return order;
   }
 }

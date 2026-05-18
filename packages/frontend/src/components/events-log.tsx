@@ -3,12 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { useUpdateEventComment } from '../features/events/use-update-event-comment';
 import { EventRecord } from '../shared/types/event';
 import { EventsLogAction } from './events-log-actions';
-import { useClients } from '../features/clients/use-clients';
 import { useEvents } from '../features/events/use-events';
-import { useNotes } from '../features/notes/use-notes';
 import { useCreateNote } from '../features/notes/use-create-note';
 import { useCreateReminder } from '../features/reminders/use-create-reminder';
-import { useOrders } from '../features/orders/use-orders';
 import { useCreateTask } from '../features/tasks/use-create-task';
 import { useUpdateTask } from '../features/tasks/use-update-task';
 import { Button } from '../shared/ui/button';
@@ -98,10 +95,19 @@ const FILTERABLE_EVENT_TYPE_LABELS: Record<FilterableEventType, string> = {
   spent: 'Spent',
 };
 
-function resolveOrderId(
-  event: EventRecord,
-  noteOrderIdsByNoteId: Map<number, number | null>,
-) {
+interface EventLogClientOption {
+  id: string;
+  label: string;
+}
+
+interface EventLogOrderOption {
+  id: number;
+  client_id: string;
+  label: string;
+  status: string | null;
+}
+
+function resolveOrderId(event: EventRecord) {
   if (event.order_id != null) {
     return event.order_id;
   }
@@ -117,7 +123,7 @@ function resolveOrderId(
     case 'reminder':
       return event.payload.order_id;
     case 'note':
-      return noteOrderIdsByNoteId.get(event.payload.note_id) ?? null;
+      return event.payload.order_id ?? null;
     default:
       return null;
   }
@@ -125,7 +131,6 @@ function resolveOrderId(
 
 function isCompactEvent(
   event: EventRecord,
-  noteOrderIdsByNoteId: Map<number, number | null>,
   selectedOrderIdsSet: Set<number>,
   hasOrderFocus: boolean,
 ) {
@@ -133,7 +138,7 @@ function isCompactEvent(
     return false;
   }
 
-  const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
+  const orderId = resolveOrderId(event);
 
   if (orderId == null) {
     return true;
@@ -145,9 +150,6 @@ function isCompactEvent(
 export function EventsLog() {
   const [searchParams] = useSearchParams();
   const eventsQuery = useEvents(50);
-  const clientsQuery = useClients();
-  const notesQuery = useNotes();
-  const ordersQuery = useOrders();
   const createNote = useCreateNote();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
@@ -171,53 +173,76 @@ export function EventsLog() {
   const didInitializeOrderFilter = useRef(false);
   const appliedUrlFocusKeyRef = useRef<string | null>(null);
   const scrolledUrlTargetKeyRef = useRef<string | null>(null);
-  const clients = clientsQuery.data ?? [];
-  const orders = ordersQuery.data ?? [];
+  const events = eventsQuery.data ?? [];
   const focusOrderIdParam = searchParams.get('focusOrderId');
   const scrollEventTypeParam = searchParams.get('scrollEvent') ?? 'order_created';
   const urlFocusOrderId = focusOrderIdParam == null ? null : Number(focusOrderIdParam);
   const hasValidUrlFocusOrderId = urlFocusOrderId != null && Number.isFinite(urlFocusOrderId);
+  const clients = useMemo<EventLogClientOption[]>(() => {
+    const labelsByClientId = new Map<string, string>();
+
+    events.forEach((event) => {
+      if (labelsByClientId.has(event.client_id)) {
+        return;
+      }
+
+      labelsByClientId.set(
+        event.client_id,
+        event.payload.client_name || event.client_id,
+      );
+    });
+
+    return Array.from(labelsByClientId, ([id, label]) => ({ id, label }));
+  }, [events]);
   const allClientIds = useMemo(() => clients.map((client) => client.id), [clients]);
   const clientLabels = useMemo(
-    () =>
-      new Map(
-        clients.map((client) => [
-          client.id,
-          client.name || client.email || client.id,
-        ]),
-      ),
+    () => new Map(clients.map((client) => [client.id, client.label])),
     [clients],
   );
-  const orderLabels = useMemo(
-    () =>
-      new Map(
-        orders.map((order) => {
-          const trimmedTitle = order.title?.trim();
+  const orders = useMemo<EventLogOrderOption[]>(() => {
+    const ordersById = new Map<number, EventLogOrderOption>();
 
-          return [
-            Number(order.id),
-            trimmedTitle ? `#${order.id} — ${trimmedTitle}` : `#${order.id} — order`,
-          ];
-        }),
-      ),
+    events.forEach((event) => {
+      const orderId = resolveOrderId(event);
+
+      if (orderId == null || ordersById.has(orderId)) {
+        return;
+      }
+
+      const rawTitle =
+        event.payload.order_title ??
+        (event.type === 'order_created' ||
+        event.type === 'order_updated' ||
+        event.type === 'order_complete' ||
+        event.type === 'order_reopened'
+          ? event.payload.title
+          : null);
+      const trimmedTitle = rawTitle?.trim();
+
+      ordersById.set(orderId, {
+        id: orderId,
+        client_id: event.client_id,
+        label: trimmedTitle ? `#${orderId} — ${trimmedTitle}` : `#${orderId} — order`,
+        status:
+          event.payload.order_status ??
+          (event.type === 'order_created' ||
+          event.type === 'order_updated' ||
+          event.type === 'order_complete' ||
+          event.type === 'order_reopened'
+            ? event.payload.status
+            : null),
+      });
+    });
+
+    return Array.from(ordersById.values());
+  }, [events]);
+  const orderLabels = useMemo(
+    () => new Map(orders.map((order) => [order.id, order.label])),
     [orders],
   );
-  const noteOrderIdsByNoteId = useMemo(
-    () =>
-      new Map(
-        (notesQuery.data ?? []).map((note) => [
-          Number(note.id),
-          note.order_id == null ? null : Number(note.order_id),
-        ]),
-      ),
-    [notesQuery.data],
-  );
   const orderStatusesByOrderId = useMemo(
-    () =>
-      new Map(
-        (ordersQuery.data ?? []).map((order) => [Number(order.id), order.status]),
-      ),
-    [ordersQuery.data],
+    () => new Map(orders.map((order) => [order.id, order.status])),
+    [orders],
   );
   const selectedClientIdsSet = useMemo(() => new Set(selectedClientIds), [selectedClientIds]);
   const filteredOrders = useMemo(
@@ -301,7 +326,7 @@ export function EventsLog() {
       return;
     }
 
-    const targetOrder = orders.find((order) => Number(order.id) === urlFocusOrderId);
+    const targetOrder = orders.find((order) => order.id === urlFocusOrderId);
 
     if (!targetOrder) {
       return;
@@ -337,7 +362,7 @@ export function EventsLog() {
     }
 
     events.forEach((event) => {
-      const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
+      const orderId = resolveOrderId(event);
 
       if (!orderId) {
         return;
@@ -364,7 +389,7 @@ export function EventsLog() {
       let activeRangeStart: number | null = !isClosed || !hasVisibleCompletion ? 0 : null;
 
       events.forEach((event, rowIndex) => {
-        if (resolveOrderId(event, noteOrderIdsByNoteId) !== orderId) {
+        if (resolveOrderId(event) !== orderId) {
           return;
         }
 
@@ -387,11 +412,10 @@ export function EventsLog() {
     });
 
     return events.map((event, rowIndex) => {
-      const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
+      const orderId = resolveOrderId(event);
       const laneIndex = orderId ? (orderLaneIndices.get(orderId) ?? 0) : 0;
       const compact = isCompactEvent(
         event,
-        noteOrderIdsByNoteId,
         selectedOrderIdsSet,
         hasOrderFocus,
       );
@@ -457,7 +481,7 @@ export function EventsLog() {
           : getLaneAppearance(laneIndex).markerBorderClassName,
       };
     });
-  }, [hasOrderFocus, noteOrderIdsByNoteId, orderStatusesByOrderId, selectedOrderIdsSet, visibleEvents]);
+  }, [hasOrderFocus, orderStatusesByOrderId, selectedOrderIdsSet, visibleEvents]);
 
   const eventCommonActions = useMemo(
     () =>
@@ -491,7 +515,7 @@ export function EventsLog() {
     () =>
       new Map(
         visibleEvents.map((event) => {
-          const orderId = resolveOrderId(event, noteOrderIdsByNoteId);
+          const orderId = resolveOrderId(event);
           const actions: EventsLogAction[] = [];
 
           if (orderId != null) {
@@ -557,7 +581,7 @@ export function EventsLog() {
           return [event.id, actions];
         }),
       ),
-    [noteOrderIdsByNoteId, selectedOrderIdsSet, visibleEvents],
+    [selectedOrderIdsSet, visibleEvents],
   );
 
   useEffect(() => {
@@ -572,7 +596,7 @@ export function EventsLog() {
     const targetEvent = visibleEvents.find(
       (event) =>
         event.type === scrollEventTypeParam &&
-        resolveOrderId(event, noteOrderIdsByNoteId) === urlFocusOrderId,
+        resolveOrderId(event) === urlFocusOrderId,
     );
 
     if (!targetEvent) {
@@ -597,7 +621,6 @@ export function EventsLog() {
     scrolledUrlTargetKeyRef.current = targetKey;
   }, [
     hasValidUrlFocusOrderId,
-    noteOrderIdsByNoteId,
     scrollEventTypeParam,
     selectedOrderIdsSet,
     urlFocusOrderId,
@@ -975,18 +998,6 @@ export function EventsLog() {
         ) : eventsQuery.isError ? (
           <p className="text-sm text-rose-700">
             {eventsQuery.error?.message || 'Failed to load recent events.'}
-          </p>
-        ) : notesQuery.isLoading ? (
-          <p className="text-sm text-muted-foreground">Preparing graph layout...</p>
-        ) : notesQuery.isError ? (
-          <p className="text-sm text-rose-700">
-            {notesQuery.error?.message || 'Failed to load note context for events graph.'}
-          </p>
-        ) : ordersQuery.isLoading ? (
-          <p className="text-sm text-muted-foreground">Preparing order branches...</p>
-        ) : ordersQuery.isError ? (
-          <p className="text-sm text-rose-700">
-            {ordersQuery.error?.message || 'Failed to load order context for events graph.'}
           </p>
         ) : visibleEvents.length > 0 ? (
           <div className="grid">

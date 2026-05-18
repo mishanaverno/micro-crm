@@ -50,6 +50,12 @@ describe('OrdersService', () => {
       createEvent: jest.fn(),
     };
     eventsService.createEvent.mockResolvedValue(undefined);
+    clientsService.findOneOwnedByUser.mockResolvedValue({
+      id: 'client-1',
+      name: 'Client One',
+      status: 'individual',
+      company: null,
+    } as Client);
 
     service = new OrdersService(
       repository as unknown as Repository<Order>,
@@ -72,7 +78,6 @@ describe('OrdersService', () => {
       price: '15000.00',
     } as unknown as Order;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     repository.create.mockReturnValue(createdOrder);
     repository.save.mockResolvedValue(createdOrder);
 
@@ -84,7 +89,15 @@ describe('OrdersService', () => {
       price: '15000.00',
     });
     expect(repository.save).toHaveBeenCalledWith(createdOrder);
-    expect(eventsService.createEvent).toHaveBeenCalledWith(EventType.ORDER_CREATED, createdOrder);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.ORDER_CREATED,
+      createdOrder,
+      {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+      },
+    );
   });
 
   it('rejects order creation when client does not belong to the user', async () => {
@@ -158,6 +171,9 @@ describe('OrdersService', () => {
       EventType.ORDER_UPDATED,
       mergedOrder,
       {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
         changed_fields: [
           {
             field: 'price',
@@ -196,6 +212,9 @@ describe('OrdersService', () => {
       EventType.ORDER_COMPLETE,
       existingOrder,
       {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
         changed_fields: [
           {
             field: 'title',
@@ -234,6 +253,9 @@ describe('OrdersService', () => {
       EventType.ORDER_COMPLETE,
       mergedOrder,
       {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
         changed_fields: [
           {
             field: 'status',
@@ -267,6 +289,9 @@ describe('OrdersService', () => {
       EventType.ORDER_REOPENED,
       mergedOrder,
       {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
         changed_fields: [
           {
             field: 'status',

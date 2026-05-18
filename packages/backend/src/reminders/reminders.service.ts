@@ -8,6 +8,8 @@ import { OrdersService } from '../orders/orders.service';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 import { Reminder } from './entities/reminder.entity';
+import { Client } from '../clients/entities/client.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class RemindersService {
@@ -19,9 +21,19 @@ export class RemindersService {
     private readonly ordersService: OrdersService,
   ) {}
 
+  private createEventSnapshot(client: Client, order: Order | null) {
+    return {
+      client_name: client.name ?? null,
+      client_status: client.status ?? null,
+      client_company: client.company ?? null,
+      order_title: order?.title ?? null,
+      order_status: order?.status ?? null,
+    };
+  }
+
   async create(createReminderDto: CreateReminderDto, userId: string): Promise<Reminder> {
-    await this.ensureClientOwnership(createReminderDto.client_id, userId);
-    await this.ensureOrderOwnership(
+    const client = await this.ensureClientOwnership(createReminderDto.client_id, userId);
+    const order = await this.ensureOrderOwnership(
       createReminderDto.order_id,
       userId,
       createReminderDto.client_id,
@@ -37,7 +49,7 @@ export class RemindersService {
     await this.eventsService.createEvent(
       EventType.REMINDER,
       createdReminder,
-      undefined,
+      this.createEventSnapshot(client, order),
       createdReminder.id,
     );
     return createdReminder;
@@ -72,15 +84,12 @@ export class RemindersService {
       throw new NotFoundException('Reminder not found');
     }
 
-    if (updateReminderDto.client_id && updateReminderDto.client_id !== reminder.client_id) {
-      await this.ensureClientOwnership(updateReminderDto.client_id, userId);
-    }
-
     const nextClientId = updateReminderDto.client_id ?? reminder.client_id;
     const nextOrderId =
       updateReminderDto.order_id !== undefined ? updateReminderDto.order_id : reminder.order_id;
 
-    await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
+    const client = await this.ensureClientOwnership(nextClientId, userId);
+    const order = await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
     const payload = {
       ...updateReminderDto,
@@ -100,6 +109,7 @@ export class RemindersService {
       userId,
       savedReminder.id,
       savedReminder,
+      this.createEventSnapshot(client, order),
     );
     return savedReminder;
   }
@@ -115,21 +125,23 @@ export class RemindersService {
     return reminder;
   }
 
-  private async ensureClientOwnership(clientId: string, userId: string): Promise<void> {
+  private async ensureClientOwnership(clientId: string, userId: string): Promise<Client> {
     const client = await this.clientsService.findOneOwnedByUser(clientId, userId);
 
     if (!client) {
       throw new NotFoundException('Client not found');
     }
+
+    return client;
   }
 
   private async ensureOrderOwnership(
     orderId: number | null | undefined,
     userId: string,
     clientId: string,
-  ): Promise<void> {
+  ): Promise<Order | null> {
     if (orderId === null || orderId === undefined) {
-      return;
+      return null;
     }
 
     const order = await this.ordersService.findOneOwnedByUser(orderId, userId);
@@ -141,5 +153,7 @@ export class RemindersService {
     if (order.client_id !== clientId) {
       throw new NotFoundException('Order does not belong to the selected client');
     }
+
+    return order;
   }
 }

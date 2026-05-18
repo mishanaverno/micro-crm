@@ -310,6 +310,25 @@ WHERE user_id = '11111111-1111-4111-8111-111111111111'
   AND payload ? 'order_id'
   AND payload->>'order_id' IS NOT NULL;
 
+UPDATE events
+SET payload = events.payload || jsonb_build_object(
+  'client_name', clients.name,
+  'client_status', clients.status,
+  'client_company', clients.company
+)
+FROM clients
+WHERE events.user_id = '11111111-1111-4111-8111-111111111111'
+  AND events.client_id = clients.id;
+
+UPDATE events
+SET payload = events.payload || jsonb_build_object(
+  'order_title', orders.title,
+  'order_status', orders.status
+)
+FROM orders
+WHERE events.user_id = '11111111-1111-4111-8111-111111111111'
+  AND events.order_id = orders.id;
+
 SELECT setval(pg_get_serial_sequence('orders', 'id'), COALESCE((SELECT MAX(id) FROM orders), 1), true);
 SELECT setval(pg_get_serial_sequence('notes', 'id'), COALESCE((SELECT MAX(id) FROM notes), 1), true);
 SELECT setval(pg_get_serial_sequence('tasks', 'id'), COALESCE((SELECT MAX(id) FROM tasks), 1), true);

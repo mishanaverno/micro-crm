@@ -55,6 +55,12 @@ describe('TasksService', () => {
     eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
     ordersService = { findOneOwnedByUser: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
+    clientsService.findOneOwnedByUser.mockResolvedValue({
+      id: 'client-1',
+      name: 'Client One',
+      status: 'individual',
+      company: null,
+    } as Client);
 
     service = new TasksService(
       repository as unknown as Repository<Task>,
@@ -78,7 +84,6 @@ describe('TasksService', () => {
       deadline: new Date(dto.deadline!),
     } as Task;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     repository.create.mockReturnValue(createdTask);
     repository.save.mockResolvedValue(createdTask);
 
@@ -95,6 +100,11 @@ describe('TasksService', () => {
       {
         content: createdTask.content,
         status: createdTask.status,
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: null,
+        order_status: null,
       },
       createdTask.id,
     );
@@ -114,7 +124,6 @@ describe('TasksService', () => {
       deadline: null,
     } as Task;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
       client_id: 'client-1',
@@ -177,6 +186,11 @@ describe('TasksService', () => {
       {
         content: mergedTask.content,
         status: mergedTask.status,
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: null,
+        order_status: null,
       },
     );
   });

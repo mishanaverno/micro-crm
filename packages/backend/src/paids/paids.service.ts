@@ -8,6 +8,8 @@ import { OrdersService } from '../orders/orders.service';
 import { CreatePaidDto } from './dto/create-paid.dto';
 import { UpdatePaidDto } from './dto/update-paid.dto';
 import { Paid } from './entities/paid.entity';
+import { Client } from '../clients/entities/client.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class PaidsService {
@@ -19,9 +21,19 @@ export class PaidsService {
     private readonly eventsService: EventsService,
   ) {}
 
+  private createEventSnapshot(client: Client, order: Order) {
+    return {
+      client_name: client.name ?? null,
+      client_status: client.status ?? null,
+      client_company: client.company ?? null,
+      order_title: order.title ?? null,
+      order_status: order.status ?? null,
+    };
+  }
+
   async create(createPaidDto: CreatePaidDto, userId: string): Promise<Paid> {
-    await this.ensureClientOwnership(createPaidDto.client_id, userId);
-    await this.ensureOrderOwnership(createPaidDto.order_id, userId, createPaidDto.client_id);
+    const client = await this.ensureClientOwnership(createPaidDto.client_id, userId);
+    const order = await this.ensureOrderOwnership(createPaidDto.order_id, userId, createPaidDto.client_id);
 
     const paid = this.paidsRepository.create({
       ...createPaidDto,
@@ -30,7 +42,12 @@ export class PaidsService {
     });
 
     const createdPaid = await this.paidsRepository.save(paid);
-    await this.eventsService.createEvent(EventType.PAID, createdPaid, undefined, createdPaid.id);
+    await this.eventsService.createEvent(
+      EventType.PAID,
+      createdPaid,
+      this.createEventSnapshot(client, order),
+      createdPaid.id,
+    );
     return createdPaid;
   }
 
@@ -62,11 +79,8 @@ export class PaidsService {
     const nextClientId = updatePaidDto.client_id ?? paid.client_id;
     const nextOrderId = updatePaidDto.order_id ?? paid.order_id;
 
-    if (updatePaidDto.client_id && updatePaidDto.client_id !== paid.client_id) {
-      await this.ensureClientOwnership(updatePaidDto.client_id, userId);
-    }
-
-    await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
+    const client = await this.ensureClientOwnership(nextClientId, userId);
+    const order = await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
     const payload = {
       ...updatePaidDto,
@@ -79,7 +93,13 @@ export class PaidsService {
 
     const updatedPaid = this.paidsRepository.merge(paid, sanitizedPayload);
     const savedPaid = await this.paidsRepository.save(updatedPaid);
-    await this.eventsService.updateEventPayload(EventType.PAID, userId, savedPaid.id, savedPaid);
+    await this.eventsService.updateEventPayload(
+      EventType.PAID,
+      userId,
+      savedPaid.id,
+      savedPaid,
+      this.createEventSnapshot(client, order),
+    );
     return savedPaid;
   }
 
@@ -94,19 +114,21 @@ export class PaidsService {
     return paid;
   }
 
-  private async ensureClientOwnership(clientId: string, userId: string): Promise<void> {
+  private async ensureClientOwnership(clientId: string, userId: string): Promise<Client> {
     const client = await this.clientsService.findOneOwnedByUser(clientId, userId);
 
     if (!client) {
       throw new NotFoundException('Client not found');
     }
+
+    return client;
   }
 
   private async ensureOrderOwnership(
     orderId: number,
     userId: string,
     clientId: string,
-  ): Promise<void> {
+  ): Promise<Order> {
     const order = await this.ordersService.findOneOwnedByUser(orderId, userId);
 
     if (!order) {
@@ -116,5 +138,7 @@ export class PaidsService {
     if (order.client_id !== clientId) {
       throw new NotFoundException('Order does not belong to the selected client');
     }
+
+    return order;
   }
 }

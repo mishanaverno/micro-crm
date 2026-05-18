@@ -55,6 +55,12 @@ describe('PaidsService', () => {
     ordersService = { findOneOwnedByUser: jest.fn() };
     eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
+    clientsService.findOneOwnedByUser.mockResolvedValue({
+      id: 'client-1',
+      name: 'Client One',
+      status: 'individual',
+      company: null,
+    } as Client);
 
     service = new PaidsService(
       repository as unknown as Repository<Paid>,
@@ -77,10 +83,11 @@ describe('PaidsService', () => {
       value: '1500.00',
     } as unknown as Paid;
 
-    clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
     ordersService.findOneOwnedByUser.mockResolvedValue({
       id: 2001,
       client_id: 'client-1',
+      title: 'Order One',
+      status: 'created',
     } as Order);
     repository.create.mockReturnValue(createdPaid);
     repository.save.mockResolvedValue(createdPaid);
@@ -94,7 +101,13 @@ describe('PaidsService', () => {
     expect(eventsService.createEvent).toHaveBeenCalledWith(
       EventType.PAID,
       createdPaid,
-      undefined,
+      {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: 'Order One',
+        order_status: 'created',
+      },
       createdPaid.id,
     );
   });
@@ -158,6 +171,13 @@ describe('PaidsService', () => {
       'user-1',
       mergedPaid.id,
       mergedPaid,
+      {
+        client_name: 'Client One',
+        client_status: 'individual',
+        client_company: null,
+        order_title: null,
+        order_status: null,
+      },
     );
   });
 

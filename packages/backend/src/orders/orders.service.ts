@@ -7,6 +7,7 @@ import { EventsService } from '../events/events.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
+import { Client } from '../clients/entities/client.entity';
 
 interface OrderFieldChange {
   field: 'title' | 'price' | 'content' | 'status';
@@ -25,8 +26,18 @@ export class OrdersService {
     private readonly eventsService: EventsService,
   ) {}
 
+  private createEventSnapshot(client: Client, order?: Order) {
+    return {
+      client_name: client.name ?? null,
+      client_status: client.status ?? null,
+      client_company: client.company ?? null,
+      order_title: order?.title ?? null,
+      order_status: order?.status ?? null,
+    };
+  }
+
   async create(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
-    await this.ensureClientOwnership(createOrderDto.client_id, userId);
+    const client = await this.ensureClientOwnership(createOrderDto.client_id, userId);
 
     const order = this.ordersRepository.create({
       ...createOrderDto,
@@ -35,7 +46,11 @@ export class OrdersService {
     });
 
     const createdOrder = await this.ordersRepository.save(order);
-    await this.eventsService.createEvent(EventType.ORDER_CREATED, createdOrder);
+    await this.eventsService.createEvent(
+      EventType.ORDER_CREATED,
+      createdOrder,
+      this.createEventSnapshot(client, createdOrder),
+    );
     return createdOrder;
   }
 
@@ -86,11 +101,13 @@ export class OrdersService {
     const previousOrderSnapshot = this.createOrderSnapshot(order);
     const updatedOrder = this.ordersRepository.merge(order, sanitizedPayload);
     const savedOrder = await this.ordersRepository.save(updatedOrder);
+    const client = await this.ensureClientOwnership(savedOrder.client_id, userId);
     const changed_fields = this.collectChangedFields(previousOrderSnapshot, savedOrder);
     const eventType = this.resolveOrderUpdateEventType(previousOrderSnapshot, savedOrder);
 
     await this.eventsService.createEvent(eventType, savedOrder, {
       changed_fields,
+      ...this.createEventSnapshot(client, savedOrder),
     });
     return savedOrder;
   }
@@ -106,12 +123,14 @@ export class OrdersService {
     return order;
   }
 
-  private async ensureClientOwnership(clientId: string, userId: string): Promise<void> {
+  private async ensureClientOwnership(clientId: string, userId: string): Promise<Client> {
     const client = await this.clientsService.findOneOwnedByUser(clientId, userId);
 
     if (!client) {
       throw new NotFoundException('Client not found');
     }
+
+    return client;
   }
 
   private createOrderSnapshot(order: Order): OrderSnapshot {

@@ -8,6 +8,8 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
 import { EventType } from '../events/entities/event.entity';
+import { Client } from '../clients/entities/client.entity';
+import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class NotesService {
@@ -19,9 +21,19 @@ export class NotesService {
     private readonly ordersService: OrdersService,
   ) {}
 
+  private createEventSnapshot(client: Client, order: Order | null) {
+    return {
+      client_name: client.name ?? null,
+      client_status: client.status ?? null,
+      client_company: client.company ?? null,
+      order_title: order?.title ?? null,
+      order_status: order?.status ?? null,
+    };
+  }
+
   async create(createNoteDto: CreateNoteDto, userId: string): Promise<Note> {
-    await this.ensureClientOwnership(createNoteDto.client_id, userId);
-    await this.ensureOrderOwnership(createNoteDto.order_id, userId, createNoteDto.client_id);
+    const client = await this.ensureClientOwnership(createNoteDto.client_id, userId);
+    const order = await this.ensureOrderOwnership(createNoteDto.order_id, userId, createNoteDto.client_id);
 
     const note = this.notesRepository.create({
       ...createNoteDto,
@@ -29,7 +41,12 @@ export class NotesService {
     });
 
     const createdNote = await this.notesRepository.save(note);
-    await this.eventsService.createEvent(EventType.NOTE, createdNote, undefined, createdNote.id);
+    await this.eventsService.createEvent(
+      EventType.NOTE,
+      createdNote,
+      this.createEventSnapshot(client, order),
+      createdNote.id,
+    );
     return createdNote;
   }
 
@@ -58,19 +75,22 @@ export class NotesService {
       throw new NotFoundException('Note not found');
     }
 
-    if (updateNoteDto.client_id && updateNoteDto.client_id !== note.client_id) {
-      await this.ensureClientOwnership(updateNoteDto.client_id, userId);
-    }
-
     const nextClientId = updateNoteDto.client_id ?? note.client_id;
     const nextOrderId =
       updateNoteDto.order_id !== undefined ? updateNoteDto.order_id : note.order_id;
 
-    await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
+    const client = await this.ensureClientOwnership(nextClientId, userId);
+    const order = await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
     const updatedNote = this.notesRepository.merge(note, updateNoteDto);
     const savedNote = await this.notesRepository.save(updatedNote);
-    await this.eventsService.updateEventPayload(EventType.NOTE, userId, savedNote.id, savedNote);
+    await this.eventsService.updateEventPayload(
+      EventType.NOTE,
+      userId,
+      savedNote.id,
+      savedNote,
+      this.createEventSnapshot(client, order),
+    );
     return savedNote;
   }
 
@@ -85,21 +105,23 @@ export class NotesService {
     return note;
   }
 
-  private async ensureClientOwnership(clientId: string, userId: string): Promise<void> {
+  private async ensureClientOwnership(clientId: string, userId: string): Promise<Client> {
     const client = await this.clientsService.findOneOwnedByUser(clientId, userId);
 
     if (!client) {
       throw new NotFoundException('Client not found');
     }
+
+    return client;
   }
 
   private async ensureOrderOwnership(
     orderId: number | null | undefined,
     userId: string,
     clientId: string,
-  ): Promise<void> {
+  ): Promise<Order | null> {
     if (orderId === null || orderId === undefined) {
-      return;
+      return null;
     }
 
     const order = await this.ordersService.findOneOwnedByUser(orderId, userId);
@@ -111,5 +133,7 @@ export class NotesService {
     if (order.client_id !== clientId) {
       throw new NotFoundException('Order does not belong to the selected client');
     }
+
+    return order;
   }
 }
