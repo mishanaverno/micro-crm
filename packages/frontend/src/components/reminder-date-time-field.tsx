@@ -36,22 +36,22 @@ function CalendarIcon({ className }: { className?: string }) {
   );
 }
 
-export function getReminderDatePart(timestamp: string) {
-  return timestamp.split('T')[0] ?? '';
+export function getReminderDatePart(value: string) {
+  return value.split('T')[0] ?? '';
 }
 
-export function toReminderLocalTimestamp(timestamp: string | undefined) {
-  if (!timestamp) {
+export function toReminderLocalDateTime(value: string | undefined) {
+  if (!value) {
     return '';
   }
 
-  const date = new Date(timestamp);
+  const date = new Date(value);
   const timezoneOffsetMs = date.getTimezoneOffset() * 60_000;
   return new Date(date.getTime() - timezoneOffsetMs).toISOString().slice(0, 16);
 }
 
-function getReminderTimePart(timestamp: string) {
-  return timestamp.split('T')[1] ?? '';
+function getReminderTimePart(value: string) {
+  return value.split('T')[1] ?? '';
 }
 
 function mergeReminderDateAndTime(nextDate: string, nextTime: string) {
@@ -80,19 +80,19 @@ export function isValidReminderTimeValue(value: string) {
   return /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
 }
 
-export function isReminderTimestampReady(timestamp: string) {
-  const datePart = getReminderDatePart(timestamp);
-  const timePart = getReminderTimePart(timestamp);
+export function isReminderDateTimeReady(value: string) {
+  const datePart = getReminderDatePart(value);
+  const timePart = getReminderTimePart(value);
 
   return Boolean(datePart) && isValidReminderTimeValue(timePart);
 }
 
-export function toReminderApiTimestamp(timestamp: string) {
-  return new Date(timestamp).toISOString();
+export function toReminderApiDateTime(value: string) {
+  return new Date(value).toISOString();
 }
 
-function formatDateLabel(timestamp: string) {
-  const datePart = getReminderDatePart(timestamp);
+function formatDateLabel(value: string) {
+  const datePart = getReminderDatePart(value);
 
   if (!datePart) {
     return 'Pick a date';
@@ -102,8 +102,8 @@ function formatDateLabel(timestamp: string) {
   return format(new Date(year, (month ?? 1) - 1, day ?? 1), 'PPP');
 }
 
-function getSelectedDate(timestamp: string) {
-  const datePart = getReminderDatePart(timestamp);
+function getSelectedDate(value: string) {
+  const datePart = getReminderDatePart(value);
 
   if (!datePart) {
     return undefined;
@@ -113,23 +113,25 @@ function getSelectedDate(timestamp: string) {
   return new Date(year, (month ?? 1) - 1, day ?? 1);
 }
 
-interface ReminderTimestampFieldProps {
+interface ReminderDateTimeFieldProps {
   idPrefix?: string;
-  label?: string;
+  label: string;
   required?: boolean;
-  timestamp: string;
-  onChange: (timestamp: string) => void;
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
 }
 
-export function ReminderTimestampField({
-  idPrefix = 'timestamp',
-  label = 'Timestamp',
+export function ReminderDateTimeField({
+  idPrefix = 'date-time',
+  label,
   required = false,
-  timestamp,
+  placeholder = 'Pick a date',
+  value,
   onChange,
-}: ReminderTimestampFieldProps) {
+}: ReminderDateTimeFieldProps) {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const timeInput = getReminderTimePart(timestamp) || '09:00';
+  const timeInput = getReminderTimePart(value) || '09:00';
 
   return (
     <div className="grid gap-2">
@@ -139,23 +141,23 @@ export function ReminderTimestampField({
           <PopoverTrigger asChild>
             <Button
               className="h-11 w-full justify-start rounded-2xl px-4 text-left font-normal shadow-sm"
-              data-empty={!timestamp}
+              data-empty={!value}
               id={`${idPrefix}-date`}
               type="button"
               variant="outline"
             >
               <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-              {timestamp ? (
-                formatDateLabel(timestamp)
+              {value ? (
+                formatDateLabel(value)
               ) : (
-                <span className="text-muted-foreground">Pick a date</span>
+                <span className="text-muted-foreground">{placeholder}</span>
               )}
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-auto overflow-hidden rounded-2xl p-0">
             <Calendar
               mode="single"
-              selected={getSelectedDate(timestamp)}
+              selected={getSelectedDate(value)}
               onSelect={(date) => {
                 if (!date) {
                   return;
@@ -179,7 +181,7 @@ export function ReminderTimestampField({
           value={timeInput}
           onChange={(event) => {
             const nextTime = formatReminderTimeInput(event.target.value);
-            onChange(mergeReminderDateAndTime(getReminderDatePart(timestamp), nextTime));
+            onChange(mergeReminderDateAndTime(getReminderDatePart(value), nextTime));
           }}
         />
       </div>

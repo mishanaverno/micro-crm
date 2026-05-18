@@ -19,6 +19,7 @@ export class Task implements EventReady {
     task_id: this.id,
     content: this.content,
     status: this.status,
+    deadline: this.deadline?.toISOString() ?? null,
     order_id: this.order_id ?? null,
   });
 
@@ -44,6 +45,9 @@ export class Task implements EventReady {
     default: TaskStatus.PENDING,
   })
   status: TaskStatus;
+
+  @Column({ type: 'timestamp', nullable: true })
+  deadline: Date | null;
 
   @CreateDateColumn()
   created_at: Date;

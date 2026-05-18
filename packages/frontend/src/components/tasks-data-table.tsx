@@ -26,6 +26,7 @@ interface TasksDataTableProps {
     client: boolean;
     order: boolean;
     status: boolean;
+    deadline: boolean;
     content: boolean;
     created_at: boolean;
     updated_at: boolean;
@@ -97,6 +98,7 @@ export function TasksDataTable({
           {visibleColumns.client ? <TableHead>Client</TableHead> : null}
           {visibleColumns.order ? <TableHead>Order</TableHead> : null}
           {visibleColumns.status ? <TableHead>Status</TableHead> : null}
+          {visibleColumns.deadline ? <TableHead>Deadline</TableHead> : null}
           {visibleColumns.content ? <TableHead>Content</TableHead> : null}
           {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
           {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
@@ -116,6 +118,9 @@ export function TasksDataTable({
               <TableCell>
                 <StatusBadge status={task.status} />
               </TableCell>
+            ) : null}
+            {visibleColumns.deadline ? (
+              <TableCell>{task.deadline ? new Date(task.deadline).toLocaleString() : '—'}</TableCell>
             ) : null}
             {visibleColumns.content ? (
               <TableCell className="max-w-[560px] text-muted-foreground">

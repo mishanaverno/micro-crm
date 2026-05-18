@@ -68,12 +68,14 @@ describe('TasksService', () => {
     const dto: CreateTaskDto = {
       client_id: 'client-1',
       content: 'Prepare the next proposal',
+      deadline: '2026-05-20T10:30:00.000Z',
     };
     const createdTask = {
       id: 1,
       user_id: 'user-1',
       ...dto,
       status: TaskStatus.PENDING,
+      deadline: new Date(dto.deadline!),
     } as Task;
 
     clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
@@ -85,6 +87,7 @@ describe('TasksService', () => {
       ...dto,
       user_id: 'user-1',
       status: TaskStatus.PENDING,
+      deadline: new Date(dto.deadline!),
     });
     expect(eventsService.createEvent).toHaveBeenCalledWith(
       EventType.TASK,
@@ -108,6 +111,7 @@ describe('TasksService', () => {
       id: 1,
       user_id: 'user-1',
       ...dto,
+      deadline: null,
     } as Task;
 
     clientsService.findOneOwnedByUser.mockResolvedValue({ id: 'client-1' } as Client);
@@ -141,9 +145,19 @@ describe('TasksService', () => {
       content: 'Old',
       order_id: null,
       status: TaskStatus.PENDING,
+      deadline: null,
     } as Task;
-    const dto: UpdateTaskDto = { content: 'Updated', status: TaskStatus.COMPLETE };
-    const mergedTask = { ...existingTask, ...dto } as Task;
+    const dto: UpdateTaskDto = {
+      content: 'Updated',
+      status: TaskStatus.COMPLETE,
+      deadline: '2026-05-21T09:00:00.000Z',
+    };
+    const mergedTask = {
+      ...existingTask,
+      content: dto.content,
+      status: dto.status,
+      deadline: new Date(dto.deadline!),
+    } as Task;
 
     repository.findOneBy.mockResolvedValue(existingTask);
     repository.merge.mockReturnValue(mergedTask);
@@ -151,7 +165,10 @@ describe('TasksService', () => {
     eventsService.updateEventPayload.mockResolvedValue(undefined);
 
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedTask);
-    expect(repository.merge).toHaveBeenCalledWith(existingTask, dto);
+    expect(repository.merge).toHaveBeenCalledWith(existingTask, {
+      ...dto,
+      deadline: new Date(dto.deadline!),
+    });
     expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
       EventType.TASK,
       'user-1',

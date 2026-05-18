@@ -21,6 +21,7 @@ export interface BaseEventRecord<TType extends EventType, TPayload extends objec
   original_id: number | null;
   user_id: string;
   client_id: string;
+  order_id: number | null;
   type: TType;
   comment: string | null;
   payload: TPayload;
@@ -39,6 +40,7 @@ export interface TaskEventPayload {
   task_id: number;
   content: string;
   status: 'pending' | 'complete';
+  deadline?: string | null;
   order_id?: number | null;
 }
 

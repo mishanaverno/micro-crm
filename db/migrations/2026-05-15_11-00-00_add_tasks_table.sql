@@ -27,6 +27,7 @@ create table if not exists
     "order_id" integer null,
     "content" text not null,
     "status" public.task_status not null default 'pending',
+    "deadline" timestamp null,
     "created_at" timestamp not null default NOW(),
     "updated_at" timestamp not null default NOW(),
     "deleted_at" timestamp null,

@@ -48,6 +48,7 @@ describe('EventsService', () => {
       original_id: null,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: null,
       type: EventType.CLIENT_CREATED,
       payload: {
         client_id: 'client-1',
@@ -81,6 +82,7 @@ describe('EventsService', () => {
       original_id: 1,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: null,
       type: EventType.NOTE,
       payload: {
         note_id: 1,
@@ -120,6 +122,7 @@ describe('EventsService', () => {
       original_id: null,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: 1,
       type: EventType.ORDER_UPDATED,
       payload: {
         order_id: 1,
@@ -169,6 +172,7 @@ describe('EventsService', () => {
       original_id: null,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: 1,
       type: EventType.ORDER_COMPLETE,
       payload: {
         order_id: 1,
@@ -219,6 +223,7 @@ describe('EventsService', () => {
       original_id: null,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: 1,
       type: EventType.ORDER_REOPENED,
       payload: {
         order_id: 1,
@@ -271,6 +276,7 @@ describe('EventsService', () => {
       original_id: 1,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: 2001,
       type: EventType.PAID,
       payload: {
         paid_id: 1,
@@ -300,6 +306,7 @@ describe('EventsService', () => {
       original_id: 77,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: null,
       type: EventType.TASK,
       payload: {
         client_id: 'client-1',
@@ -329,6 +336,7 @@ describe('EventsService', () => {
       id: 12,
       user_id: 'user-1',
       client_id: 'client-1',
+      order_id: null,
       type: EventType.NOTE,
       original_id: 5,
       payload: {
@@ -349,6 +357,7 @@ describe('EventsService', () => {
     repository.save.mockResolvedValue({
       ...event,
       client_id: 'client-2',
+      order_id: null,
       payload: {
         note_id: 5,
         content: 'Updated',
@@ -360,6 +369,7 @@ describe('EventsService', () => {
     ).resolves.toEqual({
       ...event,
       client_id: 'client-2',
+      order_id: null,
       payload: {
         note_id: 5,
         content: 'Updated',

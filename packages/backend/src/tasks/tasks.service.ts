@@ -27,6 +27,7 @@ export class TasksService {
       ...createTaskDto,
       user_id: userId,
       status: createTaskDto.status ?? TaskStatus.PENDING,
+      deadline: createTaskDto.deadline ? new Date(createTaskDto.deadline) : null,
     });
 
     const createdTask = await this.tasksRepository.save(task);
@@ -74,7 +75,20 @@ export class TasksService {
 
     await this.ensureOrderOwnership(nextOrderId, userId, nextClientId);
 
-    const updatedTask = this.tasksRepository.merge(task, updateTaskDto);
+    const payload = {
+      ...updateTaskDto,
+      deadline:
+        updateTaskDto.deadline !== undefined
+          ? updateTaskDto.deadline
+            ? new Date(updateTaskDto.deadline)
+            : null
+          : undefined,
+    };
+    const sanitizedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([, value]) => value !== undefined),
+    ) as Partial<Task>;
+
+    const updatedTask = this.tasksRepository.merge(task, sanitizedPayload);
     const savedTask = await this.tasksRepository.save(updatedTask);
     await this.eventsService.updateEventPayload(EventType.TASK, userId, savedTask.id, savedTask, {
       content: savedTask.content,

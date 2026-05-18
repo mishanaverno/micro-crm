@@ -1,6 +1,15 @@
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
 import { TaskStatus } from '../entities/task.entity';
 
 export class CreateTaskDto {
@@ -29,4 +38,9 @@ export class CreateTaskDto {
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
+
+  @ApiPropertyOptional({ example: '2026-05-20T10:30:00.000Z', nullable: true, description: 'Optional task deadline' })
+  @IsDateString()
+  @IsOptional()
+  deadline?: string | null;
 }

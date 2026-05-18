@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { RemindersDataTable } from '../components/reminders-data-table';
 import {
-  isReminderTimestampReady,
-  toReminderApiTimestamp,
-  toReminderLocalTimestamp,
-} from '../components/reminder-timestamp-field';
+  isReminderDateTimeReady,
+  toReminderApiDateTime,
+  toReminderLocalDateTime,
+} from '../components/reminder-date-time-field';
 import { ReminderDialog } from '../components/reminder-dialog';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
@@ -180,7 +180,7 @@ export function RemindersPage() {
   function openEditDialog(reminder: ReminderRecord) {
     createReminder.reset();
     updateReminder.reset();
-    const localTimestamp = toReminderLocalTimestamp(reminder.timestamp);
+    const localTimestamp = toReminderLocalDateTime(reminder.timestamp);
     setEditingReminder(reminder);
     setForm({
       client_id: reminder.client_id,
@@ -226,7 +226,7 @@ export function RemindersPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!isReminderTimestampReady(form.timestamp)) {
+    if (!isReminderDateTimeReady(form.timestamp)) {
       return;
     }
 
@@ -234,7 +234,7 @@ export function RemindersPage() {
       client_id: form.client_id,
       order_id: form.order_id ? Number(form.order_id) : null,
       content: form.content,
-      timestamp: toReminderApiTimestamp(form.timestamp),
+      timestamp: toReminderApiDateTime(form.timestamp),
     };
 
     if (editingReminder) {

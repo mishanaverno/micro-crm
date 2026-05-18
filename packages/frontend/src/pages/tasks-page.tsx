@@ -1,5 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { TasksDataTable } from '../components/tasks-data-table';
+import {
+  ReminderDateTimeField,
+  isReminderDateTimeReady,
+  toReminderApiDateTime,
+  toReminderLocalDateTime,
+} from '../components/reminder-date-time-field';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreateTask } from '../features/tasks/use-create-task';
@@ -41,6 +47,7 @@ const initialFormState = {
   order_id: '',
   content: '',
   status: 'pending' as TaskStatus,
+  deadline: '',
 };
 
 const TASKS_TABLE_COLUMNS_STORAGE_KEY = 'tasks-table-visible-columns';
@@ -49,6 +56,7 @@ const defaultVisibleColumns = {
   client: true,
   order: false,
   status: true,
+  deadline: true,
   content: true,
   created_at: false,
   updated_at: false,
@@ -177,6 +185,7 @@ export function TasksPage() {
       order_id: '',
       content: '',
       status: 'pending',
+      deadline: '',
     });
     setIsTaskDialogOpen(true);
   }
@@ -190,6 +199,7 @@ export function TasksPage() {
       order_id: task.order_id ? String(task.order_id) : '',
       content: task.content,
       status: task.status,
+      deadline: toReminderLocalDateTime(task.deadline ?? undefined),
     });
     setIsTaskDialogOpen(true);
   }
@@ -234,6 +244,9 @@ export function TasksPage() {
       order_id: form.order_id ? Number(form.order_id) : null,
       content: form.content,
       status: form.status,
+      deadline: form.deadline && isReminderDateTimeReady(form.deadline)
+        ? toReminderApiDateTime(form.deadline)
+        : null,
     };
 
     if (editingTask) {
@@ -287,6 +300,12 @@ export function TasksPage() {
                     onCheckedChange={() => toggleColumn('status')}
                   >
                     Status
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    checked={visibleColumns.deadline}
+                    onCheckedChange={() => toggleColumn('deadline')}
+                  >
+                    Deadline
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.content}
@@ -395,6 +414,30 @@ export function TasksPage() {
                           <SelectItem value="complete">Complete</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <ReminderDateTimeField
+                        idPrefix="task-deadline"
+                        label="Deadline"
+                        placeholder="No deadline"
+                        value={form.deadline}
+                        onChange={(deadline) =>
+                          setForm((current) => ({ ...current, deadline }))
+                        }
+                      />
+                      {form.deadline ? (
+                        <Button
+                          className="h-auto justify-self-start px-0 text-muted-foreground hover:text-foreground"
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            setForm((current) => ({ ...current, deadline: '' }))
+                          }
+                        >
+                          Clear deadline
+                        </Button>
+                      ) : null}
                     </div>
 
                     <div className="grid gap-2">

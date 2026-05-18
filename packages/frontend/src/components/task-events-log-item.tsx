@@ -58,7 +58,11 @@ export function TaskEventsLogItem({
             type="checkbox"
           />
           <span>{describeTaskEvent(event)}</span>
-        </span></LogItemDescription>
+        </span>
+        {event.payload.deadline ? (
+          <p>Deadline {new Date(event.payload.deadline).toLocaleString()}</p>
+        ) : null}
+      </LogItemDescription>
     </AbstractEventsLogItem>
   );
 }

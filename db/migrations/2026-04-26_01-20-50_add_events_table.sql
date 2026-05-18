@@ -47,6 +47,7 @@ create table if not exists
     "original_id" integer null,
     "user_id" UUID not null,
     "client_id" UUID not null,
+    "order_id" integer null,
     "type" public.event_type not null,
     "comment" varchar(255) null,
     "payload" JSONB not null default '{}'::jsonb,

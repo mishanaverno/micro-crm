@@ -34,6 +34,9 @@ export class Event {
   @Column({ type: 'uuid' })
   client_id: string;
 
+  @Column({ type: 'integer', nullable: true })
+  order_id: number | null;
+
   @Column({ type: 'enum', enum: EventType, enumName: 'event_type' })
   type: EventType;
 

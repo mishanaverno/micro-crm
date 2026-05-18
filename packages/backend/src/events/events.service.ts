@@ -10,21 +10,36 @@ export class EventsService {
     @InjectRepository(Event)
     private readonly eventsRepository: Repository<Event>,
   ) {}
+
+  private resolveOrderId(instance: EventReady, payload: Record<string, unknown>): number | null {
+    if (typeof instance.order_id === 'number') {
+      return instance.order_id;
+    }
+
+    if (typeof payload.order_id === 'number') {
+      return payload.order_id;
+    }
+
+    return null;
+  }
+
   createEvent<T extends EventType>(
     type: T,
     instance: EventReady,
     payloadOverrides?: Record<string, unknown>,
     originalId?: number | null,
   ) {
+    const payload = {
+      ...instance.getPayload(),
+      ...payloadOverrides,
+    };
     const event = this.eventsRepository.create({
       original_id: originalId ?? null,
       user_id: instance.user_id,
       client_id: instance.client_id,
+      order_id: this.resolveOrderId(instance, payload),
       type,
-      payload: {
-        ...instance.getPayload(),
-        ...payloadOverrides,
-      },
+      payload,
     });
 
     return this.eventsRepository.save(event);
@@ -47,11 +62,13 @@ export class EventsService {
       return null;
     }
 
-    event.client_id = instance.client_id;
-    event.payload = {
+    const payload = {
       ...instance.getPayload(),
       ...payloadOverrides,
     };
+    event.client_id = instance.client_id;
+    event.order_id = this.resolveOrderId(instance, payload);
+    event.payload = payload;
 
     return this.eventsRepository.save(event);
   }

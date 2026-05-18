@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { CreateTaskDto } from './create-task.dto';
 import { TaskStatus } from '../entities/task.entity';
 
@@ -31,4 +31,9 @@ export class UpdateTaskDto extends PartialType(CreateTaskDto) {
   @IsEnum(TaskStatus)
   @IsOptional()
   status?: TaskStatus;
+
+  @ApiPropertyOptional({ example: '2026-05-20T10:30:00.000Z', nullable: true, description: 'Optional task deadline' })
+  @IsDateString()
+  @IsOptional()
+  deadline?: string | null;
 }

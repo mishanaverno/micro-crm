@@ -12,7 +12,7 @@ import { useOrders } from '../features/orders/use-orders';
 import { useCreateTask } from '../features/tasks/use-create-task';
 import { useUpdateTask } from '../features/tasks/use-update-task';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -35,9 +35,9 @@ import { EventsLogItem } from './events-log-item';
 import { EventGraphRow } from './ui/event-graph';
 import { ReminderDialog } from './reminder-dialog';
 import {
-  isReminderTimestampReady,
-  toReminderApiTimestamp,
-} from './reminder-timestamp-field';
+  isReminderDateTimeReady,
+  toReminderApiDateTime,
+} from './reminder-date-time-field';
 import {
   OrderCompleteEventRecord,
   OrderCreatedEventRecord,
@@ -102,6 +102,10 @@ function resolveOrderId(
   event: EventRecord,
   noteOrderIdsByNoteId: Map<number, number | null>,
 ) {
+  if (event.order_id != null) {
+    return event.order_id;
+  }
+
   switch (event.type) {
     case 'order_created':
     case 'order_updated':
@@ -724,6 +728,7 @@ export function EventsLog() {
       order_id: orderEventToTask.payload.order_id,
       content: taskDraft.trim(),
       status: 'pending',
+      deadline: null,
     });
 
     closeCreateTaskDialog();
@@ -732,7 +737,7 @@ export function EventsLog() {
   async function handleCreateReminderSubmit(submitEvent: FormEvent<HTMLFormElement>) {
     submitEvent.preventDefault();
 
-    if (!orderEventToReminder || !isReminderTimestampReady(reminderTimestampDraft)) {
+    if (!orderEventToReminder || !isReminderDateTimeReady(reminderTimestampDraft)) {
       return;
     }
 
@@ -740,7 +745,7 @@ export function EventsLog() {
       client_id: orderEventToReminder.client_id,
       order_id: orderEventToReminder.payload.order_id,
       content: reminderDraft.trim(),
-      timestamp: toReminderApiTimestamp(reminderTimestampDraft),
+      timestamp: toReminderApiDateTime(reminderTimestampDraft),
     });
 
     closeCreateReminderDialog();
@@ -758,6 +763,7 @@ export function EventsLog() {
         order_id: event.payload.order_id ?? null,
         content: event.payload.content,
         status: 'complete',
+        deadline: event.payload.deadline ?? null,
       },
     });
   }
@@ -799,11 +805,7 @@ export function EventsLog() {
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div className="grid gap-1">
           <CardTitle>Events log</CardTitle>
-          <CardDescription>
-            Latest 50 events for the current user, sorted by creation date.
-          </CardDescription>
         </div>
-
         <div className="flex items-center gap-2">
           <ToggleGroup
             aria-label="Filter event types"

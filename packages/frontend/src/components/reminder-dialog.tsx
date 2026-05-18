@@ -1,8 +1,8 @@
 import { FormEvent } from 'react';
 import {
-  ReminderTimestampField,
-  isReminderTimestampReady,
-} from './reminder-timestamp-field';
+  ReminderDateTimeField,
+  isReminderDateTimeReady,
+} from './reminder-date-time-field';
 import { Button } from '../shared/ui/button';
 import {
   Dialog,
@@ -153,10 +153,11 @@ export function ReminderDialog({
             )}
           </div>
 
-          <ReminderTimestampField
+          <ReminderDateTimeField
             idPrefix={`${formId}-timestamp`}
+            label="Timestamp"
             required
-            timestamp={timestamp}
+            value={timestamp}
             onChange={onTimestampChange}
           />
 
@@ -176,7 +177,11 @@ export function ReminderDialog({
             Cancel
           </Button>
           <Button
-            disabled={isPending || isSubmitDisabled || !isReminderTimestampReady(timestamp)}
+            disabled={
+              isPending ||
+              isSubmitDisabled ||
+              !isReminderDateTimeReady(timestamp)
+            }
             form={formId}
             type="submit"
           >

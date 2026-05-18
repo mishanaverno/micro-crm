@@ -3,7 +3,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
-const SIDEBAR_WIDTH = '17rem';
+const SIDEBAR_WIDTH = '15rem';
 const SIDEBAR_WIDTH_COLLAPSED = '4.5rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 

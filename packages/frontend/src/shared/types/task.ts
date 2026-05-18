@@ -7,6 +7,7 @@ export interface TaskDraft {
   content: string;
   order_id?: number | null;
   status?: TaskStatus;
+  deadline?: string | null;
 }
 
 export interface TaskRecord extends OfflineRecord, TaskDraft {
