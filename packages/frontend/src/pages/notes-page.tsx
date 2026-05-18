@@ -136,7 +136,7 @@ export function NotesPage() {
     return new Map(
       clientOptions.map((client) => [
         client.id,
-        [client.first_name, client.last_name].filter(Boolean).join(' ') || client.email || client.id,
+        client.name || client.email || client.id,
       ]),
     );
   }, [clientOptions]);

@@ -3,7 +3,7 @@ import { EventsService } from '../events/events.service';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import { Client } from './entities/client.entity';
+import { Client, ClientStatus } from './entities/client.entity';
 
 type MockRepository<T> = {
   create: jest.Mock<T, [Partial<T>]>;
@@ -46,11 +46,11 @@ describe('ClientsService', () => {
 
   it('creates and saves a client', async () => {
     const dto: CreateClientDto = {
-      first_name: 'Jane',
-      last_name: 'Smith',
+      name: 'Jane Smith',
       email: 'jane@example.com',
       phone_number: '+1234567890',
       company: 'Acme Corp',
+      status: ClientStatus.LEGAL_ENTITY,
     };
     const createdClient = {
       id: 'client-1',
@@ -68,6 +68,13 @@ describe('ClientsService', () => {
     });
     expect(repository.save).toHaveBeenCalledWith(createdClient);
     expect(eventsService.createEvent).toHaveBeenCalledTimes(1);
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        user_id: 'user-1',
+        client_id: 'client-1',
+      }),
+    );
   });
 
   it('returns all clients', async () => {

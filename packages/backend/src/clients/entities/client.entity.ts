@@ -1,5 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
 
+export enum ClientStatus {
+  INDIVIDUAL = 'individual',
+  LEGAL_ENTITY = 'legal_entity',
+}
+
 @Entity('clients')
 export class Client {
   @PrimaryGeneratedColumn('uuid')
@@ -8,11 +13,8 @@ export class Client {
   @Column({ type: 'uuid' })
   user_id: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  first_name: string | null;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  last_name: string | null;
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   email: string | null;
@@ -22,6 +24,9 @@ export class Client {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   company?: string | null;
+
+  @Column({ type: 'varchar', length: 32, default: ClientStatus.INDIVIDUAL })
+  status: ClientStatus;
 
   @CreateDateColumn()
   created_at: Date;

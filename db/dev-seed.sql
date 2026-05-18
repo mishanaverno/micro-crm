@@ -33,11 +33,11 @@ SET
 INSERT INTO clients (
   id,
   user_id,
-  first_name,
-  last_name,
+  name,
   email,
   phone_number,
   company,
+  status,
   created_at,
   updated_at
 )
@@ -45,44 +45,44 @@ VALUES
   (
     '22222222-2222-4222-8222-222222222221',
     '11111111-1111-4111-8111-111111111111',
-    'Ivan',
-    'Petrov',
+    'Ivan Petrov',
     'ivan.petrov@example.com',
     '+79990000001',
-    'Acme LLC',
+    NULL,
+    'individual',
     '2026-05-01 09:01:00',
     '2026-05-01 09:26:00'
   ),
   (
     '22222222-2222-4222-8222-222222222222',
     '11111111-1111-4111-8111-111111111111',
-    'Anna',
-    'Smirnova',
+    'Anna Smirnova',
     'anna.smirnova@example.com',
     '+79990000002',
     'North Wind',
+    'legal_entity',
     '2026-05-01 09:27:00',
     '2026-05-01 09:47:00'
   ),
   (
     '22222222-2222-4222-8222-222222222223',
     '11111111-1111-4111-8111-111111111111',
-    'Pavel',
-    'Sidorov',
+    'Pavel Sidorov',
     'pavel.sidorov@example.com',
     '+79990000003',
     'Orbit Systems',
+    'legal_entity',
     '2026-05-01 09:48:00',
     '2026-05-01 10:11:00'
   )
 ON CONFLICT (id) DO UPDATE
 SET
   user_id = EXCLUDED.user_id,
-  first_name = EXCLUDED.first_name,
-  last_name = EXCLUDED.last_name,
+  name = EXCLUDED.name,
   email = EXCLUDED.email,
   phone_number = EXCLUDED.phone_number,
   company = EXCLUDED.company,
+  status = EXCLUDED.status,
   created_at = EXCLUDED.created_at,
   updated_at = EXCLUDED.updated_at,
   deleted_at = NULL;
@@ -259,7 +259,7 @@ INSERT INTO events (
   updated_at
 )
 VALUES
-  (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'client_created', NULL, '{"client_id":"22222222-2222-4222-8222-222222222221","first_name":"Ivan","last_name":"Petrov","email":"ivan.petrov@example.com","phone_number":"+79990000001","company":"Acme LLC"}'::jsonb, '2026-05-01 09:02:00', '2026-05-01 09:02:00'),
+  (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'client_created', NULL, '{"client_id":"22222222-2222-4222-8222-222222222221","name":"Ivan Petrov","email":"ivan.petrov@example.com","phone_number":"+79990000001","company":null,"status":"individual"}'::jsonb, '2026-05-01 09:02:00', '2026-05-01 09:02:00'),
   (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'order_created', NULL, '{"order_id":2001,"title":"CRM onboarding","price":"150000.00","content":"CRM onboarding and sales pipeline setup","status":"created"}'::jsonb, '2026-05-01 09:04:00', '2026-05-01 09:04:00'),
   (1001, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'note', NULL, '{"note_id":1001,"content":"Client wants onboarding checklists for each sales role.","order_id":2001}'::jsonb, '2026-05-01 09:06:00', '2026-05-01 09:06:00'),
   (4001, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'task', NULL, '{"task_id":4001,"content":"Prepare onboarding checklist draft.","status":"complete","order_id":2001}'::jsonb, '2026-05-01 09:08:00', '2026-05-01 09:08:00'),
@@ -275,7 +275,7 @@ VALUES
   (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'order_complete', NULL, '{"order_id":2002,"title":"Quarterly support pack","price":"80000.00","content":"Quarterly consulting and support retainer","status":"done","changed_fields":[{"field":"status","from":"inprogress","to":"done"}]}'::jsonb, '2026-05-01 09:24:00', '2026-05-01 09:24:00'),
   (1002, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222221', 'note', NULL, '{"note_id":1002,"content":"Prefers communication by email after 18:00.","order_id":null}'::jsonb, '2026-05-01 09:26:00', '2026-05-01 09:26:00'),
 
-  (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'client_created', NULL, '{"client_id":"22222222-2222-4222-8222-222222222222","first_name":"Anna","last_name":"Smirnova","email":"anna.smirnova@example.com","phone_number":"+79990000002","company":"North Wind"}'::jsonb, '2026-05-01 09:28:00', '2026-05-01 09:28:00'),
+  (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'client_created', NULL, '{"client_id":"22222222-2222-4222-8222-222222222222","name":"Anna Smirnova","email":"anna.smirnova@example.com","phone_number":"+79990000002","company":"North Wind","status":"legal_entity"}'::jsonb, '2026-05-01 09:28:00', '2026-05-01 09:28:00'),
   (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'order_created', NULL, '{"order_id":2003,"title":"Website redesign","price":"245000.00","content":"Website redesign with lead forms and analytics","status":"created"}'::jsonb, '2026-05-01 09:30:00', '2026-05-01 09:30:00'),
   (4004, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'task', NULL, '{"task_id":4004,"content":"Collect current website analytics baseline.","status":"pending","order_id":2003}'::jsonb, '2026-05-01 09:32:00', '2026-05-01 09:32:00'),
   (5004, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'spent', NULL, '{"spent_id":5004,"order_id":2003,"value":"7000.00"}'::jsonb, '2026-05-04 12:25:00', '2026-05-04 12:25:00'),
@@ -288,7 +288,7 @@ VALUES
   (7003, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'reminder', NULL, '{"reminder_id":7003,"content":"Ask for final sign-off on refreshed assets.","timestamp":"2026-05-05T15:00:00.000Z","order_id":2004}'::jsonb, '2026-05-01 09:46:00', '2026-05-01 09:46:00'),
   (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 'order_complete', NULL, '{"order_id":2004,"title":"Brand refresh rollout","price":"132000.00","content":"Design rollout for updated brand materials","status":"done","changed_fields":[{"field":"status","from":"inprogress","to":"done"}]}'::jsonb, '2026-05-01 09:47:00', '2026-05-01 09:47:00'),
 
-  (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222223', 'client_created', NULL, '{"client_id":"22222222-2222-4222-8222-222222222223","first_name":"Pavel","last_name":"Sidorov","email":"pavel.sidorov@example.com","phone_number":"+79990000003","company":"Orbit Systems"}'::jsonb, '2026-05-01 09:49:00', '2026-05-01 09:49:00'),
+  (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222223', 'client_created', NULL, '{"client_id":"22222222-2222-4222-8222-222222222223","name":"Pavel Sidorov","email":"pavel.sidorov@example.com","phone_number":"+79990000003","company":"Orbit Systems","status":"legal_entity"}'::jsonb, '2026-05-01 09:49:00', '2026-05-01 09:49:00'),
   (NULL, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222223', 'order_created', NULL, '{"order_id":2005,"title":"Reporting dashboard","price":"98000.00","content":"Reporting dashboard implementation","status":"created"}'::jsonb, '2026-05-01 09:51:00', '2026-05-01 09:51:00'),
   (1004, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222223', 'note', NULL, '{"note_id":1004,"content":"Requested weekly progress snapshots while the dashboard is in progress.","order_id":2005}'::jsonb, '2026-05-01 09:53:00', '2026-05-01 09:53:00'),
   (4007, '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222223', 'task', NULL, '{"task_id":4007,"content":"Confirm metrics list for the dashboard MVP.","status":"pending","order_id":2005}'::jsonb, '2026-05-01 09:55:00', '2026-05-01 09:55:00'),

@@ -25,19 +25,27 @@ import {
 } from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
-import { ClientRecord } from '../shared/types/client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../shared/ui/select';
+import { ClientRecord, ClientStatus } from '../shared/types/client';
 
 const initialFormState = {
-  first_name: '',
-  last_name: '',
+  name: '',
   email: '',
   phone_number: '',
   company: '',
+  status: 'individual' as ClientStatus,
 };
 
 const CLIENTS_TABLE_COLUMNS_STORAGE_KEY = 'clients-table-visible-columns';
 
 const defaultVisibleColumns = {
+  status: true,
   email: false,
   phone_number: true,
   company: false,
@@ -104,11 +112,11 @@ export function ClientsPage() {
   function openEditDialog(client: ClientRecord) {
     setEditingClient(client);
     setForm({
-      first_name: client.first_name ?? '',
-      last_name: client.last_name ?? '',
+      name: client.name ?? '',
       email: client.email ?? '',
       phone_number: client.phone_number ?? '',
       company: client.company ?? '',
+      status: client.status ?? 'individual',
     });
     setIsCreateDialogOpen(true);
   }
@@ -144,11 +152,11 @@ export function ClientsPage() {
     event.preventDefault();
 
     const payload = {
-      first_name: form.first_name,
-      last_name: form.last_name,
+      name: form.name,
       email: form.email,
       phone_number: form.phone_number || undefined,
       company: form.company || undefined,
+      status: form.status,
     };
 
     if (editingClient) {
@@ -183,6 +191,12 @@ export function ClientsPage() {
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      checked={visibleColumns.status}
+                      onCheckedChange={() => toggleColumn('status')}
+                    >
+                      Status
+                    </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.email}
                       onCheckedChange={() => toggleColumn('email')}
@@ -234,25 +248,13 @@ export function ClientsPage() {
 
                     <form className="grid gap-4" id="create-client-form" onSubmit={handleSubmit}>
                       <div className="grid gap-2">
-                        <Label htmlFor="first_name">First name</Label>
+                        <Label htmlFor="name">Name</Label>
                         <Input
-                          id="first_name"
+                          id="name"
                           required
-                          value={form.first_name}
+                          value={form.name}
                           onChange={(event) =>
-                            setForm((current) => ({ ...current, first_name: event.target.value }))
-                          }
-                        />
-                      </div>
-
-                      <div className="grid gap-2">
-                        <Label htmlFor="last_name">Last name</Label>
-                        <Input
-                          id="last_name"
-                          required
-                          value={form.last_name}
-                          onChange={(event) =>
-                            setForm((current) => ({ ...current, last_name: event.target.value }))
+                            setForm((current) => ({ ...current, name: event.target.value }))
                           }
                         />
                       </div>
@@ -279,6 +281,27 @@ export function ClientsPage() {
                             setForm((current) => ({ ...current, phone_number: event.target.value }))
                           }
                         />
+                      </div>
+
+                      <div className="grid gap-2">
+                        <Label htmlFor="client-status">Status</Label>
+                        <Select
+                          value={form.status}
+                          onValueChange={(value) =>
+                            setForm((current) => ({
+                              ...current,
+                              status: value as ClientStatus,
+                            }))
+                          }
+                        >
+                          <SelectTrigger id="client-status">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="individual">Физ лицо</SelectItem>
+                            <SelectItem value="legal_entity">Юр лицо</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div className="grid gap-2">
@@ -329,13 +352,7 @@ export function ClientsPage() {
                       <DialogTitle>Delete client</DialogTitle>
                       <DialogDescription>
                         {clientToDelete
-                          ? `Client "${
-                              [clientToDelete.first_name, clientToDelete.last_name]
-                                .filter(Boolean)
-                                .join(' ') ||
-                              clientToDelete.email ||
-                              clientToDelete.id
-                            }" will be moved to deleted state and hidden from the default list.`
+                          ? `Client "${clientToDelete.name || clientToDelete.email || clientToDelete.id}" will be moved to deleted state and hidden from the default list.`
                           : 'Selected client will be moved to deleted state.'}
                       </DialogDescription>
                     </DialogHeader>

@@ -1,16 +1,12 @@
-import { IsEmail, IsString, IsNotEmpty, IsPhoneNumber, IsOptional } from 'class-validator';
+import { IsEmail, IsEnum, IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ClientStatus } from '../entities/client.entity';
 
 export class CreateClientDto {
-  @ApiProperty({ example: 'Jane', description: 'Client first name' })
+  @ApiProperty({ example: 'Jane Smith', description: 'Client name' })
   @IsString()
   @IsNotEmpty()
-  first_name: string;
-
-  @ApiProperty({ example: 'Smith', description: 'Client last name' })
-  @IsString()
-  @IsNotEmpty()
-  last_name: string;
+  name: string;
 
   @ApiProperty({ example: 'jane@example.com', description: 'Client email' })
   @IsEmail()
@@ -26,4 +22,8 @@ export class CreateClientDto {
   @IsString()
   @IsOptional()
   company?: string;
+
+  @ApiProperty({ enum: ClientStatus, example: ClientStatus.INDIVIDUAL, description: 'Client legal status' })
+  @IsEnum(ClientStatus)
+  status: ClientStatus;
 }

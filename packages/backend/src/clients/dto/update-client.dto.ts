@@ -1,18 +1,14 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateClientDto } from './create-client.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { ClientStatus } from '../entities/client.entity';
 
 export class UpdateClientDto extends PartialType(CreateClientDto) {
-  @ApiPropertyOptional({ example: 'Jane', description: 'Client first name' })
+  @ApiPropertyOptional({ example: 'Jane Smith', description: 'Client name' })
   @IsString()
   @IsOptional()
-  first_name?: string;
-
-  @ApiPropertyOptional({ example: 'Smith', description: 'Client last name' })
-  @IsString()
-  @IsOptional()
-  last_name?: string;
+  name?: string;
 
   @ApiPropertyOptional({ example: 'jane@example.com', description: 'Client email' })
   @IsEmail()
@@ -28,4 +24,9 @@ export class UpdateClientDto extends PartialType(CreateClientDto) {
   @IsString()
   @IsOptional()
   company?: string;
+
+  @ApiPropertyOptional({ enum: ClientStatus, example: ClientStatus.LEGAL_ENTITY, description: 'Client legal status' })
+  @IsEnum(ClientStatus)
+  @IsOptional()
+  status?: ClientStatus;
 }

@@ -12,9 +12,19 @@ interface ClientCreatedEventsLogItemProps {
 
 
 function describeClientCreatedTitle(event: ClientCreatedEventRecord) {
-  return [event.payload.first_name, event.payload.last_name]
-    .filter(Boolean)
-    .join(' ');
+  return event.payload.name || 'Client';
+}
+
+function formatClientStatus(status?: ClientCreatedEventRecord['payload']['status']) {
+  if (status === 'legal_entity') {
+    return 'Юр лицо';
+  }
+
+  if (status === 'individual') {
+    return 'Физ лицо';
+  }
+
+  return null;
 }
 
 export function ClientCreatedEventsLogItem({
@@ -35,10 +45,13 @@ export function ClientCreatedEventsLogItem({
       specificActions={[]}
       title={`: ${describeClientCreatedTitle(event)}`}
     >
-      <p>{event.payload.first_name} {event.payload.last_name}</p>
-      <p>{event.payload.company}</p>
-      <p>{event.payload.email}</p>
-      <p>{event.payload.phone_number}</p>
+      <p>{event.payload.name}</p>
+      {formatClientStatus(event.payload.status) ? (
+        <p>{formatClientStatus(event.payload.status)}</p>
+      ) : null}
+      {event.payload.company ? <p>{event.payload.company}</p> : null}
+      {event.payload.email ? <p>{event.payload.email}</p> : null}
+      {event.payload.phone_number ? <p>{event.payload.phone_number}</p> : null}
     </AbstractEventsLogItem>
   );
 }

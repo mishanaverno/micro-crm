@@ -51,11 +51,11 @@ export interface ReminderEventPayload {
 
 export interface ClientCreatedEventPayload {
   client_id: string;
-  first_name?: string;
-  last_name?: string;
+  name?: string;
   email?: string;
   phone_number?: string;
   company?: string;
+  status?: 'individual' | 'legal_entity';
 }
 
 export interface OrderEventPayload {

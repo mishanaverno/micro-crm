@@ -1,4 +1,5 @@
 import { ClientRecord } from '../shared/types/client';
+import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -20,12 +21,17 @@ interface ClientsDataTableProps {
   onEditClient: (client: ClientRecord) => void;
   onDeleteClient: (client: ClientRecord) => void;
   visibleColumns: {
+    status: boolean;
     email: boolean;
     phone_number: boolean;
     company: boolean;
     created_at: boolean;
     updated_at: boolean;
   };
+}
+
+function formatClientStatus(status: ClientRecord['status']) {
+  return status === 'legal_entity' ? 'Юр лицо' : 'Физ лицо';
 }
 
 export function ClientsDataTable({
@@ -105,8 +111,8 @@ export function ClientsDataTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>First name</TableHead>
-          <TableHead>Last name</TableHead>
+          <TableHead>Name</TableHead>
+          {visibleColumns.status ? <TableHead>Status</TableHead> : null}
           {visibleColumns.email ? <TableHead>Email</TableHead> : null}
           {visibleColumns.phone_number ? <TableHead>Phone</TableHead> : null}
           {visibleColumns.company ? <TableHead>Company</TableHead> : null}
@@ -119,9 +125,13 @@ export function ClientsDataTable({
         {clients.map((client) => (
           <TableRow key={client.id}>
             <TableCell className="font-medium text-foreground">
-              {client.first_name || '—'}
+              {client.name || '—'}
             </TableCell>
-            <TableCell>{client.last_name || '—'}</TableCell>
+            {visibleColumns.status ? (
+              <TableCell>
+                <Badge variant="secondary">{formatClientStatus(client.status)}</Badge>
+              </TableCell>
+            ) : null}
             {visibleColumns.email ? (
               <TableCell>{client.email || '—'}</TableCell>
             ) : null}
@@ -141,7 +151,7 @@ export function ClientsDataTable({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    aria-label={`Actions for ${client.first_name || client.email || client.id}`}
+                    aria-label={`Actions for ${client.name || client.email || client.id}`}
                     className="h-8 w-8 rounded-full p-0"
                     type="button"
                     variant="ghost"

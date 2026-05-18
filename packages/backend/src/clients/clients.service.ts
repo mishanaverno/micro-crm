@@ -22,9 +22,12 @@ export class ClientsService {
     });
     const createdClient = await this.clientsRepository.save(client);
     await this.eventsService.createEvent(EventType.CLIENT_CREATED, {
-        user_id: createdClient.user_id,
+      user_id: createdClient.user_id,
+      client_id: createdClient.id,
+      getPayload: () => ({
         client_id: createdClient.id,
-        getPayload: () => { return {...createClientDto}}
+        ...createClientDto,
+      }),
     });
     return createdClient;
   }

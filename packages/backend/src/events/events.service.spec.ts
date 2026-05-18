@@ -31,11 +31,11 @@ describe('EventsService', () => {
       client_id: 'client-1',
       getPayload: () => ({
         client_id: 'client-1',
-        first_name: 'Jane',
-        last_name: 'Smith',
+        name: 'Jane Smith',
         email: 'jane@example.com',
         phone_number: '+1234567890',
         company: 'Acme Corp',
+        status: 'legal_entity',
       }),
     };
     const event = { id: 1 } as Event;
@@ -51,11 +51,11 @@ describe('EventsService', () => {
       type: EventType.CLIENT_CREATED,
       payload: {
         client_id: 'client-1',
-        first_name: 'Jane',
-        last_name: 'Smith',
+        name: 'Jane Smith',
         email: 'jane@example.com',
         phone_number: '+1234567890',
         company: 'Acme Corp',
+        status: 'legal_entity',
       },
     });
   });
