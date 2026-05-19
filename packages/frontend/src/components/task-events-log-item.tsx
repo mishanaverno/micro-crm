@@ -44,7 +44,7 @@ export function TaskEventsLogItem({
         ? `: Order #${event.payload.order_id}` 
         : ''
       }
-      type="task"
+      type={event.type}
       badge={event.payload.status}
       specificActions={specificActions}
     >

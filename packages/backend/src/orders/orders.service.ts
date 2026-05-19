@@ -119,6 +119,14 @@ export class OrdersService {
       throw new NotFoundException('Order not found');
     }
 
+    const client = await this.ensureClientOwnership(order.client_id, userId);
+
+    await this.eventsService.createEvent(
+      EventType.ORDER_DELETED,
+      order,
+      this.createEventSnapshot(client, order),
+      order.id,
+    );
     await this.ordersRepository.softDelete({ id, user_id: userId });
     return order;
   }

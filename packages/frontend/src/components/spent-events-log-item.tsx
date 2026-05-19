@@ -36,9 +36,9 @@ export function SpentEventsLogItem({
       commonActions={commonActions}
       event={event}
       compactTitle={`Spent: Order #${event.payload.order_id}`}
-      type="spent"
+      type={event.type}
       specificActions={specificActions}
-      title={`Spent recorded: ${formatValue(event.payload.value)}`}
+      title={`Spent ${event.type === 'spent_updated' ? 'updated' : event.type === 'spent_deleted' ? 'deleted' : 'recorded'}: ${formatValue(event.payload.value)}`}
     >
       <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription>
     </AbstractEventsLogItem>

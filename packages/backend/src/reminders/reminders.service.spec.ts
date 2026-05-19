@@ -94,7 +94,7 @@ describe('RemindersService', () => {
       timestamp: new Date(dto.timestamp),
     });
     expect(eventsService.createEvent).toHaveBeenCalledWith(
-      EventType.REMINDER,
+      EventType.REMINDER_CREATED,
       createdReminder,
       {
         client_name: 'Client One',
@@ -172,10 +172,8 @@ describe('RemindersService', () => {
       ...dto,
       timestamp: new Date('2026-05-21T09:00:00.000Z'),
     });
-    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
-      EventType.REMINDER,
-      'user-1',
-      mergedReminder.id,
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.REMINDER_UPDATED,
       mergedReminder,
       {
         client_name: 'Client One',
@@ -184,6 +182,7 @@ describe('RemindersService', () => {
         order_title: null,
         order_status: null,
       },
+      mergedReminder.id,
     );
   });
 

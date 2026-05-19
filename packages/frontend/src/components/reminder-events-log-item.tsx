@@ -40,7 +40,7 @@ export function ReminderEventsLogItem({
       commonActions={commonActions}
       event={event}
       compactTitle={describeCompactReminderTitle(event)}
-      type="reminder"
+      type={event.type}
       specificActions={specificActions}
       title={describeReminderTitle(event)}
     >

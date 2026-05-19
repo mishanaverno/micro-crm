@@ -95,7 +95,7 @@ describe('TasksService', () => {
       deadline: new Date(dto.deadline!),
     });
     expect(eventsService.createEvent).toHaveBeenCalledWith(
-      EventType.TASK,
+      EventType.TASK_CREATED,
       createdTask,
       {
         content: createdTask.content,
@@ -178,10 +178,8 @@ describe('TasksService', () => {
       ...dto,
       deadline: new Date(dto.deadline!),
     });
-    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
-      EventType.TASK,
-      'user-1',
-      mergedTask.id,
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.TASK_UPDATED,
       mergedTask,
       {
         content: mergedTask.content,
@@ -192,6 +190,7 @@ describe('TasksService', () => {
         order_title: null,
         order_status: null,
       },
+      mergedTask.id,
     );
   });
 

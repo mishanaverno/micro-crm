@@ -99,7 +99,7 @@ describe('SpentsService', () => {
       value: '1500.00',
     });
     expect(eventsService.createEvent).toHaveBeenCalledWith(
-      EventType.SPENT,
+      EventType.SPENT_CREATED,
       createdSpent,
       {
         client_name: 'Client One',
@@ -166,10 +166,8 @@ describe('SpentsService', () => {
     expect(repository.merge).toHaveBeenCalledWith(existingSpent, {
       value: '500.00',
     });
-    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
-      EventType.SPENT,
-      'user-1',
-      mergedSpent.id,
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.SPENT_UPDATED,
       mergedSpent,
       {
         client_name: 'Client One',
@@ -178,12 +176,17 @@ describe('SpentsService', () => {
         order_title: null,
         order_status: null,
       },
+      mergedSpent.id,
     );
   });
 
   it('soft deletes a spent record when it exists', async () => {
-    const spent = { id: 1, user_id: 'user-1' } as Spent;
+    const spent = { id: 1, user_id: 'user-1', client_id: 'client-1', order_id: 2001 } as Spent;
     repository.findOneBy.mockResolvedValue(spent);
+    ordersService.findOneOwnedByUser.mockResolvedValue({
+      id: 2001,
+      client_id: 'client-1',
+    } as Order);
     repository.softDelete.mockResolvedValue({ affected: 1 });
 
     await expect(service.remove(1, 'user-1')).resolves.toEqual(spent);

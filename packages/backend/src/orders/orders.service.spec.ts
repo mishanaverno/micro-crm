@@ -96,6 +96,8 @@ describe('OrdersService', () => {
         client_name: 'Client One',
         client_status: 'individual',
         client_company: null,
+        order_title: null,
+        order_status: OrderStatus.CREATED,
       },
     );
   });
@@ -174,6 +176,8 @@ describe('OrdersService', () => {
         client_name: 'Client One',
         client_status: 'individual',
         client_company: null,
+        order_title: null,
+        order_status: OrderStatus.CREATED,
         changed_fields: [
           {
             field: 'price',
@@ -215,6 +219,8 @@ describe('OrdersService', () => {
         client_name: 'Client One',
         client_status: 'individual',
         client_company: null,
+        order_title: 'New title',
+        order_status: OrderStatus.DONE,
         changed_fields: [
           {
             field: 'title',
@@ -256,6 +262,8 @@ describe('OrdersService', () => {
         client_name: 'Client One',
         client_status: 'individual',
         client_company: null,
+        order_title: 'Initial title',
+        order_status: OrderStatus.DONE,
         changed_fields: [
           {
             field: 'status',
@@ -292,6 +300,8 @@ describe('OrdersService', () => {
         client_name: 'Client One',
         client_status: 'individual',
         client_company: null,
+        order_title: 'Initial title',
+        order_status: OrderStatus.INPROGRESS,
         changed_fields: [
           {
             field: 'status',

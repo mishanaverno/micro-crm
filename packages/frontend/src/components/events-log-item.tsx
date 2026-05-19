@@ -31,12 +31,20 @@ function EventsLogItemComponent({
 }: EventsLogItemProps) {
   switch (event.type) {
     case 'client_created':
+    case 'client_updated':
+    case 'client_deleted':
       return <ClientCreatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} />;
-    case 'note':
+    case 'note_created':
+    case 'note_updated':
+    case 'note_deleted':
       return <NoteEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'task':
+    case 'task_created':
+    case 'task_updated':
+    case 'task_deleted':
       return <TaskEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'reminder':
+    case 'reminder_created':
+    case 'reminder_updated':
+    case 'reminder_deleted':
       return <ReminderEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     case 'order_created':
       return <OrderCreatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
@@ -46,9 +54,15 @@ function EventsLogItemComponent({
       return <OrderCompleteEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     case 'order_reopened':
       return <OrderReopenedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'paid':
+    case 'order_deleted':
+      return <OrderUpdatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
+    case 'paid_created':
+    case 'paid_updated':
+    case 'paid_deleted':
       return <PaidEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'spent':
+    case 'spent_created':
+    case 'spent_updated':
+    case 'spent_deleted':
       return <SpentEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     default:
       return null;

@@ -1,11 +1,11 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventsLogAction } from './events-log-actions';
 import { LogItemDescription } from '../shared/ui/log-item';
-import { OrderChangedField, OrderUpdatedEventRecord } from '../shared/types/event';
+import { OrderChangedField, OrderDeletedEventRecord, OrderUpdatedEventRecord } from '../shared/types/event';
 import { OrderStatus } from '@/shared/types/order';
 
 interface OrderUpdatedEventsLogItemProps {
-  event: OrderUpdatedEventRecord;
+  event: OrderUpdatedEventRecord | OrderDeletedEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
   specificActions?: EventsLogAction[];
@@ -42,7 +42,8 @@ export function OrderUpdatedEventsLogItem({
   cardBorderClassName,
   compact = false,
 }: OrderUpdatedEventsLogItemProps) {
-  const changedFields = event.payload.changed_fields ?? [];
+  const changedFields: OrderChangedField[] =
+    'changed_fields' in event.payload ? event.payload.changed_fields : [];
 
   return (
     <AbstractEventsLogItem
@@ -65,7 +66,7 @@ export function OrderUpdatedEventsLogItem({
       //   )
       // }
       compactTitle={`: #${event.payload.order_id}`}
-      type="order_updated"
+      type={event.type}
       specificActions={specificActions}
       title={`: #${event.payload.order_id} - ${event.payload.title?.trim()}`}
       badge={event.payload.status as OrderStatus}

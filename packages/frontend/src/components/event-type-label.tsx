@@ -15,17 +15,49 @@ export function EventTypelabel({ type, className }: EventTypeLabelProps) {
       return (
         <span className={labelClassName(className)}>Client created</span>
       );
-    case 'note':
+    case 'client_updated':
       return (
-       <span className={labelClassName(className)}>Note</span>
+        <span className={labelClassName(className)}>Client updated</span>
       );
-    case 'task':
+    case 'client_deleted':
       return (
-        <span className={labelClassName(className)}>Task</span>
+        <span className={labelClassName(className)}>Client deleted</span>
       );
-    case 'reminder':
+    case 'note_created':
       return (
-        <span className={labelClassName(className)}>Reminder</span>
+       <span className={labelClassName(className)}>Note created</span>
+      );
+    case 'note_updated':
+      return (
+       <span className={labelClassName(className)}>Note updated</span>
+      );
+    case 'note_deleted':
+      return (
+       <span className={labelClassName(className)}>Note deleted</span>
+      );
+    case 'task_created':
+      return (
+        <span className={labelClassName(className)}>Task created</span>
+      );
+    case 'task_updated':
+      return (
+        <span className={labelClassName(className)}>Task updated</span>
+      );
+    case 'task_deleted':
+      return (
+        <span className={labelClassName(className)}>Task deleted</span>
+      );
+    case 'reminder_created':
+      return (
+        <span className={labelClassName(className)}>Reminder created</span>
+      );
+    case 'reminder_updated':
+      return (
+        <span className={labelClassName(className)}>Reminder updated</span>
+      );
+    case 'reminder_deleted':
+      return (
+        <span className={labelClassName(className)}>Reminder deleted</span>
       );
     case 'order_created':
       return (
@@ -35,6 +67,10 @@ export function EventTypelabel({ type, className }: EventTypeLabelProps) {
       return (
         <span className={labelClassName(className)}>Order updated</span>
       );
+    case 'order_deleted':
+      return (
+        <span className={labelClassName(className)}>Order deleted</span>
+      );
     case 'order_complete':
       return (
         <span className={labelClassName(className)}>Order complete</span>
@@ -43,13 +79,29 @@ export function EventTypelabel({ type, className }: EventTypeLabelProps) {
       return (
         <span className={labelClassName(className)}>Order reopened</span>
       );
-    case 'paid':
+    case 'paid_created':
       return (
-        <span className={labelClassName(className)}>Paid</span>
+        <span className={labelClassName(className)}>Paid created</span>
       );
-    case 'spent':
+    case 'paid_updated':
       return (
-        <span className={labelClassName(className)}>Spent</span>
+        <span className={labelClassName(className)}>Paid updated</span>
+      );
+    case 'paid_deleted':
+      return (
+        <span className={labelClassName(className)}>Paid deleted</span>
+      );
+    case 'spent_created':
+      return (
+        <span className={labelClassName(className)}>Spent created</span>
+      );
+    case 'spent_updated':
+      return (
+        <span className={labelClassName(className)}>Spent updated</span>
+      );
+    case 'spent_deleted':
+      return (
+        <span className={labelClassName(className)}>Spent deleted</span>
       );
   }
 }

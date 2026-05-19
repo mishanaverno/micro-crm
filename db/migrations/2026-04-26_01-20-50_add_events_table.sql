@@ -15,31 +15,57 @@ BEGIN
       AND n.nspname = 'public'
   ) THEN
     CREATE TYPE public.event_type AS ENUM (
-      'note',
-      'task',
-      'reminder',
+      'note_created',
+      'note_updated',
+      'note_deleted',
+      'task_created',
+      'task_updated',
+      'task_deleted',
+      'reminder_created',
+      'reminder_updated',
+      'reminder_deleted',
       'client_created',
+      'client_updated',
+      'client_deleted',
       'order_created',
       'order_updated',
+      'order_deleted',
       'order_complete',
       'order_reopened',
-      'paid',
-      'spent'
+      'paid_created',
+      'paid_updated',
+      'paid_deleted',
+      'spent_created',
+      'spent_updated',
+      'spent_deleted'
     );
   END IF;
 END
 $$;
 
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'note';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'task';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'reminder';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'note_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'note_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'note_deleted';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'task_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'task_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'task_deleted';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'reminder_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'reminder_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'reminder_deleted';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'client_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'client_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'client_deleted';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_created';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_deleted';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_complete';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_reopened';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid_deleted';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent_created';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent_updated';
+ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent_deleted';
 
 create table if not exists
   "public"."events" (

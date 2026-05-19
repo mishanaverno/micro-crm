@@ -23,8 +23,15 @@ function describeCompactNoteTitle(event: NoteEventRecord) {
 }
 
 function describeNoteTitle(event: NoteEventRecord) {
+  const action =
+    event.type === 'note_updated'
+      ? 'updated'
+      : event.type === 'note_deleted'
+        ? 'deleted'
+        : 'created';
+
   return event.payload.order_id != null
-    ? `created for order #${event.payload.order_id}`
+    ? `${action} for order #${event.payload.order_id}`
     : '';
 }
 
@@ -45,7 +52,7 @@ export function NoteEventsLogItem({
       event={event}
       title={describeNoteTitle(event)}
       compactTitle={describeCompactNoteTitle(event)}
-      type="note"
+      type={event.type}
       specificActions={specificActions}
     >
       <LogItemDescription>{describeNoteEvent(event)}</LogItemDescription>

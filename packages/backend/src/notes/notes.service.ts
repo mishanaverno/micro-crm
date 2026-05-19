@@ -42,7 +42,7 @@ export class NotesService {
 
     const createdNote = await this.notesRepository.save(note);
     await this.eventsService.createEvent(
-      EventType.NOTE,
+      EventType.NOTE_CREATED,
       createdNote,
       this.createEventSnapshot(client, order),
       createdNote.id,
@@ -84,12 +84,11 @@ export class NotesService {
 
     const updatedNote = this.notesRepository.merge(note, updateNoteDto);
     const savedNote = await this.notesRepository.save(updatedNote);
-    await this.eventsService.updateEventPayload(
-      EventType.NOTE,
-      userId,
-      savedNote.id,
+    await this.eventsService.createEvent(
+      EventType.NOTE_UPDATED,
       savedNote,
       this.createEventSnapshot(client, order),
+      savedNote.id,
     );
     return savedNote;
   }
@@ -101,6 +100,15 @@ export class NotesService {
       throw new NotFoundException('Note not found');
     }
 
+    const client = await this.ensureClientOwnership(note.client_id, userId);
+    const order = await this.ensureOrderOwnership(note.order_id, userId, note.client_id);
+
+    await this.eventsService.createEvent(
+      EventType.NOTE_DELETED,
+      note,
+      this.createEventSnapshot(client, order),
+      note.id,
+    );
     await this.notesRepository.delete({ id, user_id: userId });
     return note;
   }

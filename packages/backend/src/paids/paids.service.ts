@@ -43,7 +43,7 @@ export class PaidsService {
 
     const createdPaid = await this.paidsRepository.save(paid);
     await this.eventsService.createEvent(
-      EventType.PAID,
+      EventType.PAID_CREATED,
       createdPaid,
       this.createEventSnapshot(client, order),
       createdPaid.id,
@@ -93,12 +93,11 @@ export class PaidsService {
 
     const updatedPaid = this.paidsRepository.merge(paid, sanitizedPayload);
     const savedPaid = await this.paidsRepository.save(updatedPaid);
-    await this.eventsService.updateEventPayload(
-      EventType.PAID,
-      userId,
-      savedPaid.id,
+    await this.eventsService.createEvent(
+      EventType.PAID_UPDATED,
       savedPaid,
       this.createEventSnapshot(client, order),
+      savedPaid.id,
     );
     return savedPaid;
   }
@@ -110,6 +109,15 @@ export class PaidsService {
       throw new NotFoundException('Paid not found');
     }
 
+    const client = await this.ensureClientOwnership(paid.client_id, userId);
+    const order = await this.ensureOrderOwnership(paid.order_id, userId, paid.client_id);
+
+    await this.eventsService.createEvent(
+      EventType.PAID_DELETED,
+      paid,
+      this.createEventSnapshot(client, order),
+      paid.id,
+    );
     await this.paidsRepository.softDelete({ id, user_id: userId });
     return paid;
   }

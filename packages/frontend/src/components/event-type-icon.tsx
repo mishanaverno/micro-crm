@@ -12,6 +12,8 @@ function iconClassName(className?: string) {
 export function EventTypeIcon({ type, className }: EventTypeIconProps) {
   switch (type) {
     case 'client_created':
+    case 'client_updated':
+    case 'client_deleted':
       return (
         <svg
           aria-hidden="true"
@@ -41,7 +43,9 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
           />
         </svg>
       );
-    case 'note':
+    case 'note_created':
+    case 'note_updated':
+    case 'note_deleted':
       return (
         <svg
           aria-hidden="true"
@@ -69,7 +73,9 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
           />
         </svg>
       );
-    case 'task':
+    case 'task_created':
+    case 'task_updated':
+    case 'task_deleted':
       return (
         <svg
           aria-hidden="true"
@@ -92,7 +98,9 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
           />
         </svg>
       );
-    case 'reminder':
+    case 'reminder_created':
+    case 'reminder_updated':
+    case 'reminder_deleted':
       return (
         <svg
           aria-hidden="true"
@@ -144,6 +152,7 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
         </svg>
       );
     case 'order_updated':
+    case 'order_deleted':
       return (
         <svg
           aria-hidden="true"
@@ -214,7 +223,9 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
           />
         </svg>
       );
-    case 'paid':
+    case 'paid_created':
+    case 'paid_updated':
+    case 'paid_deleted':
       return (
         <svg
           aria-hidden="true"
@@ -238,7 +249,9 @@ export function EventTypeIcon({ type, className }: EventTypeIconProps) {
           <circle cx="15.75" cy="10.125" fill="currentColor" r="0.8" />
         </svg>
       );
-    case 'spent':
+    case 'spent_created':
+    case 'spent_updated':
+    case 'spent_deleted':
       return (
         <svg
           aria-hidden="true"

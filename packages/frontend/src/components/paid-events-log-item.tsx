@@ -36,9 +36,9 @@ export function PaidEventsLogItem({
       commonActions={commonActions}
       event={event}
       compactTitle={`Paid: Order #${event.payload.order_id}`}
-      type="paid"
+      type={event.type}
       specificActions={specificActions}
-      title={`Paid recorded: ${formatValue(event.payload.value)}`}
+      title={`Paid ${event.type === 'paid_updated' ? 'updated' : event.type === 'paid_deleted' ? 'deleted' : 'recorded'}: ${formatValue(event.payload.value)}`}
     >
       <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription>
     </AbstractEventsLogItem>

@@ -75,15 +75,13 @@ describe('EventsService', () => {
     repository.create.mockReturnValue(event);
     repository.save.mockResolvedValue(event);
 
-    await expect(service.createEvent(EventType.NOTE, instance, undefined, 1)).resolves.toEqual(
-      event,
-    );
+    await expect(service.createEvent(EventType.NOTE_CREATED, instance, undefined, 1)).resolves.toEqual(event);
     expect(repository.create).toHaveBeenCalledWith({
       original_id: 1,
       user_id: 'user-1',
       client_id: 'client-1',
       order_id: null,
-      type: EventType.NOTE,
+      type: EventType.NOTE_CREATED,
       payload: {
         note_id: 1,
         content: 'Important note',
@@ -269,7 +267,7 @@ describe('EventsService', () => {
     repository.create.mockReturnValue(event);
     repository.save.mockResolvedValue(event);
 
-    await expect(service.createEvent(EventType.PAID, instance, undefined, 1)).resolves.toEqual(
+    await expect(service.createEvent(EventType.PAID_CREATED, instance, undefined, 1)).resolves.toEqual(
       event,
     );
     expect(repository.create).toHaveBeenCalledWith({
@@ -277,7 +275,7 @@ describe('EventsService', () => {
       user_id: 'user-1',
       client_id: 'client-1',
       order_id: 2001,
-      type: EventType.PAID,
+      type: EventType.PAID_CREATED,
       payload: {
         paid_id: 1,
         order_id: 2001,
@@ -299,7 +297,7 @@ describe('EventsService', () => {
     repository.create.mockReturnValue(event);
     repository.save.mockResolvedValue(event);
 
-    await expect(service.createEvent(EventType.TASK, instance, undefined, 77)).resolves.toEqual(
+    await expect(service.createEvent(EventType.TASK_CREATED, instance, undefined, 77)).resolves.toEqual(
       event,
     );
     expect(repository.create).toHaveBeenCalledWith({
@@ -307,7 +305,7 @@ describe('EventsService', () => {
       user_id: 'user-1',
       client_id: 'client-1',
       order_id: null,
-      type: EventType.TASK,
+      type: EventType.TASK_CREATED,
       payload: {
         client_id: 'client-1',
       },
@@ -337,7 +335,7 @@ describe('EventsService', () => {
       user_id: 'user-1',
       client_id: 'client-1',
       order_id: null,
-      type: EventType.NOTE,
+      type: EventType.NOTE_CREATED,
       original_id: 5,
       payload: {
         note_id: 5,
@@ -365,7 +363,7 @@ describe('EventsService', () => {
     } as Event);
 
     await expect(
-      service.updateEventPayload(EventType.NOTE, 'user-1', 5, instance),
+      service.updateEventPayload(EventType.NOTE_CREATED, 'user-1', 5, instance),
     ).resolves.toEqual({
       ...event,
       client_id: 'client-2',
@@ -377,7 +375,7 @@ describe('EventsService', () => {
     });
     expect(repository.findOneBy).toHaveBeenCalledWith({
       user_id: 'user-1',
-      type: EventType.NOTE,
+      type: EventType.NOTE_CREATED,
       original_id: 5,
     });
   });
@@ -387,7 +385,7 @@ describe('EventsService', () => {
 
     await expect(
       service.updateEventPayload(
-        EventType.PAID,
+        EventType.PAID_CREATED,
         'user-1',
         99,
         {

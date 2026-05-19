@@ -43,7 +43,7 @@ export class SpentsService {
 
     const createdSpent = await this.spentsRepository.save(spent);
     await this.eventsService.createEvent(
-      EventType.SPENT,
+      EventType.SPENT_CREATED,
       createdSpent,
       this.createEventSnapshot(client, order),
       createdSpent.id,
@@ -93,12 +93,11 @@ export class SpentsService {
 
     const updatedSpent = this.spentsRepository.merge(spent, sanitizedPayload);
     const savedSpent = await this.spentsRepository.save(updatedSpent);
-    await this.eventsService.updateEventPayload(
-      EventType.SPENT,
-      userId,
-      savedSpent.id,
+    await this.eventsService.createEvent(
+      EventType.SPENT_UPDATED,
       savedSpent,
       this.createEventSnapshot(client, order),
+      savedSpent.id,
     );
     return savedSpent;
   }
@@ -110,6 +109,15 @@ export class SpentsService {
       throw new NotFoundException('Spent not found');
     }
 
+    const client = await this.ensureClientOwnership(spent.client_id, userId);
+    const order = await this.ensureOrderOwnership(spent.order_id, userId, spent.client_id);
+
+    await this.eventsService.createEvent(
+      EventType.SPENT_DELETED,
+      spent,
+      this.createEventSnapshot(client, order),
+      spent.id,
+    );
     await this.spentsRepository.softDelete({ id, user_id: userId });
     return spent;
   }

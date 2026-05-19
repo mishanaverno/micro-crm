@@ -99,7 +99,7 @@ describe('PaidsService', () => {
       value: '1500.00',
     });
     expect(eventsService.createEvent).toHaveBeenCalledWith(
-      EventType.PAID,
+      EventType.PAID_CREATED,
       createdPaid,
       {
         client_name: 'Client One',
@@ -166,10 +166,8 @@ describe('PaidsService', () => {
     expect(repository.merge).toHaveBeenCalledWith(existingPaid, {
       value: '500.00',
     });
-    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
-      EventType.PAID,
-      'user-1',
-      mergedPaid.id,
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.PAID_UPDATED,
       mergedPaid,
       {
         client_name: 'Client One',
@@ -178,12 +176,17 @@ describe('PaidsService', () => {
         order_title: null,
         order_status: null,
       },
+      mergedPaid.id,
     );
   });
 
   it('soft deletes a paid record when it exists', async () => {
-    const paid = { id: 1, user_id: 'user-1' } as Paid;
+    const paid = { id: 1, user_id: 'user-1', client_id: 'client-1', order_id: 2001 } as Paid;
     repository.findOneBy.mockResolvedValue(paid);
+    ordersService.findOneOwnedByUser.mockResolvedValue({
+      id: 2001,
+      client_id: 'client-1',
+    } as Order);
     repository.softDelete.mockResolvedValue({ affected: 1 });
 
     await expect(service.remove(1, 'user-1')).resolves.toEqual(paid);

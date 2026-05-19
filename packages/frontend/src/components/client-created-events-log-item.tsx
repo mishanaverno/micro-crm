@@ -1,9 +1,9 @@
 import { AbstractEventsLogItem } from './abstract-events-log-item';
 import { EventsLogAction } from './events-log-actions';
-import { ClientCreatedEventRecord } from '../shared/types/event';
+import { ClientEventRecord } from '../shared/types/event';
 
 interface ClientCreatedEventsLogItemProps {
-  event: ClientCreatedEventRecord;
+  event: ClientEventRecord;
   clientLabel: string;
   commonActions?: EventsLogAction[];
   cardBorderClassName?: string;
@@ -11,11 +11,11 @@ interface ClientCreatedEventsLogItemProps {
 }
 
 
-function describeClientCreatedTitle(event: ClientCreatedEventRecord) {
+function describeClientCreatedTitle(event: ClientEventRecord) {
   return event.payload.name || 'Client';
 }
 
-function formatClientStatus(status?: ClientCreatedEventRecord['payload']['status']) {
+function formatClientStatus(status?: ClientEventRecord['payload']['status']) {
   if (status === 'legal_entity') {
     return 'Юр лицо';
   }
@@ -41,7 +41,7 @@ export function ClientCreatedEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      type="client_created"
+      type={event.type}
       specificActions={[]}
       title={`: ${describeClientCreatedTitle(event)}`}
     >

@@ -47,7 +47,7 @@ export class RemindersService {
 
     const createdReminder = await this.remindersRepository.save(reminder);
     await this.eventsService.createEvent(
-      EventType.REMINDER,
+      EventType.REMINDER_CREATED,
       createdReminder,
       this.createEventSnapshot(client, order),
       createdReminder.id,
@@ -104,12 +104,11 @@ export class RemindersService {
 
     const updatedReminder = this.remindersRepository.merge(reminder, sanitizedPayload);
     const savedReminder = await this.remindersRepository.save(updatedReminder);
-    await this.eventsService.updateEventPayload(
-      EventType.REMINDER,
-      userId,
-      savedReminder.id,
+    await this.eventsService.createEvent(
+      EventType.REMINDER_UPDATED,
       savedReminder,
       this.createEventSnapshot(client, order),
+      savedReminder.id,
     );
     return savedReminder;
   }
@@ -121,6 +120,15 @@ export class RemindersService {
       throw new NotFoundException('Reminder not found');
     }
 
+    const client = await this.ensureClientOwnership(reminder.client_id, userId);
+    const order = await this.ensureOrderOwnership(reminder.order_id, userId, reminder.client_id);
+
+    await this.eventsService.createEvent(
+      EventType.REMINDER_DELETED,
+      reminder,
+      this.createEventSnapshot(client, order),
+      reminder.id,
+    );
     await this.remindersRepository.delete({ id, user_id: userId });
     return reminder;
   }

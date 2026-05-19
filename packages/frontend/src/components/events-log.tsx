@@ -95,6 +95,50 @@ const FILTERABLE_EVENT_TYPE_LABELS: Record<FilterableEventType, string> = {
   spent: 'Spent',
 };
 
+function resolveFilterableEventType(event: EventRecord): FilterableEventType | null {
+  if (
+    event.type === 'note_created' ||
+    event.type === 'note_updated' ||
+    event.type === 'note_deleted'
+  ) {
+    return 'note';
+  }
+
+  if (
+    event.type === 'task_created' ||
+    event.type === 'task_updated' ||
+    event.type === 'task_deleted'
+  ) {
+    return 'task';
+  }
+
+  if (
+    event.type === 'reminder_created' ||
+    event.type === 'reminder_updated' ||
+    event.type === 'reminder_deleted'
+  ) {
+    return 'reminder';
+  }
+
+  if (
+    event.type === 'paid_created' ||
+    event.type === 'paid_updated' ||
+    event.type === 'paid_deleted'
+  ) {
+    return 'paid';
+  }
+
+  if (
+    event.type === 'spent_created' ||
+    event.type === 'spent_updated' ||
+    event.type === 'spent_deleted'
+  ) {
+    return 'spent';
+  }
+
+  return null;
+}
+
 interface EventLogClientOption {
   id: string;
   label: string;
@@ -115,14 +159,25 @@ function resolveOrderId(event: EventRecord) {
   switch (event.type) {
     case 'order_created':
     case 'order_updated':
+    case 'order_deleted':
     case 'order_complete':
     case 'order_reopened':
-    case 'paid':
-    case 'spent':
-    case 'task':
-    case 'reminder':
+    case 'paid_created':
+    case 'paid_updated':
+    case 'paid_deleted':
+    case 'spent_created':
+    case 'spent_updated':
+    case 'spent_deleted':
+    case 'task_created':
+    case 'task_updated':
+    case 'task_deleted':
+    case 'reminder_created':
+    case 'reminder_updated':
+    case 'reminder_deleted':
       return event.payload.order_id;
-    case 'note':
+    case 'note_created':
+    case 'note_updated':
+    case 'note_deleted':
       return event.payload.order_id ?? null;
     default:
       return null;
@@ -213,6 +268,7 @@ export function EventsLog() {
         event.payload.order_title ??
         (event.type === 'order_created' ||
         event.type === 'order_updated' ||
+        event.type === 'order_deleted' ||
         event.type === 'order_complete' ||
         event.type === 'order_reopened'
           ? event.payload.title
@@ -227,6 +283,7 @@ export function EventsLog() {
           event.payload.order_status ??
           (event.type === 'order_created' ||
           event.type === 'order_updated' ||
+          event.type === 'order_deleted' ||
           event.type === 'order_complete' ||
           event.type === 'order_reopened'
             ? event.payload.status
@@ -266,10 +323,9 @@ export function EventsLog() {
           return false;
         }
 
-        if (
-          FILTERABLE_EVENT_TYPES.includes(event.type as FilterableEventType) &&
-          !selectedEventTypesSet.has(event.type)
-        ) {
+        const eventFilterType = resolveFilterableEventType(event);
+
+        if (eventFilterType && !selectedEventTypesSet.has(eventFilterType)) {
           return false;
         }
 
@@ -544,7 +600,10 @@ export function EventsLog() {
             }
           }
 
-          if (event.type === 'task' && event.payload.status === 'pending') {
+          if (
+            (event.type === 'task_created' || event.type === 'task_updated') &&
+            event.payload.status === 'pending'
+          ) {
             actions.push({
               id: `complete-task-${event.id}`,
               label: 'Complete',
@@ -775,7 +834,7 @@ export function EventsLog() {
   }
 
   async function completeTask(event: EventRecord) {
-    if (event.type !== 'task') {
+    if (event.type !== 'task_created' && event.type !== 'task_updated') {
       return;
     }
 

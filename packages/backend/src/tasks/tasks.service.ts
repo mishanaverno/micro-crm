@@ -44,7 +44,7 @@ export class TasksService {
 
     const createdTask = await this.tasksRepository.save(task);
     await this.eventsService.createEvent(
-      EventType.TASK,
+      EventType.TASK_CREATED,
       createdTask,
       {
         content: createdTask.content,
@@ -103,11 +103,16 @@ export class TasksService {
 
     const updatedTask = this.tasksRepository.merge(task, sanitizedPayload);
     const savedTask = await this.tasksRepository.save(updatedTask);
-    await this.eventsService.updateEventPayload(EventType.TASK, userId, savedTask.id, savedTask, {
-      content: savedTask.content,
-      status: savedTask.status,
-      ...this.createEventSnapshot(client, order),
-    });
+    await this.eventsService.createEvent(
+      EventType.TASK_UPDATED,
+      savedTask,
+      {
+        content: savedTask.content,
+        status: savedTask.status,
+        ...this.createEventSnapshot(client, order),
+      },
+      savedTask.id,
+    );
     return savedTask;
   }
 
@@ -118,6 +123,19 @@ export class TasksService {
       throw new NotFoundException('Task not found');
     }
 
+    const client = await this.ensureClientOwnership(task.client_id, userId);
+    const order = await this.ensureOrderOwnership(task.order_id, userId, task.client_id);
+
+    await this.eventsService.createEvent(
+      EventType.TASK_DELETED,
+      task,
+      {
+        content: task.content,
+        status: task.status,
+        ...this.createEventSnapshot(client, order),
+      },
+      task.id,
+    );
     await this.tasksRepository.delete({ id, user_id: userId });
     return task;
   }

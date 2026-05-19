@@ -1,14 +1,27 @@
 export type EventType =
-  | 'note'
-  | 'task'
-  | 'reminder'
+  | 'note_created'
+  | 'note_updated'
+  | 'note_deleted'
+  | 'task_created'
+  | 'task_updated'
+  | 'task_deleted'
+  | 'reminder_created'
+  | 'reminder_updated'
+  | 'reminder_deleted'
   | 'client_created'
+  | 'client_updated'
+  | 'client_deleted'
   | 'order_created'
   | 'order_updated'
+  | 'order_deleted'
   | 'order_complete'
   | 'order_reopened'
-  | 'paid'
-  | 'spent';
+  | 'paid_created'
+  | 'paid_updated'
+  | 'paid_deleted'
+  | 'spent_created'
+  | 'spent_updated'
+  | 'spent_deleted';
 
 export interface OrderChangedField {
   field: 'title' | 'price' | 'content' | 'status';
@@ -59,7 +72,7 @@ export interface ReminderEventPayload extends EventDisplaySnapshot {
   order_id?: number | null;
 }
 
-export interface ClientCreatedEventPayload extends EventDisplaySnapshot {
+export interface ClientEventPayload extends EventDisplaySnapshot {
   client_id: string;
   name?: string;
   email?: string;
@@ -92,18 +105,40 @@ export interface SpentEventPayload extends EventDisplaySnapshot {
   value: string | number;
 }
 
-export type NoteEventRecord = BaseEventRecord<'note', NoteEventPayload>;
-export type TaskEventRecord = BaseEventRecord<'task', TaskEventPayload>;
-export type ReminderEventRecord = BaseEventRecord<'reminder', ReminderEventPayload>;
+export type NoteCreatedEventRecord = BaseEventRecord<'note_created', NoteEventPayload>;
+export type NoteUpdatedEventRecord = BaseEventRecord<'note_updated', NoteEventPayload>;
+export type NoteDeletedEventRecord = BaseEventRecord<'note_deleted', NoteEventPayload>;
+export type NoteEventRecord =
+  | NoteCreatedEventRecord
+  | NoteUpdatedEventRecord
+  | NoteDeletedEventRecord;
+export type TaskCreatedEventRecord = BaseEventRecord<'task_created', TaskEventPayload>;
+export type TaskUpdatedEventRecord = BaseEventRecord<'task_updated', TaskEventPayload>;
+export type TaskDeletedEventRecord = BaseEventRecord<'task_deleted', TaskEventPayload>;
+export type TaskEventRecord =
+  | TaskCreatedEventRecord
+  | TaskUpdatedEventRecord
+  | TaskDeletedEventRecord;
+export type ReminderCreatedEventRecord = BaseEventRecord<'reminder_created', ReminderEventPayload>;
+export type ReminderUpdatedEventRecord = BaseEventRecord<'reminder_updated', ReminderEventPayload>;
+export type ReminderDeletedEventRecord = BaseEventRecord<'reminder_deleted', ReminderEventPayload>;
+export type ReminderEventRecord =
+  | ReminderCreatedEventRecord
+  | ReminderUpdatedEventRecord
+  | ReminderDeletedEventRecord;
 
-export type ClientCreatedEventRecord = BaseEventRecord<
-  'client_created',
-  ClientCreatedEventPayload
->;
+export type ClientCreatedEventRecord = BaseEventRecord<'client_created', ClientEventPayload>;
+export type ClientUpdatedEventRecord = BaseEventRecord<'client_updated', ClientEventPayload>;
+export type ClientDeletedEventRecord = BaseEventRecord<'client_deleted', ClientEventPayload>;
+export type ClientEventRecord =
+  | ClientCreatedEventRecord
+  | ClientUpdatedEventRecord
+  | ClientDeletedEventRecord;
 
 export type OrderCreatedEventRecord = BaseEventRecord<'order_created', OrderEventPayload>;
 
 export type OrderUpdatedEventRecord = BaseEventRecord<'order_updated', OrderUpdatedEventPayload>;
+export type OrderDeletedEventRecord = BaseEventRecord<'order_deleted', OrderEventPayload>;
 
 export type OrderCompleteEventRecord = BaseEventRecord<
   'order_complete',
@@ -115,16 +150,29 @@ export type OrderReopenedEventRecord = BaseEventRecord<
   OrderUpdatedEventPayload
 >;
 
-export type PaidEventRecord = BaseEventRecord<'paid', PaidEventPayload>;
-export type SpentEventRecord = BaseEventRecord<'spent', SpentEventPayload>;
+export type PaidCreatedEventRecord = BaseEventRecord<'paid_created', PaidEventPayload>;
+export type PaidUpdatedEventRecord = BaseEventRecord<'paid_updated', PaidEventPayload>;
+export type PaidDeletedEventRecord = BaseEventRecord<'paid_deleted', PaidEventPayload>;
+export type PaidEventRecord =
+  | PaidCreatedEventRecord
+  | PaidUpdatedEventRecord
+  | PaidDeletedEventRecord;
+export type SpentCreatedEventRecord = BaseEventRecord<'spent_created', SpentEventPayload>;
+export type SpentUpdatedEventRecord = BaseEventRecord<'spent_updated', SpentEventPayload>;
+export type SpentDeletedEventRecord = BaseEventRecord<'spent_deleted', SpentEventPayload>;
+export type SpentEventRecord =
+  | SpentCreatedEventRecord
+  | SpentUpdatedEventRecord
+  | SpentDeletedEventRecord;
 
 export type EventRecord =
   | NoteEventRecord
   | TaskEventRecord
   | ReminderEventRecord
-  | ClientCreatedEventRecord
+  | ClientEventRecord
   | OrderCreatedEventRecord
   | OrderUpdatedEventRecord
+  | OrderDeletedEventRecord
   | OrderCompleteEventRecord
   | OrderReopenedEventRecord
   | PaidEventRecord

@@ -175,10 +175,8 @@ describe('NotesService', () => {
     await expect(service.update(1, 'user-1', dto)).resolves.toEqual(mergedNote);
     expect(repository.merge).toHaveBeenCalledWith(existingNote, dto);
     expect(repository.save).toHaveBeenCalledWith(mergedNote);
-    expect(eventsService.updateEventPayload).toHaveBeenCalledWith(
-      EventType.NOTE,
-      'user-1',
-      mergedNote.id,
+    expect(eventsService.createEvent).toHaveBeenCalledWith(
+      EventType.NOTE_UPDATED,
       mergedNote,
       {
         client_name: 'Client One',
@@ -187,6 +185,7 @@ describe('NotesService', () => {
         order_title: null,
         order_status: null,
       },
+      mergedNote.id,
     );
   });
 
