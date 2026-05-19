@@ -27,6 +27,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { OrdersService } from './orders.service';
+import { hasPaginationParams, parsePaginationParams } from '../common/pagination';
 
 interface AuthenticatedRequest extends Request {
   user: JwtUserPayload;
@@ -53,7 +54,20 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get orders for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter orders by client ID' })
   @ApiResponse({ status: 200, description: 'List of orders', type: [Order] })
-  findAll(@Req() request: AuthenticatedRequest, @Query('client_id') clientId?: string) {
+  findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query('client_id') clientId?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    if (hasPaginationParams(page, pageSize)) {
+      return this.ordersService.findAllPaginated(
+        request.user.sub,
+        parsePaginationParams(page, pageSize),
+        clientId,
+      );
+    }
+
     return this.ordersService.findAll(request.user.sub, clientId);
   }
 

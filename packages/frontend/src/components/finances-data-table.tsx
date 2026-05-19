@@ -14,16 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table';
-
-export type FinanceRecord = {
-  id: string;
-  kind: 'paid' | 'spent';
-  client_id: string;
-  order_id: number;
-  value: number;
-  created_at?: string;
-  updated_at?: string;
-};
+import { FinanceRecord } from '../shared/types/finance';
 
 interface FinancesDataTableProps {
   records: FinanceRecord[];

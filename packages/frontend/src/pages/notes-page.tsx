@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { NotesDataTable } from '../components/notes-data-table';
-import { TablePagination, useTablePagination } from '../components/table-pagination';
+import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateNote } from '../features/notes/use-create-note';
 import { useDeleteNote } from '../features/notes/use-delete-note';
-import { useNotes } from '../features/notes/use-notes';
+import { usePaginatedNotes } from '../features/notes/use-paginated-notes';
 import { useUpdateNote } from '../features/notes/use-update-note';
 import { useOrders } from '../features/orders/use-orders';
 import { Button } from '../shared/ui/button';
@@ -60,6 +60,8 @@ export function NotesPage() {
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<NoteRecord | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<NoteRecord | null>(null);
+  const [notesPage, setNotesPage] = useState(1);
+  const [notesPageSize, setNotesPageSize] = useState(10);
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -85,13 +87,13 @@ export function NotesPage() {
 
   const clientsQuery = useClients();
   const ordersQuery = useOrders();
-  const notesQuery = useNotes();
+  const notesQuery = usePaginatedNotes({ page: notesPage, pageSize: notesPageSize });
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
   const mutationError = createNote.error ?? updateNote.error ?? deleteNote.error;
-  const notes = notesQuery.data ?? [];
-  const notesPagination = useTablePagination(notes);
+  const notes = notesQuery.data?.items ?? [];
+  const notesTotal = notesQuery.data?.total ?? 0;
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -99,6 +101,14 @@ export function NotesPage() {
       JSON.stringify(visibleColumns),
     );
   }, [visibleColumns]);
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(notesTotal / notesPageSize));
+
+    if (notesPage > pageCount) {
+      setNotesPage(pageCount);
+    }
+  }, [notesPage, notesPageSize, notesTotal]);
 
   const clientOptions = clientsQuery.data ?? [];
   const orderOptions = useMemo(
@@ -463,7 +473,7 @@ export function NotesPage() {
           ) : notes.length > 0 ? (
             <>
               <NotesDataTable
-                notes={notesPagination.items}
+                notes={notes}
                 onDeleteNote={openDeleteDialog}
                 onEditNote={openEditDialog}
                 resolveClientLabel={resolveClientLabel}
@@ -471,11 +481,14 @@ export function NotesPage() {
                 visibleColumns={visibleColumns}
               />
               <TablePagination
-                page={notesPagination.page}
-                pageSize={notesPagination.pageSize}
-                totalItems={notesPagination.totalItems}
-                onPageChange={notesPagination.setPage}
-                onPageSizeChange={notesPagination.setPageSize}
+                page={notesPage}
+                pageSize={notesPageSize}
+                totalItems={notesTotal}
+                onPageChange={setNotesPage}
+                onPageSizeChange={(pageSize) => {
+                  setNotesPageSize(pageSize);
+                  setNotesPage(1);
+                }}
               />
             </>
           ) : (

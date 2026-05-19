@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ClientsService } from './clients.service';
@@ -7,6 +7,7 @@ import { UpdateClientDto } from './dto/update-client.dto';
 import { Client } from './entities/client.entity';
 import { AccessTokenGuard } from '../auth/guards/access-token.guard';
 import { JwtUserPayload } from '../auth/interfaces/jwt-user-payload.interface';
+import { hasPaginationParams, parsePaginationParams } from '../common/pagination';
 
 interface AuthenticatedRequest extends Request {
   user: JwtUserPayload;
@@ -29,11 +30,24 @@ export class ClientsController {
     return this.clientsService.create(createClientDto, request.user.sub);
   }
 
+  @UseGuards(AccessTokenGuard)
+  @ApiBearerAuth()
   @Get()
   @ApiOperation({ summary: 'Get all clients' })
   @ApiResponse({ status: 200, description: 'List of clients', type: [Client] })
-  findAll() {
-    return this.clientsService.findAll();
+  findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    if (hasPaginationParams(page, pageSize)) {
+      return this.clientsService.findAllPaginated(
+        request.user.sub,
+        parsePaginationParams(page, pageSize),
+      );
+    }
+
+    return this.clientsService.findAll(request.user.sub);
   }
 
   @Get(':id')

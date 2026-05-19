@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, BarStack, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
-import { FinancesDataTable, FinanceRecord } from '../components/finances-data-table';
-import { TablePagination, useTablePagination } from '../components/table-pagination';
+import { FinancesDataTable } from '../components/finances-data-table';
+import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
+import { usePaginatedFinances } from '../features/finances/use-paginated-finances';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreatePaid } from '../features/paids/use-create-paid';
 import { useDeletePaid } from '../features/paids/use-delete-paid';
@@ -47,6 +48,7 @@ import {
 } from '../shared/ui/select';
 import { PaidRecord } from '../shared/types/paid';
 import { SpentRecord } from '../shared/types/spent';
+import { FinanceRecord } from '../shared/types/finance';
 
 const initialFormState = {
   client_id: '',
@@ -164,6 +166,8 @@ export function FinancesPage() {
   const [dialogKind, setDialogKind] = useState<FinanceFormKind>('paid');
   const [editingRecord, setEditingRecord] = useState<EditingRecord | null>(null);
   const [recordToDelete, setRecordToDelete] = useState<EditingRecord | null>(null);
+  const [recordsPage, setRecordsPage] = useState(1);
+  const [recordsPageSize, setRecordsPageSize] = useState(10);
   const [chartMode, setChartMode] = useState<FinanceChartMode>('month');
   const [selectedChartMonth, setSelectedChartMonth] = useState(getMonthKey(now));
   const [selectedChartYear, setSelectedChartYear] = useState(String(now.getFullYear()));
@@ -194,6 +198,10 @@ export function FinancesPage() {
   const ordersQuery = useOrders();
   const paidsQuery = usePaids();
   const spentsQuery = useSpents();
+  const financeRecordsQuery = usePaginatedFinances({
+    page: recordsPage,
+    pageSize: recordsPageSize,
+  });
   const createPaid = useCreatePaid();
   const updatePaid = useUpdatePaid();
   const deletePaid = useDeletePaid();
@@ -289,7 +297,16 @@ export function FinancesPage() {
       return rightTime - leftTime;
     });
   }, [paidsQuery.data, spentsQuery.data]);
-  const recordsPagination = useTablePagination(records);
+  const tableRecords = financeRecordsQuery.data?.items ?? [];
+  const recordsTotal = financeRecordsQuery.data?.total ?? 0;
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(recordsTotal / recordsPageSize));
+
+    if (recordsPage > pageCount) {
+      setRecordsPage(pageCount);
+    }
+  }, [recordsPage, recordsPageSize, recordsTotal]);
 
   const availableChartYears = useMemo(() => {
     const years = new Set([now.getFullYear()]);
@@ -554,12 +571,11 @@ export function FinancesPage() {
     closeDialog();
   }
 
-  const isLoading =
-    paidsQuery.isLoading ||
-    spentsQuery.isLoading ||
-    clientsQuery.isLoading ||
-    ordersQuery.isLoading;
-  const isError = paidsQuery.isError || spentsQuery.isError;
+  const isChartLoading = paidsQuery.isLoading || spentsQuery.isLoading;
+  const isChartError = paidsQuery.isError || spentsQuery.isError;
+  const isTableLoading =
+    financeRecordsQuery.isLoading || clientsQuery.isLoading || ordersQuery.isLoading;
+  const isTableError = financeRecordsQuery.isError;
 
   return (
     <main className="grid gap-4">
@@ -619,9 +635,9 @@ export function FinancesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isChartLoading ? (
             <p className="text-sm text-muted-foreground">Loading finance chart...</p>
-          ) : isError ? (
+          ) : isChartError ? (
             <p className="text-sm text-rose-700">Failed to load finance chart data.</p>
           ) : chartData.length > 0 ? (
             <ChartContainer className="h-[320px] w-full" config={financeChartConfig}>
@@ -909,26 +925,29 @@ export function FinancesPage() {
             </p>
           ) : null}
 
-          {isLoading ? (
+          {isTableLoading ? (
             <p className="text-sm text-muted-foreground">Loading finance records...</p>
-          ) : isError ? (
+          ) : isTableError ? (
             <p className="text-sm text-rose-700">Failed to load finance records from the backend.</p>
-          ) : records.length > 0 ? (
+          ) : tableRecords.length > 0 ? (
             <>
               <FinancesDataTable
                 onDeleteRecord={openDeleteDialog}
                 onEditRecord={openEditDialog}
-                records={recordsPagination.items}
+                records={tableRecords}
                 resolveClientLabel={resolveClientLabel}
                 resolveOrderLabel={resolveOrderLabel}
                 visibleColumns={visibleColumns}
               />
               <TablePagination
-                page={recordsPagination.page}
-                pageSize={recordsPagination.pageSize}
-                totalItems={recordsPagination.totalItems}
-                onPageChange={recordsPagination.setPage}
-                onPageSizeChange={recordsPagination.setPageSize}
+                page={recordsPage}
+                pageSize={recordsPageSize}
+                totalItems={recordsTotal}
+                onPageChange={setRecordsPage}
+                onPageSizeChange={(pageSize) => {
+                  setRecordsPageSize(pageSize);
+                  setRecordsPage(1);
+                }}
               />
             </>
           ) : (

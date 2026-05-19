@@ -1,5 +1,7 @@
 import { httpRequest } from './http';
 import { OrderDraft, OrderRecord, UpdateOrderDraft } from '../types/order';
+import { PaginatedResponse, PaginationParams } from '../types/pagination';
+import { toPaginationQuery } from './pagination';
 
 interface ApiOrderRecord extends Omit<OrderRecord, 'id' | 'sync_status'> {
   id: number | string;
@@ -26,6 +28,24 @@ export async function fetchOrdersRequest(accessToken: string) {
   });
 
   return orders.map(toOrderRecord);
+}
+
+export async function fetchPaginatedOrdersRequest(
+  accessToken: string,
+  pagination: PaginationParams,
+) {
+  const response = await httpRequest<PaginatedResponse<ApiOrderRecord>>({
+    path: `/orders?${toPaginationQuery(pagination)}`,
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return {
+    ...response,
+    items: response.items.map(toOrderRecord),
+  };
 }
 
 export async function createOrderRequest(payload: OrderDraft, accessToken: string) {

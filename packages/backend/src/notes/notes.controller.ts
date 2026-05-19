@@ -27,6 +27,7 @@ import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Note } from './entities/note.entity';
 import { NotesService } from './notes.service';
+import { hasPaginationParams, parsePaginationParams } from '../common/pagination';
 
 interface AuthenticatedRequest extends Request {
   user: JwtUserPayload;
@@ -56,7 +57,17 @@ export class NotesController {
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('client_id') clientId?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
   ) {
+    if (hasPaginationParams(page, pageSize)) {
+      return this.notesService.findAllPaginated(
+        request.user.sub,
+        parsePaginationParams(page, pageSize),
+        clientId,
+      );
+    }
+
     return this.notesService.findAll(request.user.sub, clientId);
   }
 

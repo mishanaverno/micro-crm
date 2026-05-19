@@ -1,5 +1,7 @@
 import { httpRequest } from './http';
 import { TaskDraft, TaskRecord } from '../types/task';
+import { PaginatedResponse, PaginationParams } from '../types/pagination';
+import { toPaginationQuery } from './pagination';
 
 interface ApiTaskRecord extends Omit<TaskRecord, 'id' | 'sync_status'> {
   id: number | string;
@@ -26,6 +28,24 @@ export async function fetchTasksRequest(accessToken: string) {
   });
 
   return tasks.map(toTaskRecord);
+}
+
+export async function fetchPaginatedTasksRequest(
+  accessToken: string,
+  pagination: PaginationParams,
+) {
+  const response = await httpRequest<PaginatedResponse<ApiTaskRecord>>({
+    path: `/tasks?${toPaginationQuery(pagination)}`,
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return {
+    ...response,
+    items: response.items.map(toTaskRecord),
+  };
 }
 
 export async function createTaskRequest(payload: TaskDraft, accessToken: string) {

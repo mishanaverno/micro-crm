@@ -27,6 +27,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task } from './entities/task.entity';
 import { TasksService } from './tasks.service';
+import { hasPaginationParams, parsePaginationParams } from '../common/pagination';
 
 interface AuthenticatedRequest extends Request {
   user: JwtUserPayload;
@@ -51,7 +52,20 @@ export class TasksController {
   @ApiOperation({ summary: 'Get tasks for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter tasks by client ID' })
   @ApiResponse({ status: 200, description: 'List of tasks', type: [Task] })
-  findAll(@Req() request: AuthenticatedRequest, @Query('client_id') clientId?: string) {
+  findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query('client_id') clientId?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    if (hasPaginationParams(page, pageSize)) {
+      return this.tasksService.findAllPaginated(
+        request.user.sub,
+        parsePaginationParams(page, pageSize),
+        clientId,
+      );
+    }
+
     return this.tasksService.findAll(request.user.sub, clientId);
   }
 

@@ -1,5 +1,7 @@
 import { ClientDraft, ClientRecord } from '../types/client';
+import { PaginatedResponse, PaginationParams } from '../types/pagination';
 import { httpRequest } from './http';
+import { toPaginationQuery } from './pagination';
 
 interface ApiClientRecord extends Omit<ClientRecord, 'sync_status'> {
   sync_status?: ClientRecord['sync_status'];
@@ -23,6 +25,24 @@ export async function fetchClientsRequest(accessToken: string) {
   });
 
   return clients.map(toClientRecord);
+}
+
+export async function fetchPaginatedClientsRequest(
+  accessToken: string,
+  pagination: PaginationParams,
+) {
+  const response = await httpRequest<PaginatedResponse<ApiClientRecord>>({
+    path: `/clients?${toPaginationQuery(pagination)}`,
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return {
+    ...response,
+    items: response.items.map(toClientRecord),
+  };
 }
 
 export async function createClientRequest(payload: ClientDraft, accessToken: string) {

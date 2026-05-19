@@ -11,6 +11,7 @@ import { PaidsModule } from './paids/paids.module';
 import { SpentsModule } from './spents/spents.module';
 import { TasksModule } from './tasks/tasks.module';
 import { RemindersModule } from './reminders/reminders.module';
+import { FinancesModule } from './finances/finances.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RemindersModule } from './reminders/reminders.module';
     SpentsModule,
     TasksModule,
     RemindersModule,
+    FinancesModule,
   ],
   controllers: [],
   providers: [],

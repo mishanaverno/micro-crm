@@ -31,6 +31,8 @@ export function useUpdatePaid() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['paids'] });
+      await queryClient.invalidateQueries({ queryKey: ['finances'] });
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

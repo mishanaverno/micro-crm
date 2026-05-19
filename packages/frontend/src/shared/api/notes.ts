@@ -1,5 +1,7 @@
 import { httpRequest } from './http';
 import { NoteDraft, NoteRecord } from '../types/note';
+import { PaginatedResponse, PaginationParams } from '../types/pagination';
+import { toPaginationQuery } from './pagination';
 
 interface ApiNoteRecord extends Omit<NoteRecord, 'id' | 'sync_status'> {
   id: number | string;
@@ -25,6 +27,24 @@ export async function fetchNotesRequest(accessToken: string) {
   });
 
   return notes.map(toNoteRecord);
+}
+
+export async function fetchPaginatedNotesRequest(
+  accessToken: string,
+  pagination: PaginationParams,
+) {
+  const response = await httpRequest<PaginatedResponse<ApiNoteRecord>>({
+    path: `/notes?${toPaginationQuery(pagination)}`,
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return {
+    ...response,
+    items: response.items.map(toNoteRecord),
+  };
 }
 
 export async function createNoteRequest(payload: NoteDraft, accessToken: string) {

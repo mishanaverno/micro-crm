@@ -10,6 +10,12 @@ import { Note } from './entities/note.entity';
 import { EventType } from '../events/entities/event.entity';
 import { Client } from '../clients/entities/client.entity';
 import { Order } from '../orders/entities/order.entity';
+import {
+  createPaginatedResponse,
+  getPaginationSkip,
+  PaginatedResponse,
+  PaginationOptions,
+} from '../common/pagination';
 
 @Injectable()
 export class NotesService {
@@ -62,6 +68,23 @@ export class NotesService {
       where: { user_id: userId },
       order: { created_at: 'DESC' },
     });
+  }
+
+  async findAllPaginated(
+    userId: string,
+    pagination: PaginationOptions,
+    clientId?: string,
+  ): Promise<PaginatedResponse<Note>> {
+    const [items, total] = await this.notesRepository.findAndCount({
+      where: clientId
+        ? { user_id: userId, client_id: clientId }
+        : { user_id: userId },
+      order: { created_at: 'DESC' },
+      skip: getPaginationSkip(pagination),
+      take: pagination.pageSize,
+    });
+
+    return createPaginatedResponse(items, total, pagination);
   }
 
   findOne(id: number, userId: string): Promise<Note | null> {

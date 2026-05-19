@@ -8,7 +8,8 @@ import { Client, ClientStatus } from './entities/client.entity';
 type MockRepository<T> = {
   create: jest.Mock<T, [Partial<T>]>;
   save: jest.Mock<Promise<T>, [T]>;
-  find: jest.Mock<Promise<T[]>, []>;
+  find: jest.Mock<Promise<T[]>, [unknown?]>;
+  findAndCount: jest.Mock<Promise<[T[], number]>, [unknown?]>;
   findOneBy: jest.Mock<Promise<T | null>, [Partial<T>]>;
   update: jest.Mock<Promise<unknown>, [string, Partial<T>]>;
   softDelete: jest.Mock<Promise<unknown>, [Partial<T>]>;
@@ -18,6 +19,7 @@ const createRepositoryMock = <T>(): MockRepository<T> => ({
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
+  findAndCount: jest.fn(),
   findOneBy: jest.fn(),
   update: jest.fn(),
   softDelete: jest.fn(),
@@ -77,12 +79,35 @@ describe('ClientsService', () => {
     );
   });
 
-  it('returns all clients', async () => {
+  it('returns all clients for the user', async () => {
     const clients = [{ id: 'client-1' }, { id: 'client-2' }] as Client[];
     repository.find.mockResolvedValue(clients);
 
-    await expect(service.findAll()).resolves.toEqual(clients);
-    expect(repository.find).toHaveBeenCalledTimes(1);
+    await expect(service.findAll('user-1')).resolves.toEqual(clients);
+    expect(repository.find).toHaveBeenCalledWith({
+      where: { user_id: 'user-1' },
+      order: { created_at: 'DESC' },
+    });
+  });
+
+  it('returns paginated clients for the user', async () => {
+    const clients = [{ id: 'client-1' }, { id: 'client-2' }] as Client[];
+    repository.findAndCount.mockResolvedValue([clients, 12]);
+
+    await expect(
+      service.findAllPaginated('user-1', { page: 2, pageSize: 10 }),
+    ).resolves.toEqual({
+      items: clients,
+      total: 12,
+      page: 2,
+      pageSize: 10,
+    });
+    expect(repository.findAndCount).toHaveBeenCalledWith({
+      where: { user_id: 'user-1' },
+      order: { created_at: 'DESC' },
+      skip: 10,
+      take: 10,
+    });
   });
 
   it('returns one client by id', async () => {

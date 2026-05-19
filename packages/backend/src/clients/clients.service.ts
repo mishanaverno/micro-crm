@@ -6,6 +6,12 @@ import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { Client } from './entities/client.entity';
 import { EventType } from '../events/entities/event.entity';
+import {
+  createPaginatedResponse,
+  getPaginationSkip,
+  PaginatedResponse,
+  PaginationOptions,
+} from '../common/pagination';
 
 @Injectable()
 export class ClientsService {
@@ -43,8 +49,25 @@ export class ClientsService {
     return createdClient;
   }
 
-  findAll(): Promise<Client[]> {
-    return this.clientsRepository.find();
+  findAll(userId: string): Promise<Client[]> {
+    return this.clientsRepository.find({
+      where: { user_id: userId },
+      order: { created_at: 'DESC' },
+    });
+  }
+
+  async findAllPaginated(
+    userId: string,
+    pagination: PaginationOptions,
+  ): Promise<PaginatedResponse<Client>> {
+    const [items, total] = await this.clientsRepository.findAndCount({
+      where: { user_id: userId },
+      order: { created_at: 'DESC' },
+      skip: getPaginationSkip(pagination),
+      take: pagination.pageSize,
+    });
+
+    return createPaginatedResponse(items, total, pagination);
   }
 
   findOne(id: string): Promise<Client | null> {

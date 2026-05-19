@@ -10,8 +10,9 @@ import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreateTask } from '../features/tasks/use-create-task';
 import { useDeleteTask } from '../features/tasks/use-delete-task';
-import { useTasks } from '../features/tasks/use-tasks';
+import { usePaginatedTasks } from '../features/tasks/use-paginated-tasks';
 import { useUpdateTask } from '../features/tasks/use-update-task';
+import { TablePagination } from '../components/table-pagination';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
 import {
@@ -69,6 +70,8 @@ export function TasksPage() {
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskRecord | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<TaskRecord | null>(null);
+  const [tasksPage, setTasksPage] = useState(1);
+  const [tasksPageSize, setTasksPageSize] = useState(10);
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -94,11 +97,13 @@ export function TasksPage() {
 
   const clientsQuery = useClients();
   const ordersQuery = useOrders();
-  const tasksQuery = useTasks();
+  const tasksQuery = usePaginatedTasks({ page: tasksPage, pageSize: tasksPageSize });
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const mutationError = createTask.error ?? updateTask.error ?? deleteTask.error;
+  const tasks = tasksQuery.data?.items ?? [];
+  const tasksTotal = tasksQuery.data?.total ?? 0;
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -106,6 +111,14 @@ export function TasksPage() {
       JSON.stringify(visibleColumns),
     );
   }, [visibleColumns]);
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(tasksTotal / tasksPageSize));
+
+    if (tasksPage > pageCount) {
+      setTasksPage(pageCount);
+    }
+  }, [tasksPage, tasksPageSize, tasksTotal]);
 
   const clientOptions = clientsQuery.data ?? [];
   const orderOptions = useMemo(
@@ -532,15 +545,27 @@ export function TasksPage() {
             <p className="text-sm text-muted-foreground">Loading tasks...</p>
           ) : tasksQuery.isError ? (
             <p className="text-sm text-rose-700">Failed to load tasks from the backend.</p>
-          ) : tasksQuery.data && tasksQuery.data.length > 0 ? (
-            <TasksDataTable
-              onDeleteTask={openDeleteDialog}
-              onEditTask={openEditDialog}
-              resolveClientLabel={resolveClientLabel}
-              resolveOrderLabel={resolveOrderLabel}
-              tasks={tasksQuery.data}
-              visibleColumns={visibleColumns}
-            />
+          ) : tasks.length > 0 ? (
+            <>
+              <TasksDataTable
+                onDeleteTask={openDeleteDialog}
+                onEditTask={openEditDialog}
+                resolveClientLabel={resolveClientLabel}
+                resolveOrderLabel={resolveOrderLabel}
+                tasks={tasks}
+                visibleColumns={visibleColumns}
+              />
+              <TablePagination
+                page={tasksPage}
+                pageSize={tasksPageSize}
+                totalItems={tasksTotal}
+                onPageChange={setTasksPage}
+                onPageSizeChange={(pageSize) => {
+                  setTasksPageSize(pageSize);
+                  setTasksPage(1);
+                }}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">
               No tasks returned by the backend yet.

@@ -1,9 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { ClientsDataTable } from '../components/clients-data-table';
-import { TablePagination, useTablePagination } from '../components/table-pagination';
+import { TablePagination } from '../components/table-pagination';
 import { useCreateClient } from '../features/clients/use-create-client';
 import { useDeleteClient } from '../features/clients/use-delete-client';
-import { useClients } from '../features/clients/use-clients';
+import { usePaginatedClients } from '../features/clients/use-paginated-clients';
 import { useUpdateClient } from '../features/clients/use-update-client';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
@@ -61,6 +61,8 @@ export function ClientsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientRecord | null>(null);
   const [clientToDelete, setClientToDelete] = useState<ClientRecord | null>(null);
+  const [clientsPage, setClientsPage] = useState(1);
+  const [clientsPageSize, setClientsPageSize] = useState(10);
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -88,9 +90,9 @@ export function ClientsPage() {
   const createClient = useCreateClient();
   const deleteClient = useDeleteClient();
   const updateClient = useUpdateClient();
-  const clientsQuery = useClients();
-  const clients = clientsQuery.data ?? [];
-  const clientsPagination = useTablePagination(clients);
+  const clientsQuery = usePaginatedClients({ page: clientsPage, pageSize: clientsPageSize });
+  const clients = clientsQuery.data?.items ?? [];
+  const clientsTotal = clientsQuery.data?.total ?? 0;
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -98,6 +100,14 @@ export function ClientsPage() {
       JSON.stringify(visibleColumns),
     );
   }, [visibleColumns]);
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(clientsTotal / clientsPageSize));
+
+    if (clientsPage > pageCount) {
+      setClientsPage(pageCount);
+    }
+  }, [clientsPage, clientsPageSize, clientsTotal]);
 
   function toggleColumn(column: keyof VisibleColumns) {
     setVisibleColumns((current: VisibleColumns) => ({
@@ -393,17 +403,20 @@ export function ClientsPage() {
             ) : clients.length > 0 ? (
               <>
                 <ClientsDataTable
-                  clients={clientsPagination.items}
+                  clients={clients}
                   onEditClient={openEditDialog}
                   onDeleteClient={openDeleteDialog}
                   visibleColumns={visibleColumns}
                 />
                 <TablePagination
-                  page={clientsPagination.page}
-                  pageSize={clientsPagination.pageSize}
-                  totalItems={clientsPagination.totalItems}
-                  onPageChange={clientsPagination.setPage}
-                  onPageSizeChange={clientsPagination.setPageSize}
+                  page={clientsPage}
+                  pageSize={clientsPageSize}
+                  totalItems={clientsTotal}
+                  onPageChange={setClientsPage}
+                  onPageSizeChange={(pageSize) => {
+                    setClientsPageSize(pageSize);
+                    setClientsPage(1);
+                  }}
                 />
               </>
             ) : (

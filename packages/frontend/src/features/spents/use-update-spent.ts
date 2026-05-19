@@ -33,6 +33,7 @@ export function useUpdateSpent() {
       });
 
       await queryClient.invalidateQueries({ queryKey: ['spents'] });
+      await queryClient.invalidateQueries({ queryKey: ['finances'] });
       await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });

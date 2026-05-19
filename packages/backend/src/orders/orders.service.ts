@@ -8,6 +8,12 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
 import { Client } from '../clients/entities/client.entity';
+import {
+  createPaginatedResponse,
+  getPaginationSkip,
+  PaginatedResponse,
+  PaginationOptions,
+} from '../common/pagination';
 
 interface OrderFieldChange {
   field: 'title' | 'price' | 'content' | 'status';
@@ -66,6 +72,23 @@ export class OrdersService {
       where: { user_id: userId },
       order: { created_at: 'DESC' },
     });
+  }
+
+  async findAllPaginated(
+    userId: string,
+    pagination: PaginationOptions,
+    clientId?: string,
+  ): Promise<PaginatedResponse<Order>> {
+    const [items, total] = await this.ordersRepository.findAndCount({
+      where: clientId
+        ? { user_id: userId, client_id: clientId }
+        : { user_id: userId },
+      order: { created_at: 'DESC' },
+      skip: getPaginationSkip(pagination),
+      take: pagination.pageSize,
+    });
+
+    return createPaginatedResponse(items, total, pagination);
   }
 
   findOne(id: number, userId: string): Promise<Order | null> {

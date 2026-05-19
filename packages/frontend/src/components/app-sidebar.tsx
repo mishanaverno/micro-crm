@@ -16,16 +16,57 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { SidebarIcon } from '@/components/sidebar-icon';
 
 const navigation = [
-  { to: '/', label: 'dashboard', icon: '⌂' },
-  { to: '/clients', label: 'clients', icon: '◫' },
-  { to: '/notes', label: 'notes', icon: '✎' },
-  { to: '/tasks', label: 'tasks', icon: '☑' },
-  { to: '/reminders', label: 'reminders', icon: '⏰' },
-  { to: '/orders', label: 'orders', icon: '▣' },
-  { to: '/finances', label: 'finances', icon: '₽' },
-  { to: '/events-log', label: 'events log', icon: '≣' },
+  {
+    to: '/',
+    label: 'dashboard',
+    icon: '/sidebar-icons/dashboard.svg',
+    fallbackIcon: '⌂',
+  },
+  {
+    to: '/clients',
+    label: 'clients',
+    icon: '/sidebar-icons/clients.svg',
+    fallbackIcon: '◫',
+  },
+  {
+    to: '/notes',
+    label: 'notes',
+    icon: '/sidebar-icons/notes.svg',
+    fallbackIcon: '✎',
+  },
+  {
+    to: '/tasks',
+    label: 'tasks',
+    icon: '/sidebar-icons/tasks.svg',
+    fallbackIcon: '☑',
+  },
+  {
+    to: '/reminders',
+    label: 'reminders',
+    icon: '/sidebar-icons/reminders.svg',
+    fallbackIcon: '⏰',
+  },
+  {
+    to: '/orders',
+    label: 'orders',
+    icon: '/sidebar-icons/orders.svg',
+    fallbackIcon: '▣',
+  },
+  {
+    to: '/finances',
+    label: 'finances',
+    icon: '/sidebar-icons/finances.svg',
+    fallbackIcon: '₽',
+  },
+  {
+    to: '/events-log',
+    label: 'events log',
+    icon: '/sidebar-icons/events-log.svg',
+    fallbackIcon: '≣',
+  },
 ];
 
 export function AppSidebar() {
@@ -58,19 +99,27 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild>
                     <NavLink
-                      className={({ isActive }) => (isActive ? 'data-[active=true]' : '')}
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'bg-sidebar-accent text-muted-foreground hover:bg-sidebar-accent hover:text-muted-foreground'
+                          : ''
+                      }
                       to={item.to}
                     >
                       {({ isActive }) => (
                         <span
-                          className={[
-                            'flex items-center gap-3',
-                          ].join(' ')}
+                          className="flex items-center gap-3"
                           data-active={isActive}
                         >
-                          <span className="inline-flex h-5 w-5 items-center justify-center text-base">
-                            {item.icon}
-                          </span>
+                          <SidebarIcon
+                            className={[
+                              'h-5 w-5 shrink-0 transition duration-200',
+                              isActive ? 'opacity-70' : '',
+                            ].join(' ')}
+                            fallback={item.fallbackIcon}
+                            label={item.label}
+                            src={item.icon}
+                          />
                           {open ? <span>{item.label}</span> : null}
                         </span>
                       )}

@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { OrdersDataTable } from '../components/orders-data-table';
-import { TablePagination, useTablePagination } from '../components/table-pagination';
+import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateOrder } from '../features/orders/use-create-order';
 import { useDeleteOrder } from '../features/orders/use-delete-order';
-import { useOrders } from '../features/orders/use-orders';
+import { usePaginatedOrders } from '../features/orders/use-paginated-orders';
 import { useUpdateOrder } from '../features/orders/use-update-order';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
@@ -65,6 +65,8 @@ export function OrdersPage() {
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<OrderRecord | null>(null);
   const [orderToDelete, setOrderToDelete] = useState<OrderRecord | null>(null);
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [ordersPageSize, setOrdersPageSize] = useState(10);
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -89,13 +91,13 @@ export function OrdersPage() {
   });
 
   const clientsQuery = useClients();
-  const ordersQuery = useOrders();
+  const ordersQuery = usePaginatedOrders({ page: ordersPage, pageSize: ordersPageSize });
   const createOrder = useCreateOrder();
   const updateOrder = useUpdateOrder();
   const deleteOrder = useDeleteOrder();
   const mutationError = createOrder.error ?? updateOrder.error ?? deleteOrder.error;
-  const orders = ordersQuery.data ?? [];
-  const ordersPagination = useTablePagination(orders);
+  const orders = ordersQuery.data?.items ?? [];
+  const ordersTotal = ordersQuery.data?.total ?? 0;
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -103,6 +105,14 @@ export function OrdersPage() {
       JSON.stringify(visibleColumns),
     );
   }, [visibleColumns]);
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(ordersTotal / ordersPageSize));
+
+    if (ordersPage > pageCount) {
+      setOrdersPage(pageCount);
+    }
+  }, [ordersPage, ordersPageSize, ordersTotal]);
 
   const clientOptions = clientsQuery.data ?? [];
 
@@ -495,16 +505,19 @@ export function OrdersPage() {
               <OrdersDataTable
                 onDeleteOrder={openDeleteDialog}
                 onEditOrder={openEditDialog}
-                orders={ordersPagination.items}
+                orders={orders}
                 resolveClientLabel={resolveClientLabel}
                 visibleColumns={visibleColumns}
               />
               <TablePagination
-                page={ordersPagination.page}
-                pageSize={ordersPagination.pageSize}
-                totalItems={ordersPagination.totalItems}
-                onPageChange={ordersPagination.setPage}
-                onPageSizeChange={ordersPagination.setPageSize}
+                page={ordersPage}
+                pageSize={ordersPageSize}
+                totalItems={ordersTotal}
+                onPageChange={setOrdersPage}
+                onPageSizeChange={(pageSize) => {
+                  setOrdersPageSize(pageSize);
+                  setOrdersPage(1);
+                }}
               />
             </>
           ) : (
