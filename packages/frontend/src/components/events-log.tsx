@@ -28,7 +28,7 @@ import {
 import { Label } from '../shared/ui/label';
 import { Textarea } from '../shared/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
-import { EventsLogItem } from './events-log-item';
+import { EventsLogItem } from './event-log-item/events-log-item';
 import { EventGraphRow } from './ui/event-graph';
 import { ReminderDialog } from './reminder-dialog';
 import {
