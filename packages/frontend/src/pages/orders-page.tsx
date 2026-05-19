@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { OrdersDataTable } from '../components/orders-data-table';
+import { TablePagination, useTablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateOrder } from '../features/orders/use-create-order';
 import { useDeleteOrder } from '../features/orders/use-delete-order';
@@ -93,6 +94,8 @@ export function OrdersPage() {
   const updateOrder = useUpdateOrder();
   const deleteOrder = useDeleteOrder();
   const mutationError = createOrder.error ?? updateOrder.error ?? deleteOrder.error;
+  const orders = ordersQuery.data ?? [];
+  const ordersPagination = useTablePagination(orders);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -487,14 +490,23 @@ export function OrdersPage() {
             <p className="text-sm text-muted-foreground">Loading orders...</p>
           ) : ordersQuery.isError ? (
             <p className="text-sm text-rose-700">Failed to load orders from the backend.</p>
-          ) : ordersQuery.data && ordersQuery.data.length > 0 ? (
-            <OrdersDataTable
-              onDeleteOrder={openDeleteDialog}
-              onEditOrder={openEditDialog}
-              orders={ordersQuery.data}
-              resolveClientLabel={resolveClientLabel}
-              visibleColumns={visibleColumns}
-            />
+          ) : orders.length > 0 ? (
+            <>
+              <OrdersDataTable
+                onDeleteOrder={openDeleteDialog}
+                onEditOrder={openEditDialog}
+                orders={ordersPagination.items}
+                resolveClientLabel={resolveClientLabel}
+                visibleColumns={visibleColumns}
+              />
+              <TablePagination
+                page={ordersPagination.page}
+                pageSize={ordersPagination.pageSize}
+                totalItems={ordersPagination.totalItems}
+                onPageChange={ordersPagination.setPage}
+                onPageSizeChange={ordersPagination.setPageSize}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">
               No orders returned by the backend yet.

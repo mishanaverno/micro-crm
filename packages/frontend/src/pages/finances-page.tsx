@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, BarStack, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
 import { FinancesDataTable, FinanceRecord } from '../components/finances-data-table';
+import { TablePagination, useTablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreatePaid } from '../features/paids/use-create-paid';
@@ -288,6 +289,7 @@ export function FinancesPage() {
       return rightTime - leftTime;
     });
   }, [paidsQuery.data, spentsQuery.data]);
+  const recordsPagination = useTablePagination(records);
 
   const availableChartYears = useMemo(() => {
     const years = new Set([now.getFullYear()]);
@@ -912,14 +914,23 @@ export function FinancesPage() {
           ) : isError ? (
             <p className="text-sm text-rose-700">Failed to load finance records from the backend.</p>
           ) : records.length > 0 ? (
-            <FinancesDataTable
-              onDeleteRecord={openDeleteDialog}
-              onEditRecord={openEditDialog}
-              records={records}
-              resolveClientLabel={resolveClientLabel}
-              resolveOrderLabel={resolveOrderLabel}
-              visibleColumns={visibleColumns}
-            />
+            <>
+              <FinancesDataTable
+                onDeleteRecord={openDeleteDialog}
+                onEditRecord={openEditDialog}
+                records={recordsPagination.items}
+                resolveClientLabel={resolveClientLabel}
+                resolveOrderLabel={resolveOrderLabel}
+                visibleColumns={visibleColumns}
+              />
+              <TablePagination
+                page={recordsPagination.page}
+                pageSize={recordsPagination.pageSize}
+                totalItems={recordsPagination.totalItems}
+                onPageChange={recordsPagination.setPage}
+                onPageSizeChange={recordsPagination.setPageSize}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">
               No finance records returned by the backend yet.

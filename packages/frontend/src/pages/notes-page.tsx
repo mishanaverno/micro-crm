@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { NotesDataTable } from '../components/notes-data-table';
+import { TablePagination, useTablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateNote } from '../features/notes/use-create-note';
 import { useDeleteNote } from '../features/notes/use-delete-note';
@@ -89,6 +90,8 @@ export function NotesPage() {
   const updateNote = useUpdateNote();
   const deleteNote = useDeleteNote();
   const mutationError = createNote.error ?? updateNote.error ?? deleteNote.error;
+  const notes = notesQuery.data ?? [];
+  const notesPagination = useTablePagination(notes);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -457,15 +460,24 @@ export function NotesPage() {
             <p className="text-sm text-muted-foreground">Loading notes...</p>
           ) : notesQuery.isError ? (
             <p className="text-sm text-rose-700">Failed to load notes from the backend.</p>
-          ) : notesQuery.data && notesQuery.data.length > 0 ? (
-            <NotesDataTable
-              notes={notesQuery.data}
-              onDeleteNote={openDeleteDialog}
-              onEditNote={openEditDialog}
-              resolveClientLabel={resolveClientLabel}
-              resolveOrderLabel={resolveOrderLabel}
-              visibleColumns={visibleColumns}
-            />
+          ) : notes.length > 0 ? (
+            <>
+              <NotesDataTable
+                notes={notesPagination.items}
+                onDeleteNote={openDeleteDialog}
+                onEditNote={openEditDialog}
+                resolveClientLabel={resolveClientLabel}
+                resolveOrderLabel={resolveOrderLabel}
+                visibleColumns={visibleColumns}
+              />
+              <TablePagination
+                page={notesPagination.page}
+                pageSize={notesPagination.pageSize}
+                totalItems={notesPagination.totalItems}
+                onPageChange={notesPagination.setPage}
+                onPageSizeChange={notesPagination.setPageSize}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">
               No notes returned by the backend yet.

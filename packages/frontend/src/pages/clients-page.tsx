@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { ClientsDataTable } from '../components/clients-data-table';
+import { TablePagination, useTablePagination } from '../components/table-pagination';
 import { useCreateClient } from '../features/clients/use-create-client';
 import { useDeleteClient } from '../features/clients/use-delete-client';
 import { useClients } from '../features/clients/use-clients';
@@ -88,6 +89,8 @@ export function ClientsPage() {
   const deleteClient = useDeleteClient();
   const updateClient = useUpdateClient();
   const clientsQuery = useClients();
+  const clients = clientsQuery.data ?? [];
+  const clientsPagination = useTablePagination(clients);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -387,13 +390,22 @@ export function ClientsPage() {
               <p className="text-sm text-rose-700">
                 Failed to load clients from the backend.
               </p>
-            ) : clientsQuery.data && clientsQuery.data.length > 0 ? (
-              <ClientsDataTable
-                clients={clientsQuery.data}
-                onEditClient={openEditDialog}
-                onDeleteClient={openDeleteDialog}
-                visibleColumns={visibleColumns}
-              />
+            ) : clients.length > 0 ? (
+              <>
+                <ClientsDataTable
+                  clients={clientsPagination.items}
+                  onEditClient={openEditDialog}
+                  onDeleteClient={openDeleteDialog}
+                  visibleColumns={visibleColumns}
+                />
+                <TablePagination
+                  page={clientsPagination.page}
+                  pageSize={clientsPagination.pageSize}
+                  totalItems={clientsPagination.totalItems}
+                  onPageChange={clientsPagination.setPage}
+                  onPageSizeChange={clientsPagination.setPageSize}
+                />
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">
                 No clients returned by the backend yet.
