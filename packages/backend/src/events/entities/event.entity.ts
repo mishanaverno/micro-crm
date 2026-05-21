@@ -28,9 +28,6 @@ export enum EventType {
   PAID_CREATED = 'paid_created',
   PAID_UPDATED = 'paid_updated',
   PAID_DELETED = 'paid_deleted',
-  SPENT_CREATED = 'spent_created',
-  SPENT_UPDATED = 'spent_updated',
-  SPENT_DELETED = 'spent_deleted',
 }
 
 @Entity('events')

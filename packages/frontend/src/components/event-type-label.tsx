@@ -91,17 +91,5 @@ export function EventTypelabel({ type, className }: EventTypeLabelProps) {
       return (
         <span className={labelClassName(className)}>Paid deleted</span>
       );
-    case 'spent_created':
-      return (
-        <span className={labelClassName(className)}>Spent created</span>
-      );
-    case 'spent_updated':
-      return (
-        <span className={labelClassName(className)}>Spent updated</span>
-      );
-    case 'spent_deleted':
-      return (
-        <span className={labelClassName(className)}>Spent deleted</span>
-      );
   }
 }

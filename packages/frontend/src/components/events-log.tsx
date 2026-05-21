@@ -85,14 +85,13 @@ const BASE_LANE_APPEARANCE = {
   markerBorderClassName: 'border-border',
   curveClassName: 'text-border',
 };
-const FILTERABLE_EVENT_TYPES = ['note', 'reminder', 'task', 'paid', 'spent'] as const;
+const FILTERABLE_EVENT_TYPES = ['note', 'reminder', 'task', 'paid'] as const;
 type FilterableEventType = (typeof FILTERABLE_EVENT_TYPES)[number];
 const FILTERABLE_EVENT_TYPE_LABELS: Record<FilterableEventType, string> = {
   note: 'Note',
   reminder: 'Reminder',
   task: 'Task',
   paid: 'Paid',
-  spent: 'Spent',
 };
 
 function resolveFilterableEventType(event: EventRecord): FilterableEventType | null {
@@ -128,14 +127,6 @@ function resolveFilterableEventType(event: EventRecord): FilterableEventType | n
     return 'paid';
   }
 
-  if (
-    event.type === 'spent_created' ||
-    event.type === 'spent_updated' ||
-    event.type === 'spent_deleted'
-  ) {
-    return 'spent';
-  }
-
   return null;
 }
 
@@ -165,9 +156,6 @@ function resolveOrderId(event: EventRecord) {
     case 'paid_created':
     case 'paid_updated':
     case 'paid_deleted':
-    case 'spent_created':
-    case 'spent_updated':
-    case 'spent_deleted':
     case 'task_created':
     case 'task_updated':
     case 'task_deleted':

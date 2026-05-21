@@ -90,10 +90,6 @@ function formatValue(value: number) {
   }).format(value);
 }
 
-function formatRecordValue(record: FinanceRecord) {
-  return formatValue(record.kind === 'spent' ? -Math.abs(record.value) : record.value);
-}
-
 export function FinancesDataTable({
   records,
   resolveClientLabel,
@@ -120,9 +116,9 @@ export function FinancesDataTable({
           <TableRow key={`${record.kind}-${record.id}`}>
             {visibleColumns.type ? (
               <TableCell>
-                {record.kind == 'paid' 
-                ? <Badge variant="secondary" className='border-transparent bg-emerald-100 text-emerald-700'>Paid</Badge> 
-                : <Badge variant="secondary" className='border-transparent bg-red-100 text-red-700'>Spent</Badge>}
+                <Badge variant="secondary" className="border-transparent bg-emerald-100 text-emerald-700">
+                  Paid
+                </Badge>
               </TableCell>
             ) : null}
             {visibleColumns.client ? (
@@ -134,7 +130,7 @@ export function FinancesDataTable({
               <TableCell>{resolveOrderLabel(record.order_id)}</TableCell>
             ) : null}
             {visibleColumns.value ? (
-              <TableCell className="text-foreground">{formatRecordValue(record)}</TableCell>
+              <TableCell className="text-foreground">{formatValue(record.value)}</TableCell>
             ) : null}
             {visibleColumns.created_at ? (
               <TableCell>

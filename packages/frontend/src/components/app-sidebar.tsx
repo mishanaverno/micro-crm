@@ -61,12 +61,6 @@ const navigation = [
     icon: '/sidebar-icons/finances.svg',
     fallbackIcon: '₽',
   },
-  {
-    to: '/events-log',
-    label: 'events log',
-    icon: '/sidebar-icons/events-log.svg',
-    fallbackIcon: '≣',
-  },
 ];
 
 export function AppSidebar() {

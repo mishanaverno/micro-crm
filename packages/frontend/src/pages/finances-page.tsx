@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Bar, BarChart, BarStack, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
 import { FinancesDataTable } from '../components/finances-data-table';
 import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
@@ -9,10 +9,6 @@ import { useCreatePaid } from '../features/paids/use-create-paid';
 import { useDeletePaid } from '../features/paids/use-delete-paid';
 import { usePaids } from '../features/paids/use-paids';
 import { useUpdatePaid } from '../features/paids/use-update-paid';
-import { useCreateSpent } from '../features/spents/use-create-spent';
-import { useDeleteSpent } from '../features/spents/use-delete-spent';
-import { useSpents } from '../features/spents/use-spents';
-import { useUpdateSpent } from '../features/spents/use-update-spent';
 import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
 import {
@@ -47,7 +43,6 @@ import {
   SelectValue,
 } from '../shared/ui/select';
 import { PaidRecord } from '../shared/types/paid';
-import { SpentRecord } from '../shared/types/spent';
 import { FinanceRecord } from '../shared/types/finance';
 
 const initialFormState = {
@@ -68,33 +63,19 @@ const defaultVisibleColumns = {
 };
 
 type VisibleColumns = typeof defaultVisibleColumns;
-type FinanceFormKind = 'paid' | 'spent';
-type EditingRecord = (PaidRecord | SpentRecord) & { kind: FinanceFormKind };
+type EditingRecord = PaidRecord & { kind: 'paid' };
 type FinanceChartMode = 'month' | 'year';
 type FinanceChartDatum = {
   period: string;
   tooltipLabel: string;
   paid: number;
-  income: number;
-  spent: number;
 };
 
 const financeChartConfig = {
   paid: {
     label: 'Paid',
     color: '#111827',
-    marker: {
-      colors: ['#ef4444', '#22c55e'],
-    },
   },
-  income: {
-    label: 'Income',
-    color: '#22c55e',
-  },
-  spent: {
-    label: 'Spent',
-    color: '#ef4444',
-  }
 } satisfies ChartConfig;
 
 function parseNumericValue(value: unknown) {
@@ -147,14 +128,11 @@ function toFinanceChartDatum(
   period: string,
   tooltipLabel: string,
   paid: number,
-  spent: number,
 ): FinanceChartDatum {
   return {
     period,
     tooltipLabel,
     paid,
-    income: paid - spent,
-    spent,
   };
 }
 
@@ -163,7 +141,6 @@ export function FinancesPage() {
   const [form, setForm] = useState(initialFormState);
   const [formError, setFormError] = useState<string | null>(null);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
-  const [dialogKind, setDialogKind] = useState<FinanceFormKind>('paid');
   const [editingRecord, setEditingRecord] = useState<EditingRecord | null>(null);
   const [recordToDelete, setRecordToDelete] = useState<EditingRecord | null>(null);
   const [recordsPage, setRecordsPage] = useState(1);
@@ -197,7 +174,6 @@ export function FinancesPage() {
   const clientsQuery = useClients();
   const ordersQuery = useOrders();
   const paidsQuery = usePaids();
-  const spentsQuery = useSpents();
   const financeRecordsQuery = usePaginatedFinances({
     page: recordsPage,
     pageSize: recordsPageSize,
@@ -205,16 +181,10 @@ export function FinancesPage() {
   const createPaid = useCreatePaid();
   const updatePaid = useUpdatePaid();
   const deletePaid = useDeletePaid();
-  const createSpent = useCreateSpent();
-  const updateSpent = useUpdateSpent();
-  const deleteSpent = useDeleteSpent();
   const mutationError =
     createPaid.error ??
     updatePaid.error ??
-    deletePaid.error ??
-    createSpent.error ??
-    updateSpent.error ??
-    deleteSpent.error;
+    deletePaid.error;
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -285,18 +255,13 @@ export function FinancesPage() {
       ...paid,
       kind: 'paid' as const,
     }));
-    const spentRecords = (spentsQuery.data ?? []).map((spent) => ({
-      ...spent,
-      kind: 'spent' as const,
-    }));
-
-    return [...paidRecords, ...spentRecords].sort((left, right) => {
+    return paidRecords.sort((left, right) => {
       const leftTime = left.created_at ? new Date(left.created_at).getTime() : 0;
       const rightTime = right.created_at ? new Date(right.created_at).getTime() : 0;
 
       return rightTime - leftTime;
     });
-  }, [paidsQuery.data, spentsQuery.data]);
+  }, [paidsQuery.data]);
   const tableRecords = financeRecordsQuery.data?.items ?? [];
   const recordsTotal = financeRecordsQuery.data?.total ?? 0;
 
@@ -344,7 +309,6 @@ export function FinancesPage() {
             year: 'numeric',
           }),
           paid: 0,
-          spent: 0,
           month,
         };
       }).map((bucket) => {
@@ -360,18 +324,13 @@ export function FinancesPage() {
             return;
           }
 
-          if (record.kind === 'paid') {
-            bucket.paid += parseNumericValue(record.value);
-          } else {
-            bucket.spent += parseNumericValue(record.value);
-          }
+          bucket.paid += parseNumericValue(record.value);
         });
 
         return toFinanceChartDatum(
           bucket.period,
           bucket.tooltipLabel,
           bucket.paid,
-          bucket.spent,
         );
       });
     }
@@ -385,7 +344,6 @@ export function FinancesPage() {
       return {
         period: String(day),
         paid: 0,
-        spent: 0,
         day,
       };
     }).map((bucket) => {
@@ -402,11 +360,7 @@ export function FinancesPage() {
           return;
         }
 
-        if (record.kind === 'paid') {
-          bucket.paid += parseNumericValue(record.value);
-        } else {
-          bucket.spent += parseNumericValue(record.value);
-        }
+        bucket.paid += parseNumericValue(record.value);
       });
 
       return toFinanceChartDatum(
@@ -417,7 +371,6 @@ export function FinancesPage() {
           year: 'numeric',
         }),
         bucket.paid,
-        bucket.spent,
       );
     });
   }, [chartMode, records, selectedChartMonth, selectedChartYear]);
@@ -447,14 +400,10 @@ export function FinancesPage() {
     }));
   }
 
-  function openCreateDialog(kind: FinanceFormKind) {
+  function openCreateDialog() {
     createPaid.reset();
     updatePaid.reset();
     deletePaid.reset();
-    createSpent.reset();
-    updateSpent.reset();
-    deleteSpent.reset();
-    setDialogKind(kind);
     setFormError(null);
     setEditingRecord(null);
     setForm({
@@ -468,9 +417,6 @@ export function FinancesPage() {
   function openEditDialog(record: FinanceRecord) {
     createPaid.reset();
     updatePaid.reset();
-    createSpent.reset();
-    updateSpent.reset();
-    setDialogKind(record.kind);
     setFormError(null);
     setEditingRecord(record as EditingRecord);
     setForm({
@@ -488,24 +434,20 @@ export function FinancesPage() {
     setFormError(null);
     createPaid.reset();
     updatePaid.reset();
-    createSpent.reset();
-    updateSpent.reset();
   }
 
   function openDeleteDialog(record: FinanceRecord) {
     deletePaid.reset();
-    deleteSpent.reset();
     setRecordToDelete(record as EditingRecord);
   }
 
   function closeDeleteDialog() {
-    if (deletePaid.isPending || deleteSpent.isPending) {
+    if (deletePaid.isPending) {
       return;
     }
 
     setRecordToDelete(null);
     deletePaid.reset();
-    deleteSpent.reset();
   }
 
   async function handleConfirmDelete() {
@@ -513,32 +455,27 @@ export function FinancesPage() {
       return;
     }
 
-    if (recordToDelete.kind === 'paid') {
-      await deletePaid.mutateAsync(recordToDelete.id);
-    } else {
-      await deleteSpent.mutateAsync(recordToDelete.id);
-    }
+    await deletePaid.mutateAsync(recordToDelete.id);
 
     setRecordToDelete(null);
     deletePaid.reset();
-    deleteSpent.reset();
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!form.client_id) {
-      setFormError(`Select a client before saving the ${dialogKind} record.`);
+      setFormError('Select a client before saving the paid record.');
       return;
     }
 
     if (!form.order_id) {
-      setFormError(`Select an order before saving the ${dialogKind} record.`);
+      setFormError('Select an order before saving the paid record.');
       return;
     }
 
     if (!form.value || Number.isNaN(Number(form.value)) || Number(form.value) <= 0) {
-      setFormError(`Enter a ${dialogKind} value greater than zero.`);
+      setFormError('Enter a paid value greater than zero.');
       return;
     }
 
@@ -551,28 +488,19 @@ export function FinancesPage() {
     };
 
     if (editingRecord) {
-      if (editingRecord.kind === 'paid') {
-        await updatePaid.mutateAsync({
-          paidId: editingRecord.id,
-          payload,
-        });
-      } else {
-        await updateSpent.mutateAsync({
-          spentId: editingRecord.id,
-          payload,
-        });
-      }
-    } else if (dialogKind === 'paid') {
-      await createPaid.mutateAsync(payload);
+      await updatePaid.mutateAsync({
+        paidId: editingRecord.id,
+        payload,
+      });
     } else {
-      await createSpent.mutateAsync(payload);
+      await createPaid.mutateAsync(payload);
     }
 
     closeDialog();
   }
 
-  const isChartLoading = paidsQuery.isLoading || spentsQuery.isLoading;
-  const isChartError = paidsQuery.isError || spentsQuery.isError;
+  const isChartLoading = paidsQuery.isLoading;
+  const isChartError = paidsQuery.isError;
   const isTableLoading =
     financeRecordsQuery.isLoading || clientsQuery.isLoading || ordersQuery.isLoading;
   const isTableError = financeRecordsQuery.isError;
@@ -661,18 +589,7 @@ export function FinancesPage() {
                   cursor={false}
                 />
                 <Legend content={<ChartLegendContent />} />
-                <BarStack radius={4}>
-                  <Bar
-                    dataKey="income"
-                    fill="var(--color-income)"
-                    stackId="finance"
-                  />
-                  <Bar
-                    dataKey="spent"
-                    fill="var(--color-spent)"
-                    stackId="finance"
-                  />
-                </BarStack>
+                <Bar dataKey="paid" fill="var(--color-paid)" radius={4} />
               </BarChart>
             </ChartContainer>
           ) : (
@@ -741,26 +658,17 @@ export function FinancesPage() {
 
               <Dialog open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => openCreateDialog('paid')}>Create paid</Button>
-                  <Button onClick={() => openCreateDialog('spent')} variant="secondary">
-                    Create spent
-                  </Button>
+                  <Button onClick={() => openCreateDialog()}>Create paid</Button>
                 </div>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      {editingRecord
-                        ? `Edit ${editingRecord.kind}`
-                        : dialogKind === 'paid'
-                          ? 'New paid'
-                          : 'New spent'}
+                      {editingRecord ? 'Edit paid' : 'New paid'}
                     </DialogTitle>
                     <DialogDescription>
                       {editingRecord
-                        ? `Update the selected ${editingRecord.kind} record for the order.`
-                        : dialogKind === 'paid'
-                          ? 'Create a new paid record for one of your client orders.'
-                          : 'Create a new spent record for one of your client orders.'}
+                        ? 'Update the selected paid record for the order.'
+                        : 'Create a new paid record for one of your client orders.'}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -848,25 +756,15 @@ export function FinancesPage() {
                       Cancel
                     </Button>
                     <Button
-                      disabled={
-                        createPaid.isPending ||
-                        updatePaid.isPending ||
-                        createSpent.isPending ||
-                        updateSpent.isPending
-                      }
+                      disabled={createPaid.isPending || updatePaid.isPending}
                       form="finance-record-form"
                       type="submit"
                     >
-                      {createPaid.isPending ||
-                      updatePaid.isPending ||
-                      createSpent.isPending ||
-                      updateSpent.isPending
+                      {createPaid.isPending || updatePaid.isPending
                         ? 'Saving...'
                         : editingRecord
                           ? 'Save changes'
-                          : dialogKind === 'paid'
-                            ? 'Save paid'
-                            : 'Save spent'}
+                          : 'Save paid'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -887,14 +785,14 @@ export function FinancesPage() {
                     </DialogTitle>
                     <DialogDescription>
                       {recordToDelete
-                        ? `${recordToDelete.kind === 'paid' ? 'Paid' : 'Spent'} record for "${resolveClientLabel(recordToDelete.client_id)}" will be removed.`
+                        ? `Paid record for "${resolveClientLabel(recordToDelete.client_id)}" will be removed.`
                         : 'Selected finance record will be deleted.'}
                     </DialogDescription>
                   </DialogHeader>
 
                   <DialogFooter>
                     <Button
-                      disabled={deletePaid.isPending || deleteSpent.isPending}
+                      disabled={deletePaid.isPending}
                       onClick={closeDeleteDialog}
                       type="button"
                       variant="ghost"
@@ -903,11 +801,11 @@ export function FinancesPage() {
                     </Button>
                     <Button
                       className="bg-rose-600 text-white hover:bg-rose-700"
-                      disabled={deletePaid.isPending || deleteSpent.isPending}
+                      disabled={deletePaid.isPending}
                       onClick={() => void handleConfirmDelete()}
                       type="button"
                     >
-                      {deletePaid.isPending || deleteSpent.isPending ? 'Deleting...' : 'Delete'}
+                      {deletePaid.isPending ? 'Deleting...' : 'Delete'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>

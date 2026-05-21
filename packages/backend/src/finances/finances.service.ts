@@ -8,9 +8,8 @@ import {
   PaginationOptions,
 } from '../common/pagination';
 import { Paid } from '../paids/entities/paid.entity';
-import { Spent } from '../spents/entities/spent.entity';
 
-export type FinanceRecordKind = 'paid' | 'spent';
+export type FinanceRecordKind = 'paid';
 
 export interface FinanceRecord {
   id: number;
@@ -33,45 +32,27 @@ export class FinancesService {
   constructor(
     @InjectRepository(Paid)
     private readonly paidsRepository: Repository<Paid>,
-    @InjectRepository(Spent)
-    private readonly spentsRepository: Repository<Spent>,
   ) {}
 
   async findAllPaginated(
     userId: string,
     pagination: PaginationOptions,
   ): Promise<PaginatedResponse<FinanceRecord>> {
-    const [paidTotal, spentTotal, rawItems] = await Promise.all([
+    const [paidTotal, rawItems] = await Promise.all([
       this.paidsRepository.count({ where: { user_id: userId } }),
-      this.spentsRepository.count({ where: { user_id: userId } }),
       this.paidsRepository.query(
         `
-          SELECT *
-          FROM (
-            SELECT
-              'paid' AS kind,
-              id,
-              user_id,
-              client_id,
-              order_id,
-              value,
-              created_at,
-              updated_at
-            FROM paids
-            WHERE user_id = $1 AND deleted_at IS NULL
-            UNION ALL
-            SELECT
-              'spent' AS kind,
-              id,
-              user_id,
-              client_id,
-              order_id,
-              value,
-              created_at,
-              updated_at
-            FROM spents
-            WHERE user_id = $1 AND deleted_at IS NULL
-          ) AS finance_records
+          SELECT
+            'paid' AS kind,
+            id,
+            user_id,
+            client_id,
+            order_id,
+            value,
+            created_at,
+            updated_at
+          FROM paids
+          WHERE user_id = $1 AND deleted_at IS NULL
           ORDER BY created_at DESC, id DESC
           LIMIT $2 OFFSET $3
         `,
@@ -85,6 +66,6 @@ export class FinancesService {
       order_id: Number(item.order_id),
     }));
 
-    return createPaginatedResponse(items, paidTotal + spentTotal, pagination);
+    return createPaginatedResponse(items, paidTotal, pagination);
   }
 }

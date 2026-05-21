@@ -17,9 +17,6 @@ import { PaidUpdatedEventsLogItem } from './variants/paid/paid-updated-events-lo
 import { ReminderCreatedEventsLogItem } from './variants/reminder/reminder-created-events-log-item';
 import { ReminderDeletedEventsLogItem } from './variants/reminder/reminder-deleted-events-log-item';
 import { ReminderUpdatedEventsLogItem } from './variants/reminder/reminder-updated-events-log-item';
-import { SpentCreatedEventsLogItem } from './variants/spent/spent-created-events-log-item';
-import { SpentDeletedEventsLogItem } from './variants/spent/spent-deleted-events-log-item';
-import { SpentUpdatedEventsLogItem } from './variants/spent/spent-updated-events-log-item';
 import { TaskCreatedEventsLogItem } from './variants/task/task-created-events-log-item';
 import { TaskDeletedEventsLogItem } from './variants/task/task-deleted-events-log-item';
 import { TaskUpdatedEventsLogItem } from './variants/task/task-updated-events-log-item';
@@ -83,12 +80,6 @@ function EventsLogItemComponent({
       return <PaidUpdatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     case 'paid_deleted':
       return <PaidDeletedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'spent_created':
-      return <SpentCreatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'spent_updated':
-      return <SpentUpdatedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
-    case 'spent_deleted':
-      return <SpentDeletedEventsLogItem cardBorderClassName={cardBorderClassName} clientLabel={clientLabel} commonActions={commonActions} compact={compact} event={event} specificActions={specificActions} />;
     default:
       return null;
   }

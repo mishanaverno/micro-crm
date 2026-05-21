@@ -34,10 +34,7 @@ BEGIN
       'order_reopened',
       'paid_created',
       'paid_updated',
-      'paid_deleted',
-      'spent_created',
-      'spent_updated',
-      'spent_deleted'
+      'paid_deleted'
     );
   END IF;
 END
@@ -63,9 +60,6 @@ ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'order_reopened';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid_created';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid_updated';
 ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'paid_deleted';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent_created';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent_updated';
-ALTER TYPE public.event_type ADD VALUE IF NOT EXISTS 'spent_deleted';
 
 create table if not exists
   "public"."events" (

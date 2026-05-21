@@ -8,7 +8,6 @@ import { NotesModule } from './notes/notes.module';
 import { EventsModule } from './events/events.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaidsModule } from './paids/paids.module';
-import { SpentsModule } from './spents/spents.module';
 import { TasksModule } from './tasks/tasks.module';
 import { RemindersModule } from './reminders/reminders.module';
 import { FinancesModule } from './finances/finances.module';
@@ -23,7 +22,6 @@ import { FinancesModule } from './finances/finances.module';
     EventsModule,
     OrdersModule,
     PaidsModule,
-    SpentsModule,
     TasksModule,
     RemindersModule,
     FinancesModule,

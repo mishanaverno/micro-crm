@@ -4,7 +4,6 @@ import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { usePaids } from '../features/paids/use-paids';
 import { useReminders } from '../features/reminders/use-reminders';
-import { useSpents } from '../features/spents/use-spents';
 import { useTasks } from '../features/tasks/use-tasks';
 import { StatusBadge } from '../components/status-badges';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
@@ -163,7 +162,6 @@ export function DashboardPage() {
   const remindersQuery = useReminders();
   const tasksQuery = useTasks();
   const paidsQuery = usePaids();
-  const spentsQuery = useSpents();
 
   const clientLabels = useMemo(
     () =>
@@ -190,7 +188,6 @@ export function DashboardPage() {
           description: clientLabels.get(order.client_id) ?? order.client_id,
           label: `#${order.id} — ${order.title || 'order'}`,
           trailing: <StatusBadge status={order.status} />,
-          to: `/events-log?focusOrderId=${order.id}&scrollEvent=order_created`,
         })),
     [clientLabels, ordersQuery.data],
   );
@@ -259,31 +256,20 @@ export function DashboardPage() {
       return sum + parseNumericValue(paid.value);
     }, 0);
 
-    const spentTotal = (spentsQuery.data ?? []).reduce((sum, spent) => {
-      const createdAt = new Date(spent.created_at).getTime();
-      if (!Number.isFinite(createdAt) || createdAt < monthStart) {
-        return sum;
-      }
-
-      return sum + parseNumericValue(spent.value);
-    }, 0);
-
-    return paidTotal - spentTotal;
-  }, [paidsQuery.data, spentsQuery.data]);
+    return paidTotal;
+  }, [paidsQuery.data]);
 
   return (
     <main className="grid gap-4 md:grid-cols-2">
       <MetricCard
-        description="This month paid amounts minus spent amounts."
+        description="This month paid amounts."
         error={
           paidsQuery.error instanceof Error
             ? paidsQuery.error.message
-            : spentsQuery.error instanceof Error
-              ? spentsQuery.error.message
-              : null
+            : null
         }
         helper="Calculated from finance records created this month."
-        isLoading={paidsQuery.isLoading || spentsQuery.isLoading}
+        isLoading={paidsQuery.isLoading}
         title="Month income"
         value={formatCurrency(monthIncome)}
       />

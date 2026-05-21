@@ -18,10 +18,7 @@ export type EventType =
   | 'order_reopened'
   | 'paid_created'
   | 'paid_updated'
-  | 'paid_deleted'
-  | 'spent_created'
-  | 'spent_updated'
-  | 'spent_deleted';
+  | 'paid_deleted';
 
 export interface OrderChangedField {
   field: 'title' | 'price' | 'content' | 'status';
@@ -99,12 +96,6 @@ export interface PaidEventPayload extends EventDisplaySnapshot {
   value: string | number;
 }
 
-export interface SpentEventPayload extends EventDisplaySnapshot {
-  spent_id: number;
-  order_id: number;
-  value: string | number;
-}
-
 export type NoteCreatedEventRecord = BaseEventRecord<'note_created', NoteEventPayload>;
 export type NoteUpdatedEventRecord = BaseEventRecord<'note_updated', NoteEventPayload>;
 export type NoteDeletedEventRecord = BaseEventRecord<'note_deleted', NoteEventPayload>;
@@ -157,13 +148,6 @@ export type PaidEventRecord =
   | PaidCreatedEventRecord
   | PaidUpdatedEventRecord
   | PaidDeletedEventRecord;
-export type SpentCreatedEventRecord = BaseEventRecord<'spent_created', SpentEventPayload>;
-export type SpentUpdatedEventRecord = BaseEventRecord<'spent_updated', SpentEventPayload>;
-export type SpentDeletedEventRecord = BaseEventRecord<'spent_deleted', SpentEventPayload>;
-export type SpentEventRecord =
-  | SpentCreatedEventRecord
-  | SpentUpdatedEventRecord
-  | SpentDeletedEventRecord;
 
 export type EventRecord =
   | NoteEventRecord
@@ -175,5 +159,4 @@ export type EventRecord =
   | OrderDeletedEventRecord
   | OrderCompleteEventRecord
   | OrderReopenedEventRecord
-  | PaidEventRecord
-  | SpentEventRecord;
+  | PaidEventRecord;

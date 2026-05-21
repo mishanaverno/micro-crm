@@ -18,7 +18,7 @@ export class FinancesController {
   constructor(private readonly financesService: FinancesService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get combined paid and spent records for the current user' })
+  @ApiOperation({ summary: 'Get paid finance records for the current user' })
   @ApiQuery({ name: 'page', required: false, type: 'number' })
   @ApiQuery({ name: 'pageSize', required: false, type: 'number' })
   @ApiResponse({ status: 200, description: 'Paginated finance records' })

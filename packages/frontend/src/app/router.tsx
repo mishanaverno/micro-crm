@@ -1,7 +1,6 @@
 import { createHashRouter } from 'react-router-dom';
 import { AppLayout } from './app-layout';
 import { DashboardPage } from '../pages/dashboard-page';
-import { EventsLogPage } from '../pages/events-log-page';
 import { ClientsPage } from '../pages/clients-page';
 import { NotesPage } from '../pages/notes-page';
 import { OrdersPage } from '../pages/orders-page';
@@ -61,10 +60,6 @@ export const router = createHashRouter([
           {
             path: 'finances',
             element: <FinancesPage />,
-          },
-          {
-            path: 'events-log',
-            element: <EventsLogPage />,
           },
         ],
       },

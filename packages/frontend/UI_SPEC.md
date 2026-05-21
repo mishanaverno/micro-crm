@@ -49,7 +49,6 @@ These colors are currently direct Tailwind utility classes rather than root toke
 | Success status | `bg-emerald-100 text-emerald-700 border-transparent` | `done`, `complete`, `Paid` finance badges. |
 | Destructive text | `text-rose-700`, `text-rose-600` | Form errors, destructive dropdown actions. |
 | Destructive button | `bg-rose-600 text-white hover:bg-rose-700` | Delete confirmations. |
-| Negative finance badge | `bg-red-100 text-red-700 border-transparent` | `Spent` finance badge. |
 | Event graph lanes | `sky-500`, `violet-500`, `amber-500`, `emerald-500`, `rose-500`, `cyan-500` | Colored order branches in `events-log.tsx`. |
 
 ## Typography
