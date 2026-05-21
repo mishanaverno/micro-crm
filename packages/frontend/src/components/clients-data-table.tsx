@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { ClientAvatar } from './client-avatar';
 import { ClientRecord } from '../shared/types/client';
 import { t } from '../shared/lib/i18n';
 import { Badge } from './ui/badge';
@@ -128,7 +130,13 @@ export function ClientsDataTable({
         {clients.map((client) => (
           <TableRow key={client.id}>
             <TableCell className="font-medium text-foreground">
-              {client.name || '—'}
+              <Link
+                className="inline-flex items-center gap-3 transition-colors hover:text-primary hover:underline"
+                to={`/clients/${client.id}`}
+              >
+                <ClientAvatar name={client.name} />
+                <span>{client.name || '—'}</span>
+              </Link>
             </TableCell>
             {visibleColumns.status ? (
               <TableCell>

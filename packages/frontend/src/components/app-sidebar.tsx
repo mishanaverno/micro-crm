@@ -33,6 +33,12 @@ const navigation = [
     fallbackIcon: '◫',
   },
   {
+    to: '/orders',
+    labelKey: 'page.orders',
+    icon: '/sidebar-icons/orders.svg',
+    fallbackIcon: '▣',
+  },
+  {
     to: '/notes',
     labelKey: 'page.notes',
     icon: '/sidebar-icons/notes.svg',
@@ -49,12 +55,6 @@ const navigation = [
     labelKey: 'page.reminders',
     icon: '/sidebar-icons/reminders.svg',
     fallbackIcon: '⏰',
-  },
-  {
-    to: '/orders',
-    labelKey: 'page.orders',
-    icon: '/sidebar-icons/orders.svg',
-    fallbackIcon: '▣',
   },
   {
     to: '/finances',

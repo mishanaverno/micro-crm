@@ -1,6 +1,7 @@
 import { createHashRouter } from 'react-router-dom';
 import { AppLayout } from './app-layout';
 import { DashboardPage } from '../pages/dashboard-page';
+import { ClientDetailsPage } from '../pages/client-details-page';
 import { ClientsPage } from '../pages/clients-page';
 import { NotesPage } from '../pages/notes-page';
 import { OrdersPage } from '../pages/orders-page';
@@ -40,6 +41,10 @@ export const router = createHashRouter([
           {
             path: 'clients',
             element: <ClientsPage />,
+          },
+          {
+            path: 'clients/:clientId',
+            element: <ClientDetailsPage />,
           },
           {
             path: 'notes',
