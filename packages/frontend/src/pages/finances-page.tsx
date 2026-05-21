@@ -44,6 +44,7 @@ import {
 } from '../shared/ui/select';
 import { PaidRecord } from '../shared/types/paid';
 import { FinanceRecord } from '../shared/types/finance';
+import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
   client_id: '',
@@ -73,7 +74,7 @@ type FinanceChartDatum = {
 
 const financeChartConfig = {
   paid: {
-    label: 'Paid',
+    label: t('entity.paid'),
     color: '#111827',
   },
 } satisfies ChartConfig;
@@ -390,7 +391,7 @@ export function FinancesPage() {
       return `#${orderId}`;
     }
 
-    return `#${order.id} — ${order.title || 'order'}`;
+    return `#${order.id} — ${order.title || t('empty.orderTitle')}`;
   }
 
   function toggleColumn(column: keyof VisibleColumns) {
@@ -465,17 +466,17 @@ export function FinancesPage() {
     event.preventDefault();
 
     if (!form.client_id) {
-      setFormError('Select a client before saving the paid record.');
+      setFormError(t('feedback.paidClientRequired'));
       return;
     }
 
     if (!form.order_id) {
-      setFormError('Select an order before saving the paid record.');
+      setFormError(t('feedback.paidOrderRequired'));
       return;
     }
 
     if (!form.value || Number.isNaN(Number(form.value)) || Number(form.value) <= 0) {
-      setFormError('Enter a paid value greater than zero.');
+      setFormError(t('feedback.paidValueInvalid'));
       return;
     }
 
@@ -510,7 +511,7 @@ export function FinancesPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <CardTitle>Finance chart</CardTitle>
+            <CardTitle>{t('page.financeChart')}</CardTitle>
 
             <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex rounded-md border border-border bg-muted p-1">
@@ -520,7 +521,7 @@ export function FinancesPage() {
                   type="button"
                   variant={chartMode === 'month' ? 'default' : 'ghost'}
                 >
-                  Month
+                  {t('period.month')}
                 </Button>
                 <Button
                   className="h-8 rounded-sm px-3"
@@ -528,7 +529,7 @@ export function FinancesPage() {
                   type="button"
                   variant={chartMode === 'year' ? 'default' : 'ghost'}
                 >
-                  Year
+                  {t('period.year')}
                 </Button>
               </div>
 
@@ -564,9 +565,9 @@ export function FinancesPage() {
         </CardHeader>
         <CardContent>
           {isChartLoading ? (
-            <p className="text-sm text-muted-foreground">Loading finance chart...</p>
+            <p className="text-sm text-muted-foreground">{t('placeholder.loadingFinanceChart')}</p>
           ) : isChartError ? (
-            <p className="text-sm text-rose-700">Failed to load finance chart data.</p>
+            <p className="text-sm text-rose-700">{t('feedback.financeChartLoadFailed')}</p>
           ) : chartData.length > 0 ? (
             <ChartContainer className="h-[320px] w-full" config={financeChartConfig}>
               <BarChart accessibilityLayer data={chartData}>
@@ -594,7 +595,7 @@ export function FinancesPage() {
             </ChartContainer>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No finance records returned by the backend yet.
+              {t('empty.financeRecords')}
             </p>
           )}
         </CardContent>
@@ -604,77 +605,77 @@ export function FinancesPage() {
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1.5">
-              <CardTitle>Finances</CardTitle>
+              <CardTitle>{t('page.finances')}</CardTitle>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="secondary">
-                    Columns
+                    {t('common.columns')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.type}
                     onCheckedChange={() => toggleColumn('type')}
                   >
-                    Type
+                    {t('common.type')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.client}
                     onCheckedChange={() => toggleColumn('client')}
                   >
-                    Client
+                    {t('common.client')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.order}
                     onCheckedChange={() => toggleColumn('order')}
                   >
-                    Order
+                    {t('common.order')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.value}
                     onCheckedChange={() => toggleColumn('value')}
                   >
-                    Value
+                    {t('common.value')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.created_at}
                     onCheckedChange={() => toggleColumn('created_at')}
                   >
-                    Created at
+                    {t('common.createdAt')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.updated_at}
                     onCheckedChange={() => toggleColumn('updated_at')}
                   >
-                    Updated at
+                    {t('common.updatedAt')}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <Dialog open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => openCreateDialog()}>Create paid</Button>
+                  <Button onClick={() => openCreateDialog()}>{t('actions.create')}</Button>
                 </div>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      {editingRecord ? 'Edit paid' : 'New paid'}
+                      {editingRecord ? t('dialog.editPaidTitle') : t('dialog.newPaidTitle')}
                     </DialogTitle>
                     <DialogDescription>
                       {editingRecord
-                        ? 'Update the selected paid record for the order.'
-                        : 'Create a new paid record for one of your client orders.'}
+                        ? t('dialog.paidEditDescription')
+                        : t('dialog.paidCreateDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
                   <form className="grid gap-4" id="finance-record-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
-                      <Label htmlFor="client_id">Client</Label>
+                      <Label htmlFor="client_id">{t('common.client')}</Label>
                       <Select
                         disabled={clientsQuery.isLoading || clientOptions.length === 0}
                         value={form.client_id || undefined}
@@ -688,7 +689,9 @@ export function FinancesPage() {
                         <SelectTrigger id="client_id">
                           <SelectValue
                             placeholder={
-                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                              clientsQuery.isLoading
+                                ? t('placeholder.loadingClients')
+                                : t('placeholder.selectClient')
                             }
                           />
                         </SelectTrigger>
@@ -703,7 +706,7 @@ export function FinancesPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="order_id">Order</Label>
+                      <Label htmlFor="order_id">{t('common.order')}</Label>
                       <Select
                         disabled={ordersQuery.isLoading || !form.client_id}
                         value={form.order_id || undefined}
@@ -717,7 +720,9 @@ export function FinancesPage() {
                         <SelectTrigger id="order_id">
                           <SelectValue
                             placeholder={
-                              ordersQuery.isLoading ? 'Loading orders...' : 'Select order'
+                              ordersQuery.isLoading
+                                ? t('placeholder.loadingOrders')
+                                : t('placeholder.selectOrder')
                             }
                           />
                         </SelectTrigger>
@@ -732,7 +737,7 @@ export function FinancesPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="value">Value</Label>
+                      <Label htmlFor="value">{t('common.value')}</Label>
                       <Input
                         id="value"
                         min="0.01"
@@ -753,7 +758,7 @@ export function FinancesPage() {
 
                   <DialogFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       disabled={createPaid.isPending || updatePaid.isPending}
@@ -761,10 +766,10 @@ export function FinancesPage() {
                       type="submit"
                     >
                       {createPaid.isPending || updatePaid.isPending
-                        ? 'Saving...'
+                        ? t('actions.saving')
                         : editingRecord
-                          ? 'Save changes'
-                          : 'Save paid'}
+                          ? t('actions.save')
+                          : t('actions.save')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -781,12 +786,16 @@ export function FinancesPage() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      {recordToDelete ? `Delete ${recordToDelete.kind}` : 'Delete record'}
+                      {recordToDelete
+                        ? t('dialog.deletePaidTitle')
+                        : t('dialog.deleteFinanceRecordTitle')}
                     </DialogTitle>
                     <DialogDescription>
                       {recordToDelete
-                        ? `Paid record for "${resolveClientLabel(recordToDelete.client_id)}" will be removed.`
-                        : 'Selected finance record will be deleted.'}
+                        ? t('dialog.paidDeleteNamedDescription', undefined, {
+                            name: resolveClientLabel(recordToDelete.client_id),
+                          })
+                        : t('dialog.paidDeleteDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -797,7 +806,7 @@ export function FinancesPage() {
                       type="button"
                       variant="ghost"
                     >
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       className="bg-rose-600 text-white hover:bg-rose-700"
@@ -805,7 +814,7 @@ export function FinancesPage() {
                       onClick={() => void handleConfirmDelete()}
                       type="button"
                     >
-                      {deletePaid.isPending ? 'Deleting...' : 'Delete'}
+                      {deletePaid.isPending ? t('actions.deleting') : t('actions.delete')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -819,14 +828,14 @@ export function FinancesPage() {
 
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
-              {mutationError.message || 'Failed to save finance changes.'}
+              {mutationError.message || t('feedback.financeSaveFailed')}
             </p>
           ) : null}
 
           {isTableLoading ? (
-            <p className="text-sm text-muted-foreground">Loading finance records...</p>
+            <p className="text-sm text-muted-foreground">{t('placeholder.loadingFinanceRecords')}</p>
           ) : isTableError ? (
-            <p className="text-sm text-rose-700">Failed to load finance records from the backend.</p>
+            <p className="text-sm text-rose-700">{t('feedback.financeLoadFailed')}</p>
           ) : tableRecords.length > 0 ? (
             <>
               <FinancesDataTable
@@ -850,7 +859,7 @@ export function FinancesPage() {
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No finance records returned by the backend yet.
+              {t('empty.financeRecords')}
             </p>
           )}
         </CardContent>

@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
+import { t } from '../shared/lib/i18n';
 
 interface Option {
   value: string;
@@ -97,7 +98,7 @@ export function ReminderDialog({
 
         <form className="grid gap-4" id={formId} onSubmit={onSubmit}>
           <div className="grid gap-2">
-            <Label htmlFor={`${formId}-client`}>Client</Label>
+            <Label htmlFor={`${formId}-client`}>{t('common.client')}</Label>
             {clientField.mode === 'select' ? (
               <Select
                 disabled={clientField.disabled}
@@ -105,7 +106,7 @@ export function ReminderDialog({
                 onValueChange={clientField.onChange}
               >
                 <SelectTrigger id={`${formId}-client`}>
-                  <SelectValue placeholder={clientField.placeholder ?? 'Select client'} />
+                  <SelectValue placeholder={clientField.placeholder ?? t('placeholder.selectClient')} />
                 </SelectTrigger>
                 <SelectContent>
                   {clientField.options.map((client) => (
@@ -123,7 +124,7 @@ export function ReminderDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor={`${formId}-order`}>Order</Label>
+            <Label htmlFor={`${formId}-order`}>{t('common.order')}</Label>
             {orderField.mode === 'select' ? (
               <Select
                 disabled={orderField.disabled}
@@ -133,11 +134,11 @@ export function ReminderDialog({
                 }
               >
                 <SelectTrigger id={`${formId}-order`}>
-                  <SelectValue placeholder={orderField.placeholder ?? 'No order'} />
+                  <SelectValue placeholder={orderField.placeholder ?? t('placeholder.noOrder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">
-                    {orderField.emptyLabel ?? 'No order'}
+                    {orderField.emptyLabel ?? t('placeholder.noOrder')}
                   </SelectItem>
                   {orderField.options.map((order) => (
                     <SelectItem key={order.value} value={order.value}>
@@ -155,14 +156,14 @@ export function ReminderDialog({
 
           <ReminderDateTimeField
             idPrefix={`${formId}-timestamp`}
-            label="Timestamp"
+            label={t('common.timestamp')}
             required
             value={timestamp}
             onChange={onTimestampChange}
           />
 
           <div className="grid gap-2">
-            <Label htmlFor={`${formId}-content`}>Content</Label>
+            <Label htmlFor={`${formId}-content`}>{t('common.content')}</Label>
             <Textarea
               id={`${formId}-content`}
               required
@@ -174,7 +175,7 @@ export function ReminderDialog({
 
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)} type="button" variant="ghost">
-            Cancel
+            {t('actions.cancel')}
           </Button>
           <Button
             disabled={
@@ -185,7 +186,7 @@ export function ReminderDialog({
             form={formId}
             type="submit"
           >
-            {isPending ? 'Saving...' : submitLabel}
+            {isPending ? t('actions.saving') : submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '../shared/ui/dropdown-menu';
 import { ReminderRecord } from '../shared/types/reminder';
+import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
   client_id: '',
@@ -154,7 +155,7 @@ export function RemindersPage() {
       return `#${orderId}`;
     }
 
-    return `#${order.id} — ${order.title || 'order'}`;
+    return `#${order.id} — ${order.title || t('empty.orderTitle')}`;
   }
 
   function toggleColumn(column: keyof VisibleColumns) {
@@ -255,9 +256,9 @@ export function RemindersPage() {
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1.5">
-              <CardTitle>Reminders</CardTitle>
+              <CardTitle>{t('page.reminders')}</CardTitle>
               <CardDescription>
-                Scheduled reminders for your clients, loaded from the API and editable from one workspace.
+                {t('dialog.reminderCreateDescription')}
               </CardDescription>
             </div>
 
@@ -265,52 +266,52 @@ export function RemindersPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="secondary">
-                    Columns
+                    {t('common.columns')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.client}
                     onCheckedChange={() => toggleColumn('client')}
                   >
-                    Client
+                    {t('common.client')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.order}
                     onCheckedChange={() => toggleColumn('order')}
                   >
-                    Order
+                    {t('common.order')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.timestamp}
                     onCheckedChange={() => toggleColumn('timestamp')}
                   >
-                    Timestamp
+                    {t('common.timestamp')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.content}
                     onCheckedChange={() => toggleColumn('content')}
                   >
-                    Content
+                    {t('common.content')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.created_at}
                     onCheckedChange={() => toggleColumn('created_at')}
                   >
-                    Created at
+                    {t('common.createdAt')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.updated_at}
                     onCheckedChange={() => toggleColumn('updated_at')}
                   >
-                    Updated at
+                    {t('common.updatedAt')}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button onClick={openCreateDialog}>Create reminder</Button>
+              <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
               <ReminderDialog
                 clientField={{
                   mode: 'select',
@@ -320,15 +321,17 @@ export function RemindersPage() {
                     label: resolveClientLabel(client.id),
                   })),
                   disabled: clientsQuery.isLoading || clientOptions.length === 0,
-                  placeholder: clientsQuery.isLoading ? 'Loading clients...' : 'Select client',
+                  placeholder: clientsQuery.isLoading
+                    ? t('placeholder.loadingClients')
+                    : t('placeholder.selectClient'),
                   onChange: (value) =>
                     setForm((current) => ({ ...current, client_id: value })),
                 }}
                 content={form.content}
                 description={
                   editingReminder
-                    ? 'Update the selected reminder for the client.'
-                    : 'Create a new reminder for one of your clients.'
+                    ? t('dialog.reminderEditDescription')
+                    : t('dialog.reminderCreateDescription')
                 }
                 formId="create-reminder-form"
                 isPending={createReminder.isPending || updateReminder.isPending}
@@ -357,14 +360,18 @@ export function RemindersPage() {
                     label: resolveOrderLabel(Number(order.id)),
                   })),
                   disabled: ordersQuery.isLoading || !form.client_id,
-                  placeholder: 'No order',
-                  emptyLabel: 'No order',
+                  placeholder: t('placeholder.noOrder'),
+                  emptyLabel: t('placeholder.noOrder'),
                   onChange: (value) =>
                     setForm((current) => ({ ...current, order_id: value })),
                 }}
-                submitLabel={editingReminder ? 'Save changes' : 'Save reminder'}
+                submitLabel={t('actions.save')}
                 timestamp={form.timestamp}
-                title={editingReminder ? 'Edit reminder' : 'New reminder'}
+                title={
+                  editingReminder
+                    ? t('dialog.editReminderTitle')
+                    : t('dialog.newReminderTitle')
+                }
               />
 
               <Dialog
@@ -377,13 +384,13 @@ export function RemindersPage() {
               >
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Delete reminder</DialogTitle>
+                    <DialogTitle>{t('dialog.deleteReminderTitle')}</DialogTitle>
                     <DialogDescription>
                       {reminderToDelete
-                        ? `Reminder for "${resolveClientLabel(
-                            reminderToDelete.client_id,
-                          )}" will be permanently removed.`
-                        : 'Selected reminder will be deleted.'}
+                        ? t('dialog.reminderDeleteNamedDescription', undefined, {
+                            name: resolveClientLabel(reminderToDelete.client_id),
+                          })
+                        : t('dialog.reminderDeleteDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -394,7 +401,7 @@ export function RemindersPage() {
                       type="button"
                       variant="ghost"
                     >
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       className="bg-rose-600 text-white hover:bg-rose-700"
@@ -402,7 +409,7 @@ export function RemindersPage() {
                       onClick={() => void handleConfirmDelete()}
                       type="button"
                     >
-                      {deleteReminder.isPending ? 'Deleting...' : 'Delete'}
+                      {deleteReminder.isPending ? t('actions.deleting') : t('actions.delete')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -414,14 +421,14 @@ export function RemindersPage() {
         <CardContent>
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
-              {mutationError.message || 'Failed to save reminder changes.'}
+              {mutationError.message || t('feedback.reminderSaveFailed')}
             </p>
           ) : null}
 
           {remindersQuery.isLoading || clientsQuery.isLoading || ordersQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading reminders...</p>
+            <p className="text-sm text-muted-foreground">{t('placeholder.loadingReminders')}</p>
           ) : remindersQuery.isError ? (
-            <p className="text-sm text-rose-700">Failed to load reminders from the backend.</p>
+            <p className="text-sm text-rose-700">{t('feedback.remindersLoadFailed')}</p>
           ) : remindersQuery.data && remindersQuery.data.length > 0 ? (
             <RemindersDataTable
               onDeleteReminder={openDeleteDialog}
@@ -433,7 +440,7 @@ export function RemindersPage() {
             />
           ) : (
             <p className="text-sm text-muted-foreground">
-              No reminders returned by the backend yet.
+              {t('empty.reminders')}
             </p>
           )}
         </CardContent>

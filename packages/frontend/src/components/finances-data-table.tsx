@@ -15,6 +15,7 @@ import {
   TableRow,
 } from './ui/table';
 import { FinanceRecord } from '../shared/types/finance';
+import { t } from '../shared/lib/i18n';
 
 interface FinancesDataTableProps {
   records: FinanceRecord[];
@@ -102,12 +103,12 @@ export function FinancesDataTable({
     <Table>
       <TableHeader>
         <TableRow>
-          {visibleColumns.type ? <TableHead>Type</TableHead> : null}
-          {visibleColumns.client ? <TableHead>Client</TableHead> : null}
-          {visibleColumns.order ? <TableHead>Order</TableHead> : null}
-          {visibleColumns.value ? <TableHead>Value</TableHead> : null}
-          {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
-          {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
+          {visibleColumns.type ? <TableHead>{t('common.type')}</TableHead> : null}
+          {visibleColumns.client ? <TableHead>{t('common.client')}</TableHead> : null}
+          {visibleColumns.order ? <TableHead>{t('common.order')}</TableHead> : null}
+          {visibleColumns.value ? <TableHead>{t('common.value')}</TableHead> : null}
+          {visibleColumns.created_at ? <TableHead>{t('common.createdAt')}</TableHead> : null}
+          {visibleColumns.updated_at ? <TableHead>{t('common.updatedAt')}</TableHead> : null}
           <TableHead className="w-0" />
         </TableRow>
       </TableHeader>
@@ -117,7 +118,7 @@ export function FinancesDataTable({
             {visibleColumns.type ? (
               <TableCell>
                 <Badge variant="secondary" className="border-transparent bg-emerald-100 text-emerald-700">
-                  Paid
+                  {t('entity.paid')}
                 </Badge>
               </TableCell>
             ) : null}
@@ -157,14 +158,14 @@ export function FinancesDataTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="gap-2" onSelect={() => onEditRecord(record)}>
                     <EditIcon />
-                    <span>Изменить</span>
+                    <span>{t('actions.edit')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                     onSelect={() => onDeleteRecord(record)}
                   >
                     <TrashIcon />
-                    <span>Удалить</span>
+                    <span>{t('actions.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

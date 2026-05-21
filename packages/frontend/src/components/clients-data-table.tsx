@@ -1,4 +1,5 @@
 import { ClientRecord } from '../shared/types/client';
+import { t } from '../shared/lib/i18n';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import {
@@ -31,7 +32,9 @@ interface ClientsDataTableProps {
 }
 
 function formatClientStatus(status: ClientRecord['status']) {
-  return status === 'legal_entity' ? 'Юр лицо' : 'Физ лицо';
+  return status === 'legal_entity'
+    ? t('status.legalEntity')
+    : t('status.individual');
 }
 
 export function ClientsDataTable({
@@ -111,13 +114,13 @@ export function ClientsDataTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          {visibleColumns.status ? <TableHead>Status</TableHead> : null}
-          {visibleColumns.email ? <TableHead>Email</TableHead> : null}
-          {visibleColumns.phone_number ? <TableHead>Phone</TableHead> : null}
-          {visibleColumns.company ? <TableHead>Company</TableHead> : null}
-          {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
-          {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
+          <TableHead>{t('common.name')}</TableHead>
+          {visibleColumns.status ? <TableHead>{t('common.status')}</TableHead> : null}
+          {visibleColumns.email ? <TableHead>{t('common.email')}</TableHead> : null}
+          {visibleColumns.phone_number ? <TableHead>{t('common.phone')}</TableHead> : null}
+          {visibleColumns.company ? <TableHead>{t('common.company')}</TableHead> : null}
+          {visibleColumns.created_at ? <TableHead>{t('common.createdAt')}</TableHead> : null}
+          {visibleColumns.updated_at ? <TableHead>{t('common.updatedAt')}</TableHead> : null}
           <TableHead className="w-0" />
         </TableRow>
       </TableHeader>
@@ -165,14 +168,14 @@ export function ClientsDataTable({
                     onSelect={() => onEditClient(client)}
                   >
                     <EditIcon />
-                    <span>Изменить</span>
+                    <span>{t('actions.edit')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                     onSelect={() => onDeleteClient(client)}
                   >
                     <TrashIcon />
-                    <span>Удалить</span>
+                    <span>{t('actions.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

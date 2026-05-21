@@ -2,6 +2,7 @@ import { AbstractEventsLogItem } from '../../abstract-events-log-item';
 import { EventsLogAction } from '../../../events-log-actions';
 import { LogItemDescription } from '../../../../shared/ui/log-item';
 import { TaskEventRecord } from '../../../../shared/types/event';
+import { t } from '../../../../shared/lib/i18n';
 
 interface TaskEventsLogItemProps {
   event: TaskEventRecord;
@@ -15,7 +16,9 @@ interface TaskEventsLogItemProps {
 function describeTaskEvent(event: TaskEventRecord) {
   const trimmedContent = event.payload.content.trim();
 
-  return trimmedContent ? trimmedContent : `Task created for ${event.client_id}`;
+  return trimmedContent
+    ? trimmedContent
+    : t('event.taskFallback', undefined, { clientId: event.client_id });
 }
 
 
@@ -36,12 +39,12 @@ export function TaskEventsLogItem({
       event={event}
       title={
         event.payload.order_id 
-        ? ` for order #${event.payload.order_id}` 
+        ? ` ${t('common.order')} #${event.payload.order_id}` 
         : ''
       }
       compactTitle={
         event.payload.order_id 
-        ? `: Order #${event.payload.order_id}` 
+        ? `: ${t('common.order')} #${event.payload.order_id}` 
         : ''
       }
       type={event.type}
@@ -60,7 +63,7 @@ export function TaskEventsLogItem({
           <span>{describeTaskEvent(event)}</span>
         </span>
         {event.payload.deadline ? (
-          <p>Deadline {new Date(event.payload.deadline).toLocaleString()}</p>
+          <p>{t('event.deadline')} {new Date(event.payload.deadline).toLocaleString()}</p>
         ) : null}
       </LogItemDescription>
     </AbstractEventsLogItem>

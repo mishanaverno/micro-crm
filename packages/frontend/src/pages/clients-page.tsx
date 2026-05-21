@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from '../shared/ui/select';
 import { ClientRecord, ClientStatus } from '../shared/types/client';
+import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
   name: '',
@@ -191,54 +192,54 @@ export function ClientsPage() {
           <CardHeader>
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div className="space-y-1.5">
-                <CardTitle>Clients</CardTitle>
+                <CardTitle>{t('page.clients')}</CardTitle>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button type="button" variant="secondary">
-                      Columns
+                      {t('common.columns')}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.status}
                       onCheckedChange={() => toggleColumn('status')}
                     >
-                      Status
+                      {t('common.status')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.email}
                       onCheckedChange={() => toggleColumn('email')}
                     >
-                      Email
+                      {t('common.email')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.phone_number}
                       onCheckedChange={() => toggleColumn('phone_number')}
                     >
-                      Phone
+                      {t('common.phone')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.company}
                       onCheckedChange={() => toggleColumn('company')}
                     >
-                      Company
+                      {t('common.company')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.created_at}
                       onCheckedChange={() => toggleColumn('created_at')}
                     >
-                      Created at
+                      {t('common.createdAt')}
                     </DropdownMenuCheckboxItem>
                     <DropdownMenuCheckboxItem
                       checked={visibleColumns.updated_at}
                       onCheckedChange={() => toggleColumn('updated_at')}
                     >
-                      Updated at
+                      {t('common.updatedAt')}
                     </DropdownMenuCheckboxItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -250,18 +251,18 @@ export function ClientsPage() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>
-                        {editingClient ? 'Edit client' : 'New client'}
+                        {editingClient ? t('dialog.editClientTitle') : t('dialog.newClientTitle')}
                       </DialogTitle>
                       <DialogDescription>
                         {editingClient
-                          ? 'Update the client record and save the latest details.'
-                          : 'Create a client record. If the app is offline, the write will be queued and replayed later.'}
+                          ? t('dialog.clientEditDescription')
+                          : t('dialog.clientCreateDescription')}
                       </DialogDescription>
                     </DialogHeader>
 
                     <form className="grid gap-4" id="create-client-form" onSubmit={handleSubmit}>
                       <div className="grid gap-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">{t('common.name')}</Label>
                         <Input
                           id="name"
                           required
@@ -273,7 +274,7 @@ export function ClientsPage() {
                       </div>
 
                       <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t('common.email')}</Label>
                         <Input
                           id="email"
                           required
@@ -286,7 +287,7 @@ export function ClientsPage() {
                       </div>
 
                       <div className="grid gap-2">
-                        <Label htmlFor="phone_number">Phone</Label>
+                        <Label htmlFor="phone_number">{t('common.phone')}</Label>
                         <Input
                           id="phone_number"
                           value={form.phone_number}
@@ -297,7 +298,7 @@ export function ClientsPage() {
                       </div>
 
                       <div className="grid gap-2">
-                        <Label htmlFor="client-status">Status</Label>
+                        <Label htmlFor="client-status">{t('common.status')}</Label>
                         <Select
                           value={form.status}
                           onValueChange={(value) =>
@@ -308,17 +309,17 @@ export function ClientsPage() {
                           }
                         >
                           <SelectTrigger id="client-status">
-                            <SelectValue placeholder="Select status" />
+                            <SelectValue placeholder={t('placeholder.selectStatus')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="individual">Физ лицо</SelectItem>
-                            <SelectItem value="legal_entity">Юр лицо</SelectItem>
+                            <SelectItem value="individual">{t('status.individual')}</SelectItem>
+                            <SelectItem value="legal_entity">{t('status.legalEntity')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="grid gap-2">
-                        <Label htmlFor="company">Company</Label>
+                        <Label htmlFor="company">{t('common.company')}</Label>
                         <Input
                           id="company"
                           value={form.company}
@@ -335,7 +336,7 @@ export function ClientsPage() {
                         type="button"
                         variant="ghost"
                       >
-                        Cancel
+                        {t('actions.cancel')}
                       </Button>
                       <Button
                         disabled={createClient.isPending || updateClient.isPending}
@@ -343,10 +344,10 @@ export function ClientsPage() {
                         type="submit"
                       >
                         {createClient.isPending || updateClient.isPending
-                          ? 'Saving...'
+                          ? t('actions.saving')
                           : editingClient
-                            ? 'Save changes'
-                            : 'Save client'}
+                            ? t('actions.save')
+                            : t('actions.save')}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -362,11 +363,13 @@ export function ClientsPage() {
                 >
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Delete client</DialogTitle>
+                      <DialogTitle>{t('dialog.deleteClientTitle')}</DialogTitle>
                       <DialogDescription>
                         {clientToDelete
-                          ? `Client "${clientToDelete.name || clientToDelete.email || clientToDelete.id}" will be moved to deleted state and hidden from the default list.`
-                          : 'Selected client will be moved to deleted state.'}
+                          ? t('dialog.clientDeleteNamedDescription', undefined, {
+                              name: clientToDelete.name || clientToDelete.email || clientToDelete.id,
+                            })
+                          : t('dialog.clientDeleteDescription')}
                       </DialogDescription>
                     </DialogHeader>
 
@@ -377,7 +380,7 @@ export function ClientsPage() {
                         type="button"
                         variant="ghost"
                       >
-                        Cancel
+                        {t('actions.cancel')}
                       </Button>
                       <Button
                         className="bg-rose-600 text-white hover:bg-rose-700"
@@ -385,7 +388,7 @@ export function ClientsPage() {
                         onClick={() => void handleConfirmDelete()}
                         type="button"
                       >
-                        {deleteClient.isPending ? 'Deleting...' : 'Delete'}
+                        {deleteClient.isPending ? t('actions.deleting') : t('actions.delete')}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -395,10 +398,10 @@ export function ClientsPage() {
           </CardHeader>
           <CardContent>
             {clientsQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading clients...</p>
+              <p className="text-sm text-muted-foreground">{t('placeholder.loadingClients')}</p>
             ) : clientsQuery.isError ? (
               <p className="text-sm text-rose-700">
-                Failed to load clients from the backend.
+                {t('feedback.clientsLoadFailed')}
               </p>
             ) : clients.length > 0 ? (
               <>
@@ -421,7 +424,7 @@ export function ClientsPage() {
               </>
             ) : (
               <p className="text-sm text-muted-foreground">
-                No clients returned by the backend yet.
+                {t('empty.clients')}
               </p>
             )}
           </CardContent>

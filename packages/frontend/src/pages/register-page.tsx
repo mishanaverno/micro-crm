@@ -6,6 +6,7 @@ import { Button } from '../shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
+import { t } from '../shared/lib/i18n';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -32,9 +33,9 @@ export function RegisterPage() {
       navigate('/', { replace: true });
     } catch (error) {
       if (error instanceof HttpError) {
-        setErrorMessage(error.message || 'Unable to create account.');
+        setErrorMessage(error.message || t('auth.createAccountFailed'));
       } else {
-        setErrorMessage('Unable to create account right now. Please try again.');
+        setErrorMessage(t('auth.createAccountFailedRetry'));
       }
     } finally {
       setIsSubmitting(false);
@@ -45,16 +46,16 @@ export function RegisterPage() {
     <main className="flex min-h-screen items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary">Auth</p>
-          <CardTitle>Create account</CardTitle>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary">{t('auth.section')}</p>
+          <CardTitle>{t('auth.createAccountTitle')}</CardTitle>
           <CardDescription>
-            Register a new CRM user. Successful registration signs you in immediately.
+            {t('auth.createAccountDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid gap-2">
-              <Label htmlFor="first_name">First name</Label>
+              <Label htmlFor="first_name">{t('common.firstName')}</Label>
               <Input
                 id="first_name"
                 autoComplete="given-name"
@@ -65,7 +66,7 @@ export function RegisterPage() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="last_name">Last name</Label>
+              <Label htmlFor="last_name">{t('common.lastName')}</Label>
               <Input
                 id="last_name"
                 autoComplete="family-name"
@@ -76,7 +77,7 @@ export function RegisterPage() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t('common.email')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -88,7 +89,7 @@ export function RegisterPage() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('common.password')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -107,13 +108,13 @@ export function RegisterPage() {
             ) : null}
 
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? 'Creating account...' : 'Create account'}
+              {isSubmitting ? t('actions.creatingAccount') : t('actions.createAccount')}
             </Button>
 
             <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
+              {t('auth.hasAccount')}{' '}
               <Link className="font-medium text-primary hover:underline" to="/login">
-                Sign in
+                {t('actions.signIn')}
               </Link>
             </p>
           </form>

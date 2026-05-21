@@ -2,6 +2,7 @@ import { AbstractEventsLogItem } from '../../abstract-events-log-item';
 import { EventsLogAction } from '../../../events-log-actions';
 import { LogItemDescription } from '../../../../shared/ui/log-item';
 import { PaidEventRecord } from '../../../../shared/types/event';
+import { t } from '../../../../shared/lib/i18n';
 
 interface PaidEventsLogItemProps {
   event: PaidEventRecord;
@@ -35,12 +36,12 @@ export function PaidEventsLogItem({
       compact={compact}
       commonActions={commonActions}
       event={event}
-      compactTitle={`Paid: Order #${event.payload.order_id}`}
+      compactTitle={`${t('entity.paid')}: ${t('common.order')} #${event.payload.order_id}`}
       type={event.type}
       specificActions={specificActions}
-      title={`Paid ${event.type === 'paid_updated' ? 'updated' : event.type === 'paid_deleted' ? 'deleted' : 'recorded'}: ${formatValue(event.payload.value)}`}
+      title={`${event.type === 'paid_updated' ? t('event.paidUpdated') : event.type === 'paid_deleted' ? t('event.paidDeleted') : t('event.paidRecorded')}: ${formatValue(event.payload.value)}`}
     >
-      <LogItemDescription>{`Order #${event.payload.order_id}`}</LogItemDescription>
+      <LogItemDescription>{`${t('common.order')} #${event.payload.order_id}`}</LogItemDescription>
     </AbstractEventsLogItem>
   );
 }

@@ -1,4 +1,5 @@
 import { Badge } from '../shared/ui/badge';
+import { t } from '../shared/lib/i18n';
 import { OrderStatus } from '../shared/types/order';
 import { TaskStatus } from '../shared/types/task';
 
@@ -7,10 +8,20 @@ interface StatusBadgeProps {
 }
 function StatusLabel({ status }: { status: OrderStatus | TaskStatus }) {
   switch (status) {
+    case 'complete':
+      return t('status.complete');
+    case 'created':
+      return t('status.created');
+    case 'done':
+      return t('status.done');
+    case 'inprogress':
+      return t('status.inProgress');
+    case 'pending':
+      return t('status.pending');
+    case 'reopened':
+      return t('status.reopened');
     default:
-      return (
-        status.trim()
-      )
+      return String(status).trim();
   }
 }
 

@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../shared/ui/select';
+import { t } from '../shared/lib/i18n';
 
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50];
 
@@ -78,12 +79,16 @@ export function TablePagination({
   return (
     <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
       <div>
-        Showing {startItem}-{endItem} of {totalItems}
+        {t('pagination.showing', undefined, {
+          start: startItem,
+          end: endItem,
+          total: totalItems,
+        })}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
-          <span>Rows</span>
+          <span>{t('common.rows')}</span>
           <Select
             value={String(pageSize)}
             onValueChange={(value) => onPageSizeChange(Number(value))}
@@ -102,7 +107,10 @@ export function TablePagination({
         </div>
 
         <span>
-          Page {safePage} of {pageCount}
+          {t('pagination.pageOf', undefined, {
+            page: safePage,
+            pageCount,
+          })}
         </span>
 
         <div className="flex items-center gap-2">
@@ -113,7 +121,7 @@ export function TablePagination({
             type="button"
             variant="outline"
           >
-            Previous
+            {t('common.previous')}
           </Button>
           <Button
             className="h-9 px-3"
@@ -122,7 +130,7 @@ export function TablePagination({
             type="button"
             variant="outline"
           >
-            Next
+            {t('common.next')}
           </Button>
         </div>
       </div>

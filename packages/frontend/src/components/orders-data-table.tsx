@@ -1,4 +1,5 @@
 import { OrderRecord } from '../shared/types/order';
+import { t } from '../shared/lib/i18n';
 import { StatusBadge } from './status-badges';
 import { Button } from './ui/button';
 import {
@@ -101,14 +102,14 @@ export function OrdersDataTable({
     <Table>
       <TableHeader>
         <TableRow>
-          {visibleColumns.id ? <TableHead>Order ID</TableHead> : null}
-          {visibleColumns.client ? <TableHead>Client</TableHead> : null}
-          {visibleColumns.status ? <TableHead>Status</TableHead> : null}
-          {visibleColumns.title ? <TableHead>Title</TableHead> : null}
-          <TableHead>Content</TableHead>
-          {visibleColumns.price ? <TableHead>Price</TableHead> : null}
-          {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
-          {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
+          {visibleColumns.id ? <TableHead>{t('common.orderId')}</TableHead> : null}
+          {visibleColumns.client ? <TableHead>{t('common.client')}</TableHead> : null}
+          {visibleColumns.status ? <TableHead>{t('common.status')}</TableHead> : null}
+          {visibleColumns.title ? <TableHead>{t('common.title')}</TableHead> : null}
+          <TableHead>{t('common.content')}</TableHead>
+          {visibleColumns.price ? <TableHead>{t('common.price')}</TableHead> : null}
+          {visibleColumns.created_at ? <TableHead>{t('common.createdAt')}</TableHead> : null}
+          {visibleColumns.updated_at ? <TableHead>{t('common.updatedAt')}</TableHead> : null}
           <TableHead className="w-0" />
         </TableRow>
       </TableHeader>
@@ -126,7 +127,7 @@ export function OrdersDataTable({
                 <StatusBadge status={order.status} />
               </TableCell>
             ) : null}
-            {visibleColumns.title ? <TableCell>{order.title || 'order'}</TableCell> : null}
+            {visibleColumns.title ? <TableCell>{order.title || t('empty.orderTitle')}</TableCell> : null}
             <TableCell className="max-w-[420px] text-muted-foreground">
               <span className="line-clamp-2">{order.content}</span>
             </TableCell>
@@ -152,14 +153,14 @@ export function OrdersDataTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="gap-2" onSelect={() => onEditOrder(order)}>
                     <EditIcon />
-                    <span>Изменить</span>
+                    <span>{t('actions.edit')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                     onSelect={() => onDeleteOrder(order)}
                   >
                     <TrashIcon />
-                    <span>Удалить</span>
+                    <span>{t('actions.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -7,6 +7,7 @@ import { useReminders } from '../features/reminders/use-reminders';
 import { useTasks } from '../features/tasks/use-tasks';
 import { StatusBadge } from '../components/status-badges';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { t } from '../shared/lib/i18n';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('ru-RU', {
@@ -65,7 +66,7 @@ function MetricCard({
             <p className="text-3xl font-semibold tracking-tight">
               {isLoading ? '...' : value}
             </p>
-            <p className="text-sm text-muted-foreground">{isLoading ? 'Loading...' : helper}</p>
+            <p className="text-sm text-muted-foreground">{isLoading ? t('common.loading') : helper}</p>
           </>
         )}
       </CardContent>
@@ -107,7 +108,7 @@ function ListCard({
         {error ? (
           <p className="text-sm text-destructive">{error}</p>
         ) : isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
         ) : items.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyText}</p>
         ) : (
@@ -186,7 +187,7 @@ export function DashboardPage() {
         .map((order) => ({
           key: String(order.id),
           description: clientLabels.get(order.client_id) ?? order.client_id,
-          label: `#${order.id} — ${order.title || 'order'}`,
+          label: `#${order.id} — ${order.title || t('empty.orderTitle')}`,
           trailing: <StatusBadge status={order.status} />,
         })),
     [clientLabels, ordersQuery.data],
@@ -262,40 +263,40 @@ export function DashboardPage() {
   return (
     <main className="grid gap-4 md:grid-cols-2">
       <MetricCard
-        description="This month paid amounts."
+        description={t('dashboard.monthIncomeDescription')}
         error={
           paidsQuery.error instanceof Error
             ? paidsQuery.error.message
             : null
         }
-        helper="Calculated from finance records created this month."
+        helper={t('dashboard.monthIncomeHelper')}
         isLoading={paidsQuery.isLoading}
-        title="Month income"
+        title={t('dashboard.monthIncome')}
         value={formatCurrency(monthIncome)}
       />
       <ListCard
-        description="Orders that still require work."
+        description={t('dashboard.openOrdersDescription')}
         error={ordersQuery.error instanceof Error ? ordersQuery.error.message : null}
-        emptyText="No open orders."
+        emptyText={t('empty.openOrders')}
         isLoading={ordersQuery.isLoading}
         items={openOrders}
-        title="Open orders"
+        title={t('dashboard.openOrders')}
       />
       <ListCard
-        description="Reminders that are already due."
+        description={t('dashboard.incomingRemindersDescription')}
         error={remindersQuery.error instanceof Error ? remindersQuery.error.message : null}
-        emptyText="No incoming reminders."
+        emptyText={t('empty.incomingReminders')}
         isLoading={remindersQuery.isLoading}
         items={incomingReminders}
-        title="Incoming reminders"
+        title={t('dashboard.incomingReminders')}
       />
       <ListCard
-        description="Tasks that are not completed yet."
+        description={t('dashboard.incompleteTasksDescription')}
         error={tasksQuery.error instanceof Error ? tasksQuery.error.message : null}
-        emptyText="No incomplete tasks."
+        emptyText={t('empty.incompleteTasks')}
         isLoading={tasksQuery.isLoading}
         items={incompleteTasks}
-        title="Incomplete tasks"
+        title={t('dashboard.incompleteTasks')}
       />
     </main>
   );

@@ -36,6 +36,7 @@ import {
 } from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
 import { OrderRecord, OrderStatus } from '../shared/types/order';
+import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
   client_id: '',
@@ -214,12 +215,12 @@ export function OrdersPage() {
     event.preventDefault();
 
     if (!form.client_id) {
-      setFormError('Select a client before saving the order.');
+      setFormError(t('form.clientRequiredForOrder'));
       return;
     }
 
     if (!form.price || Number.isNaN(Number(form.price))) {
-      setFormError('Enter a valid order price.');
+      setFormError(t('form.invalidOrderPrice'));
       return;
     }
 
@@ -253,81 +254,83 @@ export function OrdersPage() {
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1.5">
-              <CardTitle>Orders</CardTitle>
+              <CardTitle>{t('page.orders')}</CardTitle>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="secondary">
-                    Columns
+                    {t('common.columns')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.id}
                     onCheckedChange={() => toggleColumn('id')}
                   >
-                    Order ID
+                    {t('common.orderId')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.client}
                     onCheckedChange={() => toggleColumn('client')}
                   >
-                    Client
+                    {t('common.client')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.title}
                     onCheckedChange={() => toggleColumn('title')}
                   >
-                    Title
+                    {t('common.title')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.price}
                     onCheckedChange={() => toggleColumn('price')}
                   >
-                    Price
+                    {t('common.price')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.status}
                     onCheckedChange={() => toggleColumn('status')}
                   >
-                    Status
+                    {t('common.status')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.created_at}
                     onCheckedChange={() => toggleColumn('created_at')}
                   >
-                    Created at
+                    {t('common.createdAt')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.updated_at}
                     onCheckedChange={() => toggleColumn('updated_at')}
                   >
-                    Updated at
+                    {t('common.updatedAt')}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={openCreateDialog}>Create order</Button>
+                  <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>{editingOrder ? 'Edit order' : 'New order'}</DialogTitle>
+                    <DialogTitle>
+                      {editingOrder ? t('dialog.editOrderTitle') : t('dialog.newOrderTitle')}
+                    </DialogTitle>
                     <DialogDescription>
                       {editingOrder
-                        ? 'Update the selected order for the client.'
-                        : 'Create a new order for one of your clients.'}
+                        ? t('dialog.orderEditDescription')
+                        : t('dialog.orderCreateDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
                   <form className="grid gap-4" id="create-order-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
-                      <Label htmlFor="client_id">Client</Label>
+                      <Label htmlFor="client_id">{t('common.client')}</Label>
                       <Select
                         disabled={
                           Boolean(editingOrder) ||
@@ -342,7 +345,9 @@ export function OrdersPage() {
                         <SelectTrigger id="client_id">
                           <SelectValue
                             placeholder={
-                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                              clientsQuery.isLoading
+                                ? t('placeholder.loadingClients')
+                                : t('placeholder.selectClient')
                             }
                           />
                         </SelectTrigger>
@@ -357,7 +362,7 @@ export function OrdersPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="title">Title</Label>
+                      <Label htmlFor="title">{t('common.title')}</Label>
                       <Input
                         id="title"
                         value={form.title}
@@ -368,7 +373,7 @@ export function OrdersPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="price">Price</Label>
+                      <Label htmlFor="price">{t('common.price')}</Label>
                       <Input
                         id="price"
                         min="0"
@@ -383,7 +388,7 @@ export function OrdersPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="status">Status</Label>
+                      <Label htmlFor="status">{t('common.status')}</Label>
                       <Select
                         value={form.status}
                         onValueChange={(value) =>
@@ -394,18 +399,18 @@ export function OrdersPage() {
                         }
                       >
                         <SelectTrigger id="status">
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder={t('placeholder.selectStatus')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="created">created</SelectItem>
-                          <SelectItem value="inprogress">inprogress</SelectItem>
-                          <SelectItem value="done">done</SelectItem>
+                          <SelectItem value="created">{t('status.created')}</SelectItem>
+                          <SelectItem value="inprogress">{t('status.inProgress')}</SelectItem>
+                          <SelectItem value="done">{t('status.done')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="content">Content</Label>
+                      <Label htmlFor="content">{t('common.content')}</Label>
                       <Textarea
                         id="content"
                         required
@@ -419,7 +424,7 @@ export function OrdersPage() {
 
                   <DialogFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       disabled={
@@ -432,10 +437,10 @@ export function OrdersPage() {
                       type="submit"
                     >
                       {createOrder.isPending || updateOrder.isPending
-                        ? 'Saving...'
+                        ? t('actions.saving')
                         : editingOrder
-                          ? 'Save changes'
-                          : 'Save order'}
+                          ? t('actions.save')
+                          : t('actions.save')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -451,13 +456,13 @@ export function OrdersPage() {
               >
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Delete order</DialogTitle>
+                    <DialogTitle>{t('dialog.deleteOrderTitle')}</DialogTitle>
                     <DialogDescription>
                       {orderToDelete
-                        ? `Order for "${resolveClientLabel(
-                            orderToDelete.client_id,
-                          )}" will be removed.`
-                        : 'Selected order will be deleted.'}
+                        ? t('dialog.orderDeleteNamedDescription', undefined, {
+                            name: resolveClientLabel(orderToDelete.client_id),
+                          })
+                        : t('dialog.orderDeleteDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -468,7 +473,7 @@ export function OrdersPage() {
                       type="button"
                       variant="ghost"
                     >
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       className="bg-rose-600 text-white hover:bg-rose-700"
@@ -476,7 +481,7 @@ export function OrdersPage() {
                       onClick={() => void handleConfirmDelete()}
                       type="button"
                     >
-                      {deleteOrder.isPending ? 'Deleting...' : 'Delete'}
+                      {deleteOrder.isPending ? t('actions.deleting') : t('actions.delete')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -492,14 +497,14 @@ export function OrdersPage() {
 
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
-              {mutationError.message || 'Failed to save order changes.'}
+              {mutationError.message || t('feedback.orderSaveFailed')}
             </p>
           ) : null}
 
           {ordersQuery.isLoading || clientsQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading orders...</p>
+            <p className="text-sm text-muted-foreground">{t('placeholder.loadingOrders')}</p>
           ) : ordersQuery.isError ? (
-            <p className="text-sm text-rose-700">Failed to load orders from the backend.</p>
+            <p className="text-sm text-rose-700">{t('feedback.ordersLoadFailed')}</p>
           ) : orders.length > 0 ? (
             <>
               <OrdersDataTable
@@ -522,7 +527,7 @@ export function OrdersPage() {
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No orders returned by the backend yet.
+              {t('empty.orders')}
             </p>
           )}
         </CardContent>

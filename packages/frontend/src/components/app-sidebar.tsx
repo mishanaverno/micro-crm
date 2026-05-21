@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '@/features/auth/auth-provider';
 import { Button } from '@/components/ui/button';
 import { useNetworkStatus } from '@/shared/lib/network';
+import { t, type TranslationKey } from '@/shared/lib/i18n';
 import { useOutboxStats } from '@/shared/offline/use-outbox-stats';
 import {
   Sidebar,
@@ -21,47 +22,52 @@ import { SidebarIcon } from '@/components/sidebar-icon';
 const navigation = [
   {
     to: '/',
-    label: 'dashboard',
+    labelKey: 'page.dashboard',
     icon: '/sidebar-icons/dashboard.svg',
     fallbackIcon: '⌂',
   },
   {
     to: '/clients',
-    label: 'clients',
+    labelKey: 'page.clients',
     icon: '/sidebar-icons/clients.svg',
     fallbackIcon: '◫',
   },
   {
     to: '/notes',
-    label: 'notes',
+    labelKey: 'page.notes',
     icon: '/sidebar-icons/notes.svg',
     fallbackIcon: '✎',
   },
   {
     to: '/tasks',
-    label: 'tasks',
+    labelKey: 'page.tasks',
     icon: '/sidebar-icons/tasks.svg',
     fallbackIcon: '☑',
   },
   {
     to: '/reminders',
-    label: 'reminders',
+    labelKey: 'page.reminders',
     icon: '/sidebar-icons/reminders.svg',
     fallbackIcon: '⏰',
   },
   {
     to: '/orders',
-    label: 'orders',
+    labelKey: 'page.orders',
     icon: '/sidebar-icons/orders.svg',
     fallbackIcon: '▣',
   },
   {
     to: '/finances',
-    label: 'finances',
+    labelKey: 'page.finances',
     icon: '/sidebar-icons/finances.svg',
     fallbackIcon: '₽',
   },
-];
+] satisfies Array<{
+  to: string;
+  labelKey: TranslationKey;
+  icon: string;
+  fallbackIcon: string;
+}>;
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
@@ -78,7 +84,7 @@ export function AppSidebar() {
           </div>
           {open ? (
             <div>
-              <p className="text-sm font-semibold">Под рукой</p>
+              <p className="text-sm font-semibold">{t('sidebar.appName')}</p>
             </div>
           ) : null}
           <SidebarTrigger />
@@ -111,10 +117,10 @@ export function AppSidebar() {
                               isActive ? 'opacity-70' : '',
                             ].join(' ')}
                             fallback={item.fallbackIcon}
-                            label={item.label}
+                            label={t(item.labelKey)}
                             src={item.icon}
                           />
-                          {open ? <span>{item.label}</span> : null}
+                          {open ? <span>{t(item.labelKey)}</span> : null}
                         </span>
                       )}
                     </NavLink>
@@ -131,7 +137,7 @@ export function AppSidebar() {
           {open ? (
             <>
               <p className="text-sm font-medium">
-                {user ? `${user.first_name} ${user.last_name}` : 'Signed in'}
+                {user ? `${user.first_name} ${user.last_name}` : t('common.signedIn')}
               </p>
               <p className="mt-1 text-xs text-sidebar-foreground/60">{user?.email}</p>
               <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-medium">
@@ -143,13 +149,13 @@ export function AppSidebar() {
                       : 'bg-muted text-foreground',
                   ].join(' ')}
                 >
-                  {isOnline ? 'network: online' : 'network: offline'}
+                  {isOnline ? t('sidebar.networkOnline') : t('sidebar.networkOffline')}
                 </span>
                 <span className="rounded-full border border-border bg-background px-2.5 py-1 text-foreground/80">
-                  outbox: {stats?.pending_count ?? 0}
+                  {t('sidebar.outboxStatus', undefined, { count: stats?.pending_count ?? 0 })}
                 </span>
                 <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-foreground/80">
-                  failed: {stats?.failed_count ?? 0}
+                  {t('sidebar.failedStatus', undefined, { count: stats?.failed_count ?? 0 })}
                 </span>
               </div>
               <Button
@@ -158,7 +164,7 @@ export function AppSidebar() {
                 size="default"
                 variant="secondary"
               >
-                Log out
+                {t('actions.logOut')}
               </Button>
             </>
           ) : (
@@ -168,11 +174,15 @@ export function AppSidebar() {
                   'h-2.5 w-2.5 rounded-full',
                   isOnline ? 'bg-foreground' : 'bg-muted-foreground',
                 ].join(' ')}
-                title={isOnline ? 'network: online' : 'network: offline'}
+                title={isOnline ? t('sidebar.networkOnline') : t('sidebar.networkOffline')}
               />
               <div
                 className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground/80"
-                title={`outbox: ${stats?.pending_count ?? 0}, failed: ${stats?.failed_count ?? 0}`}
+                title={`${t('sidebar.outboxStatus', undefined, { count: stats?.pending_count ?? 0 })}, ${t(
+                  'sidebar.failedStatus',
+                  undefined,
+                  { count: stats?.failed_count ?? 0 },
+                )}`}
               >
                 {stats?.pending_count ?? 0}/{stats?.failed_count ?? 0}
               </div>

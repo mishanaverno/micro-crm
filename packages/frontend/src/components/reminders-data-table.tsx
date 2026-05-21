@@ -1,4 +1,5 @@
 import { ReminderRecord } from '../shared/types/reminder';
+import { t } from '../shared/lib/i18n';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -93,12 +94,12 @@ export function RemindersDataTable({
     <Table>
       <TableHeader>
         <TableRow>
-          {visibleColumns.client ? <TableHead>Client</TableHead> : null}
-          {visibleColumns.order ? <TableHead>Order</TableHead> : null}
-          {visibleColumns.timestamp ? <TableHead>Timestamp</TableHead> : null}
-          {visibleColumns.content ? <TableHead>Content</TableHead> : null}
-          {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
-          {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
+          {visibleColumns.client ? <TableHead>{t('common.client')}</TableHead> : null}
+          {visibleColumns.order ? <TableHead>{t('common.order')}</TableHead> : null}
+          {visibleColumns.timestamp ? <TableHead>{t('common.timestamp')}</TableHead> : null}
+          {visibleColumns.content ? <TableHead>{t('common.content')}</TableHead> : null}
+          {visibleColumns.created_at ? <TableHead>{t('common.createdAt')}</TableHead> : null}
+          {visibleColumns.updated_at ? <TableHead>{t('common.updatedAt')}</TableHead> : null}
           <TableHead className="w-0" />
         </TableRow>
       </TableHeader>
@@ -144,14 +145,14 @@ export function RemindersDataTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="gap-2" onSelect={() => onEditReminder(reminder)}>
                     <EditIcon />
-                    <span>Изменить</span>
+                    <span>{t('actions.edit')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                     onSelect={() => onDeleteReminder(reminder)}
                   >
                     <TrashIcon />
-                    <span>Удалить</span>
+                    <span>{t('actions.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

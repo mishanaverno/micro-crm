@@ -1,4 +1,5 @@
 import { TaskRecord } from '../shared/types/task';
+import { t } from '../shared/lib/i18n';
 import { StatusBadge } from './status-badges';
 import { Button } from './ui/button';
 import {
@@ -95,13 +96,13 @@ export function TasksDataTable({
     <Table>
       <TableHeader>
         <TableRow>
-          {visibleColumns.client ? <TableHead>Client</TableHead> : null}
-          {visibleColumns.order ? <TableHead>Order</TableHead> : null}
-          {visibleColumns.status ? <TableHead>Status</TableHead> : null}
-          {visibleColumns.deadline ? <TableHead>Deadline</TableHead> : null}
-          {visibleColumns.content ? <TableHead>Content</TableHead> : null}
-          {visibleColumns.created_at ? <TableHead>Created at</TableHead> : null}
-          {visibleColumns.updated_at ? <TableHead>Updated at</TableHead> : null}
+          {visibleColumns.client ? <TableHead>{t('common.client')}</TableHead> : null}
+          {visibleColumns.order ? <TableHead>{t('common.order')}</TableHead> : null}
+          {visibleColumns.status ? <TableHead>{t('common.status')}</TableHead> : null}
+          {visibleColumns.deadline ? <TableHead>{t('common.deadline')}</TableHead> : null}
+          {visibleColumns.content ? <TableHead>{t('common.content')}</TableHead> : null}
+          {visibleColumns.created_at ? <TableHead>{t('common.createdAt')}</TableHead> : null}
+          {visibleColumns.updated_at ? <TableHead>{t('common.updatedAt')}</TableHead> : null}
           <TableHead className="w-0" />
         </TableRow>
       </TableHeader>
@@ -148,14 +149,14 @@ export function TasksDataTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem className="gap-2" onSelect={() => onEditTask(task)}>
                     <EditIcon />
-                    <span>Изменить</span>
+                    <span>{t('actions.edit')}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
                     onSelect={() => onDeleteTask(task)}
                   >
                     <TrashIcon />
-                    <span>Удалить</span>
+                    <span>{t('actions.delete')}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

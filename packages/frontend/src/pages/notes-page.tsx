@@ -36,6 +36,7 @@ import {
 } from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
 import { NoteRecord } from '../shared/types/note';
+import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
   client_id: '',
@@ -169,7 +170,7 @@ export function NotesPage() {
       return `#${orderId}`;
     }
 
-    return `#${order.id} — ${order.title || 'order'}`;
+    return `#${order.id} — ${order.title || t('empty.orderTitle')}`;
   }
 
   function toggleColumn(column: keyof VisibleColumns) {
@@ -262,9 +263,9 @@ export function NotesPage() {
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1.5">
-              <CardTitle>Notes</CardTitle>
+              <CardTitle>{t('page.notes')}</CardTitle>
               <CardDescription>
-                Private notes for your clients, loaded from the API and editable from one workspace.
+                {t('dialog.noteCreateDescription')}
               </CardDescription>
             </div>
 
@@ -272,62 +273,64 @@ export function NotesPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="secondary">
-                    Columns
+                    {t('common.columns')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.client}
                     onCheckedChange={() => toggleColumn('client')}
                   >
-                    Client
+                    {t('common.client')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.order}
                     onCheckedChange={() => toggleColumn('order')}
                   >
-                    Order
+                    {t('common.order')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.content}
                     onCheckedChange={() => toggleColumn('content')}
                   >
-                    Content
+                    {t('common.content')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.created_at}
                     onCheckedChange={() => toggleColumn('created_at')}
                   >
-                    Created at
+                    {t('common.createdAt')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.updated_at}
                     onCheckedChange={() => toggleColumn('updated_at')}
                   >
-                    Updated at
+                    {t('common.updatedAt')}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={openCreateDialog}>Create note</Button>
+                  <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>{editingNote ? 'Edit note' : 'New note'}</DialogTitle>
+                    <DialogTitle>
+                      {editingNote ? t('dialog.editNoteTitle') : t('dialog.newNoteTitle')}
+                    </DialogTitle>
                     <DialogDescription>
                       {editingNote
-                        ? 'Update the selected note for the client.'
-                        : 'Create a new note for one of your clients.'}
+                        ? t('dialog.noteEditDescription')
+                        : t('dialog.noteCreateDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
                   <form className="grid gap-4" id="create-note-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
-                      <Label htmlFor="client_id">Client</Label>
+                      <Label htmlFor="client_id">{t('common.client')}</Label>
                       <Select
                         disabled={clientsQuery.isLoading || clientOptions.length === 0}
                         value={form.client_id || undefined}
@@ -338,7 +341,9 @@ export function NotesPage() {
                         <SelectTrigger id="client_id">
                           <SelectValue
                             placeholder={
-                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                              clientsQuery.isLoading
+                                ? t('placeholder.loadingClients')
+                                : t('placeholder.selectClient')
                             }
                           />
                         </SelectTrigger>
@@ -353,7 +358,7 @@ export function NotesPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="order_id">Order</Label>
+                      <Label htmlFor="order_id">{t('common.order')}</Label>
                       <Select
                         disabled={ordersQuery.isLoading || !form.client_id}
                         value={form.order_id || '__none__'}
@@ -365,10 +370,10 @@ export function NotesPage() {
                         }
                       >
                         <SelectTrigger id="order_id">
-                          <SelectValue placeholder="No order" />
+                          <SelectValue placeholder={t('placeholder.noOrder')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">No order</SelectItem>
+                          <SelectItem value="__none__">{t('placeholder.noOrder')}</SelectItem>
                           {orderOptions.map((order) => (
                             <SelectItem key={order.id} value={String(order.id)}>
                               {resolveOrderLabel(Number(order.id))}
@@ -379,7 +384,7 @@ export function NotesPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="content">Content</Label>
+                      <Label htmlFor="content">{t('common.content')}</Label>
                       <Textarea
                         id="content"
                         required
@@ -393,7 +398,7 @@ export function NotesPage() {
 
                   <DialogFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       disabled={
@@ -406,10 +411,10 @@ export function NotesPage() {
                       type="submit"
                     >
                       {createNote.isPending || updateNote.isPending
-                        ? 'Saving...'
+                        ? t('actions.saving')
                         : editingNote
-                          ? 'Save changes'
-                          : 'Save note'}
+                          ? t('actions.save')
+                          : t('actions.save')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -425,13 +430,13 @@ export function NotesPage() {
               >
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Delete note</DialogTitle>
+                    <DialogTitle>{t('dialog.deleteNoteTitle')}</DialogTitle>
                     <DialogDescription>
                       {noteToDelete
-                        ? `Note for "${resolveClientLabel(
-                            noteToDelete.client_id,
-                          )}" will be permanently removed.`
-                        : 'Selected note will be deleted.'}
+                        ? t('dialog.noteDeleteNamedDescription', undefined, {
+                            name: resolveClientLabel(noteToDelete.client_id),
+                          })
+                        : t('dialog.noteDeleteDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -442,7 +447,7 @@ export function NotesPage() {
                       type="button"
                       variant="ghost"
                     >
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       className="bg-rose-600 text-white hover:bg-rose-700"
@@ -450,7 +455,7 @@ export function NotesPage() {
                       onClick={() => void handleConfirmDelete()}
                       type="button"
                     >
-                      {deleteNote.isPending ? 'Deleting...' : 'Delete'}
+                      {deleteNote.isPending ? t('actions.deleting') : t('actions.delete')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -462,14 +467,14 @@ export function NotesPage() {
         <CardContent>
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
-              {mutationError.message || 'Failed to save note changes.'}
+              {mutationError.message || t('feedback.noteSaveFailed')}
             </p>
           ) : null}
 
           {notesQuery.isLoading || clientsQuery.isLoading || ordersQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading notes...</p>
+            <p className="text-sm text-muted-foreground">{t('placeholder.loadingNotes')}</p>
           ) : notesQuery.isError ? (
-            <p className="text-sm text-rose-700">Failed to load notes from the backend.</p>
+            <p className="text-sm text-rose-700">{t('feedback.notesLoadFailed')}</p>
           ) : notes.length > 0 ? (
             <>
               <NotesDataTable
@@ -493,7 +498,7 @@ export function NotesPage() {
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No notes returned by the backend yet.
+              {t('empty.notes')}
             </p>
           )}
         </CardContent>

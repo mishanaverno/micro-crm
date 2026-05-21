@@ -42,6 +42,7 @@ import {
 } from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
 import { TaskRecord, TaskStatus } from '../shared/types/task';
+import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
   client_id: '',
@@ -179,7 +180,7 @@ export function TasksPage() {
       return `#${orderId}`;
     }
 
-    return `#${order.id} — ${order.title || 'order'}`;
+    return `#${order.id} — ${order.title || t('empty.orderTitle')}`;
   }
 
   function toggleColumn(column: keyof VisibleColumns) {
@@ -280,9 +281,9 @@ export function TasksPage() {
         <CardHeader>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="space-y-1.5">
-              <CardTitle>Tasks</CardTitle>
+              <CardTitle>{t('page.tasks')}</CardTitle>
               <CardDescription>
-                Action items for your clients, loaded from the API and editable from one workspace.
+                {t('dialog.taskCreateDescription')}
               </CardDescription>
             </div>
 
@@ -290,74 +291,76 @@ export function TasksPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button type="button" variant="secondary">
-                    Columns
+                    {t('common.columns')}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.client}
                     onCheckedChange={() => toggleColumn('client')}
                   >
-                    Client
+                    {t('common.client')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.order}
                     onCheckedChange={() => toggleColumn('order')}
                   >
-                    Order
+                    {t('common.order')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.status}
                     onCheckedChange={() => toggleColumn('status')}
                   >
-                    Status
+                    {t('common.status')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.deadline}
                     onCheckedChange={() => toggleColumn('deadline')}
                   >
-                    Deadline
+                    {t('common.deadline')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.content}
                     onCheckedChange={() => toggleColumn('content')}
                   >
-                    Content
+                    {t('common.content')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.created_at}
                     onCheckedChange={() => toggleColumn('created_at')}
                   >
-                    Created at
+                    {t('common.createdAt')}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={visibleColumns.updated_at}
                     onCheckedChange={() => toggleColumn('updated_at')}
                   >
-                    Updated at
+                    {t('common.updatedAt')}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={openCreateDialog}>Create task</Button>
+                  <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>{editingTask ? 'Edit task' : 'New task'}</DialogTitle>
+                    <DialogTitle>
+                      {editingTask ? t('dialog.editTaskTitle') : t('dialog.newTaskTitle')}
+                    </DialogTitle>
                     <DialogDescription>
                       {editingTask
-                        ? 'Update the selected task for the client.'
-                        : 'Create a new task for one of your clients.'}
+                        ? t('dialog.taskEditDescription')
+                        : t('dialog.taskCreateDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
                   <form className="grid gap-4" id="create-task-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
-                      <Label htmlFor="client_id">Client</Label>
+                      <Label htmlFor="client_id">{t('common.client')}</Label>
                       <Select
                         disabled={clientsQuery.isLoading || clientOptions.length === 0}
                         value={form.client_id || undefined}
@@ -368,7 +371,9 @@ export function TasksPage() {
                         <SelectTrigger id="client_id">
                           <SelectValue
                             placeholder={
-                              clientsQuery.isLoading ? 'Loading clients...' : 'Select client'
+                              clientsQuery.isLoading
+                                ? t('placeholder.loadingClients')
+                                : t('placeholder.selectClient')
                             }
                           />
                         </SelectTrigger>
@@ -383,7 +388,7 @@ export function TasksPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="order_id">Order</Label>
+                      <Label htmlFor="order_id">{t('common.order')}</Label>
                       <Select
                         disabled={ordersQuery.isLoading || !form.client_id}
                         value={form.order_id || '__none__'}
@@ -395,10 +400,10 @@ export function TasksPage() {
                         }
                       >
                         <SelectTrigger id="order_id">
-                          <SelectValue placeholder="No order" />
+                          <SelectValue placeholder={t('placeholder.noOrder')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">No order</SelectItem>
+                          <SelectItem value="__none__">{t('placeholder.noOrder')}</SelectItem>
                           {orderOptions.map((order) => (
                             <SelectItem key={order.id} value={String(order.id)}>
                               {resolveOrderLabel(Number(order.id))}
@@ -409,7 +414,7 @@ export function TasksPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="status">Status</Label>
+                      <Label htmlFor="status">{t('common.status')}</Label>
                       <Select
                         value={form.status}
                         onValueChange={(value) =>
@@ -420,11 +425,11 @@ export function TasksPage() {
                         }
                       >
                         <SelectTrigger id="status">
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder={t('placeholder.selectStatus')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="complete">Complete</SelectItem>
+                          <SelectItem value="pending">{t('status.pending')}</SelectItem>
+                          <SelectItem value="complete">{t('status.complete')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -432,8 +437,8 @@ export function TasksPage() {
                     <div className="grid gap-2">
                       <ReminderDateTimeField
                         idPrefix="task-deadline"
-                        label="Deadline"
-                        placeholder="No deadline"
+                        label={t('common.deadline')}
+                        placeholder={t('placeholder.noDeadline')}
                         value={form.deadline}
                         onChange={(deadline) =>
                           setForm((current) => ({ ...current, deadline }))
@@ -448,13 +453,13 @@ export function TasksPage() {
                             setForm((current) => ({ ...current, deadline: '' }))
                           }
                         >
-                          Clear deadline
+                          {t('actions.clear')}
                         </Button>
                       ) : null}
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="content">Content</Label>
+                      <Label htmlFor="content">{t('common.content')}</Label>
                       <Textarea
                         id="content"
                         required
@@ -468,7 +473,7 @@ export function TasksPage() {
 
                   <DialogFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       disabled={
@@ -481,10 +486,10 @@ export function TasksPage() {
                       type="submit"
                     >
                       {createTask.isPending || updateTask.isPending
-                        ? 'Saving...'
+                        ? t('actions.saving')
                         : editingTask
-                          ? 'Save changes'
-                          : 'Save task'}
+                          ? t('actions.save')
+                          : t('actions.save')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -500,13 +505,13 @@ export function TasksPage() {
               >
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Delete task</DialogTitle>
+                    <DialogTitle>{t('dialog.deleteTaskTitle')}</DialogTitle>
                     <DialogDescription>
                       {taskToDelete
-                        ? `Task for "${resolveClientLabel(
-                            taskToDelete.client_id,
-                          )}" will be permanently removed.`
-                        : 'Selected task will be deleted.'}
+                        ? t('dialog.taskDeleteNamedDescription', undefined, {
+                            name: resolveClientLabel(taskToDelete.client_id),
+                          })
+                        : t('dialog.taskDeleteDescription')}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -517,7 +522,7 @@ export function TasksPage() {
                       type="button"
                       variant="ghost"
                     >
-                      Cancel
+                      {t('actions.cancel')}
                     </Button>
                     <Button
                       className="bg-rose-600 text-white hover:bg-rose-700"
@@ -525,7 +530,7 @@ export function TasksPage() {
                       onClick={() => void handleConfirmDelete()}
                       type="button"
                     >
-                      {deleteTask.isPending ? 'Deleting...' : 'Delete'}
+                      {deleteTask.isPending ? t('actions.deleting') : t('actions.delete')}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -537,14 +542,14 @@ export function TasksPage() {
         <CardContent>
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
-              {mutationError.message || 'Failed to save task changes.'}
+              {mutationError.message || t('feedback.taskSaveFailed')}
             </p>
           ) : null}
 
           {tasksQuery.isLoading || clientsQuery.isLoading || ordersQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading tasks...</p>
+            <p className="text-sm text-muted-foreground">{t('placeholder.loadingTasks')}</p>
           ) : tasksQuery.isError ? (
-            <p className="text-sm text-rose-700">Failed to load tasks from the backend.</p>
+            <p className="text-sm text-rose-700">{t('feedback.tasksLoadFailed')}</p>
           ) : tasks.length > 0 ? (
             <>
               <TasksDataTable
@@ -568,7 +573,7 @@ export function TasksPage() {
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No tasks returned by the backend yet.
+              {t('empty.tasks')}
             </p>
           )}
         </CardContent>
