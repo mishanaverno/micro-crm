@@ -1,5 +1,6 @@
 import { ReminderRecord } from '../shared/types/reminder';
 import { t } from '../shared/lib/i18n';
+import { ClientLink } from './client-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -108,7 +109,9 @@ export function RemindersDataTable({
           <TableRow key={reminder.id}>
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                {resolveClientLabel(reminder.client_id)}
+                <ClientLink clientId={reminder.client_id}>
+                  {resolveClientLabel(reminder.client_id)}
+                </ClientLink>
               </TableCell>
             ) : null}
             {visibleColumns.order ? (

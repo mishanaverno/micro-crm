@@ -16,6 +16,7 @@ import {
 } from './ui/table';
 import { FinanceRecord } from '../shared/types/finance';
 import { t } from '../shared/lib/i18n';
+import { ClientLink } from './client-link';
 
 interface FinancesDataTableProps {
   records: FinanceRecord[];
@@ -124,7 +125,9 @@ export function FinancesDataTable({
             ) : null}
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                {resolveClientLabel(record.client_id)}
+                <ClientLink clientId={record.client_id}>
+                  {resolveClientLabel(record.client_id)}
+                </ClientLink>
               </TableCell>
             ) : null}
             {visibleColumns.order ? (

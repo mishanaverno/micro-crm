@@ -1,6 +1,7 @@
 import { OrderRecord } from '../shared/types/order';
 import { t } from '../shared/lib/i18n';
 import { StatusBadge } from './status-badges';
+import { ClientLink } from './client-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -119,7 +120,9 @@ export function OrdersDataTable({
             {visibleColumns.id ? <TableCell className="font-medium">#{order.id}</TableCell> : null}
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                {resolveClientLabel(order.client_id)}
+                <ClientLink clientId={order.client_id}>
+                  {resolveClientLabel(order.client_id)}
+                </ClientLink>
               </TableCell>
             ) : null}
             {visibleColumns.status ? (

@@ -1,4 +1,4 @@
-import { FormEvent } from 'react';
+import { FormEvent, ReactNode } from 'react';
 import {
   ReminderDateTimeField,
   isReminderDateTimeReady,
@@ -32,7 +32,7 @@ interface ReminderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  description: string;
+  description: ReactNode;
   content: string;
   timestamp: string;
   onContentChange: (value: string) => void;
@@ -53,7 +53,7 @@ interface ReminderDialogProps {
       }
     | {
         mode: 'fixed';
-        label: string;
+        label: ReactNode;
       };
   orderField:
     | {
@@ -67,7 +67,7 @@ interface ReminderDialogProps {
       }
     | {
         mode: 'fixed';
-        label: string;
+        label: ReactNode;
       };
 }
 

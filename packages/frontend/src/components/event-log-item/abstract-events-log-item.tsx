@@ -25,6 +25,7 @@ import { EventTypelabel } from '../event-type-label';
 import { TaskStatus } from '@/shared/types/task';
 import { OrderStatus } from '@/shared/types/order';
 import { StatusBadge } from '../status-badges';
+import { ClientLink } from '../client-link';
 
 interface AbstractEventsLogItemProps<TEvent extends EventRecord> {
   event: TEvent;
@@ -130,7 +131,9 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
         ) : null}
         {!compact && event.comment ? <LogItemNote>{event.comment}</LogItemNote> : null}
         <LogItemFooter className={`transition-[margin,padding,gap] duration-300 ease-out ${compact ? '' : 'border-t mt-3'}`}>
-          <p>{clientLabel}</p>
+          <ClientLink className="text-sm" clientId={event.client_id}>
+            {clientLabel}
+          </ClientLink>
           <LogItemTimestamp className="transition-[font-size] duration-300 ease-out" dateTime={event.created_at}>
             {new Date(event.created_at).toLocaleString()}
           </LogItemTimestamp>

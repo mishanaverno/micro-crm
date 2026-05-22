@@ -31,6 +31,7 @@ import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
 import { EventsLogItem } from './event-log-item/events-log-item';
 import { EventGraphRow } from './ui/event-graph';
 import { ReminderDialog } from './reminder-dialog';
+import { ClientLink } from './client-link';
 import {
   isReminderDateTimeReady,
   toReminderApiDateTime,
@@ -1135,20 +1136,33 @@ export function EventsLog() {
             }
           }}
         >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create note</DialogTitle>
-              <DialogDescription>
-                New note for {orderEventToNote ? resolveClientLabel(orderEventToNote.client_id) : 'client'}{' '}
-                {orderEventToNote ? `and order #${orderEventToNote.payload.order_id}` : ''}.
-              </DialogDescription>
-            </DialogHeader>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create note</DialogTitle>
+                <DialogDescription>
+                  New note for{' '}
+                  {orderEventToNote ? (
+                    <ClientLink clientId={orderEventToNote.client_id}>
+                      {resolveClientLabel(orderEventToNote.client_id)}
+                    </ClientLink>
+                  ) : (
+                    'client'
+                  )}{' '}
+                  {orderEventToNote ? `and order #${orderEventToNote.payload.order_id}` : ''}.
+                </DialogDescription>
+              </DialogHeader>
 
             <form className="grid gap-4" id="event-create-note-form" onSubmit={handleCreateNoteSubmit}>
               <div className="grid gap-2">
                 <Label>Client</Label>
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                  {orderEventToNote ? resolveClientLabel(orderEventToNote.client_id) : '—'}
+                  {orderEventToNote ? (
+                    <ClientLink clientId={orderEventToNote.client_id}>
+                      {resolveClientLabel(orderEventToNote.client_id)}
+                    </ClientLink>
+                  ) : (
+                    '—'
+                  )}
                 </p>
               </div>
 
@@ -1194,20 +1208,33 @@ export function EventsLog() {
             }
           }}
         >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create task</DialogTitle>
-              <DialogDescription>
-                New task for {orderEventToTask ? resolveClientLabel(orderEventToTask.client_id) : 'client'}{' '}
-                {orderEventToTask ? `and order #${orderEventToTask.payload.order_id}` : ''}.
-              </DialogDescription>
-            </DialogHeader>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create task</DialogTitle>
+                <DialogDescription>
+                  New task for{' '}
+                  {orderEventToTask ? (
+                    <ClientLink clientId={orderEventToTask.client_id}>
+                      {resolveClientLabel(orderEventToTask.client_id)}
+                    </ClientLink>
+                  ) : (
+                    'client'
+                  )}{' '}
+                  {orderEventToTask ? `and order #${orderEventToTask.payload.order_id}` : ''}.
+                </DialogDescription>
+              </DialogHeader>
 
             <form className="grid gap-4" id="event-create-task-form" onSubmit={handleCreateTaskSubmit}>
               <div className="grid gap-2">
                 <Label>Client</Label>
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                  {orderEventToTask ? resolveClientLabel(orderEventToTask.client_id) : '—'}
+                  {orderEventToTask ? (
+                    <ClientLink clientId={orderEventToTask.client_id}>
+                      {resolveClientLabel(orderEventToTask.client_id)}
+                    </ClientLink>
+                  ) : (
+                    '—'
+                  )}
                 </p>
               </div>
 
@@ -1248,10 +1275,29 @@ export function EventsLog() {
         <ReminderDialog
           clientField={{
             mode: 'fixed',
-            label: orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : '—',
+            label: orderEventToReminder ? (
+              <ClientLink clientId={orderEventToReminder.client_id}>
+                {resolveClientLabel(orderEventToReminder.client_id)}
+              </ClientLink>
+            ) : (
+              '—'
+            ),
           }}
           content={reminderDraft}
-          description={`New reminder for ${orderEventToReminder ? resolveClientLabel(orderEventToReminder.client_id) : 'client'}${orderEventToReminder ? ` and order #${orderEventToReminder.payload.order_id}` : ''}.`}
+          description={
+            <>
+              New reminder for{' '}
+              {orderEventToReminder ? (
+                <ClientLink clientId={orderEventToReminder.client_id}>
+                  {resolveClientLabel(orderEventToReminder.client_id)}
+                </ClientLink>
+              ) : (
+                'client'
+              )}
+              {orderEventToReminder ? ` and order #${orderEventToReminder.payload.order_id}` : ''}
+              .
+            </>
+          }
           formId="event-create-reminder-form"
           isPending={createReminder.isPending}
           isSubmitDisabled={!reminderDraft.trim()}

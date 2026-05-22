@@ -1,5 +1,6 @@
 import { ReactNode, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { ClientLink } from '../components/client-link';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { usePaids } from '../features/paids/use-paids';
@@ -79,8 +80,8 @@ interface ListCardProps {
   description: string;
   items: Array<{
     key: string;
-    label: string;
-    description?: string;
+    label: ReactNode;
+    description?: ReactNode;
     leading?: ReactNode;
     trailing?: ReactNode;
     to?: string;
@@ -186,7 +187,11 @@ export function DashboardPage() {
         })
         .map((order) => ({
           key: String(order.id),
-          description: clientLabels.get(order.client_id) ?? order.client_id,
+          description: (
+            <ClientLink className="text-muted-foreground hover:text-primary" clientId={order.client_id}>
+              {clientLabels.get(order.client_id) ?? order.client_id}
+            </ClientLink>
+          ),
           label: `#${order.id} — ${order.title || t('empty.orderTitle')}`,
           trailing: <StatusBadge status={order.status} />,
         })),

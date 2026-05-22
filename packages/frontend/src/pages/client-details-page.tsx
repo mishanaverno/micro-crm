@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ClientAvatar } from '../components/client-avatar';
+import { ReminderCalendar } from '../components/reminder-calendar';
 import { StatusBadge } from '../components/status-badges';
 import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
@@ -313,6 +314,41 @@ function ClientTasksBlock({
   );
 }
 
+function ClientRemindersBlock({
+  emptyText,
+  errorText,
+  isError,
+  isLoading,
+  reminders,
+}: {
+  emptyText: string;
+  errorText: string;
+  isError: boolean;
+  isLoading: boolean;
+  reminders: ReminderRecord[];
+}) {
+  return (
+    <Card>
+      <CardHeader className="p-4">
+        <CardTitle className="text-lg">{t('page.reminders')}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-3 px-4 pb-4">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+        ) : isError ? (
+          <p className="text-sm text-rose-700">{errorText}</p>
+        ) : reminders.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{emptyText}</p>
+        ) : (
+          <div className="flex justify-center">
+            <ReminderCalendar reminders={reminders} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ClientDetailsPage() {
   const { clientId } = useParams();
   const [ordersPage, setOrdersPage] = useState(1);
@@ -486,15 +522,12 @@ export function ClientDetailsPage() {
           onToggleTaskStatus={toggleTaskStatus}
           tasks={baseTasks}
         />
-        <ClientItemsBlock<ReminderRecord>
+        <ClientRemindersBlock
           emptyText={t('empty.clientReminders')}
           errorText={t('feedback.remindersLoadFailed')}
-          getMeta={(reminder) => formatDate(reminder.timestamp)}
-          getTitle={(reminder) => reminder.content}
           isError={remindersQuery.isError}
           isLoading={remindersQuery.isLoading}
-          items={baseReminders}
-          title={t('page.reminders')}
+          reminders={baseReminders}
         />
       </section>
 

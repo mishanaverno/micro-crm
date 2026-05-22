@@ -1,6 +1,7 @@
 import { TaskRecord } from '../shared/types/task';
 import { t } from '../shared/lib/i18n';
 import { StatusBadge } from './status-badges';
+import { ClientLink } from './client-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -111,7 +112,9 @@ export function TasksDataTable({
           <TableRow key={task.id}>
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                {resolveClientLabel(task.client_id)}
+                <ClientLink clientId={task.client_id}>
+                  {resolveClientLabel(task.client_id)}
+                </ClientLink>
               </TableCell>
             ) : null}
             {visibleColumns.order ? <TableCell>{resolveOrderLabel(task.order_id)}</TableCell> : null}

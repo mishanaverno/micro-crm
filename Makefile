@@ -1,4 +1,7 @@
-ENV_DIR := environments
+ENV_DIR := environments/local
+PROD_DIR := environments/prod
+DEV_DIR := environments/dev
+LOCAL_DIR := environments/local
 
 .PHONY: install-packages backend-install frontend-install db-create up down clean restart reset logs ps backend-shell frontend-shell db-shell migrate
 
