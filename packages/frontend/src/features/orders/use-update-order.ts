@@ -22,12 +22,12 @@ export function useUpdateOrder() {
       return updateOrderRequest(orderId, payload, access_token);
     },
     onSuccess: async (updatedOrder) => {
-      queryClient.setQueryData<OrderRecord[]>(['orders'], (currentOrders) => {
-        if (!currentOrders) {
+      queryClient.setQueriesData({ queryKey: ['orders'] }, (currentOrders) => {
+        if (!Array.isArray(currentOrders)) {
           return currentOrders;
         }
 
-        return currentOrders.map((order) =>
+        return (currentOrders as OrderRecord[]).map((order) =>
           order.id === updatedOrder.id ? updatedOrder : order,
         );
       });

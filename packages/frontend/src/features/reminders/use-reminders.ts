@@ -2,18 +2,23 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../auth/auth-provider';
 import { fetchRemindersRequest } from '../../shared/api/reminders';
 
-export function useReminders() {
+interface UseRemindersOptions {
+  clientId?: string;
+}
+
+export function useReminders(options: UseRemindersOptions = {}) {
   const { access_token } = useAuth();
+  const { clientId } = options;
 
   return useQuery({
-    queryKey: ['reminders'],
+    queryKey: ['reminders', { clientId: clientId ?? null }],
     queryFn: async () => {
       if (!access_token) {
         throw new Error('Authentication is required to load reminders.');
       }
 
-      return fetchRemindersRequest(access_token);
+      return fetchRemindersRequest(access_token, { clientId });
     },
-    enabled: Boolean(access_token),
+    enabled: Boolean(access_token) && (clientId !== undefined ? Boolean(clientId) : true),
   });
 }

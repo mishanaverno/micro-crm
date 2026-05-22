@@ -22,12 +22,12 @@ export function useUpdateNote() {
       return updateNoteRequest(noteId, payload, access_token);
     },
     onSuccess: async (updatedNote) => {
-      queryClient.setQueryData<NoteRecord[]>(['notes'], (currentNotes) => {
-        if (!currentNotes) {
+      queryClient.setQueriesData({ queryKey: ['notes'] }, (currentNotes) => {
+        if (!Array.isArray(currentNotes)) {
           return currentNotes;
         }
 
-        return currentNotes.map((note) =>
+        return (currentNotes as NoteRecord[]).map((note) =>
           note.id === updatedNote.id ? updatedNote : note,
         );
       });

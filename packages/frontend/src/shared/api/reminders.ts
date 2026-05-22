@@ -1,6 +1,10 @@
 import { httpRequest } from './http';
 import { ReminderDraft, ReminderRecord } from '../types/reminder';
 
+interface RemindersRequestFilters {
+  clientId?: string;
+}
+
 interface ApiReminderRecord extends Omit<ReminderRecord, 'id' | 'sync_status'> {
   id: number | string;
   sync_status?: ReminderRecord['sync_status'];
@@ -15,9 +19,24 @@ function toReminderRecord(reminder: ApiReminderRecord): ReminderRecord {
   };
 }
 
-export async function fetchRemindersRequest(accessToken: string) {
+function toRemindersQuery(filters?: RemindersRequestFilters) {
+  const params = new URLSearchParams();
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
+  const query = params.toString();
+
+  return query ? `?${query}` : '';
+}
+
+export async function fetchRemindersRequest(
+  accessToken: string,
+  filters?: RemindersRequestFilters,
+) {
   const reminders = await httpRequest<ApiReminderRecord[]>({
-    path: '/reminders',
+    path: `/reminders${toRemindersQuery(filters)}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,

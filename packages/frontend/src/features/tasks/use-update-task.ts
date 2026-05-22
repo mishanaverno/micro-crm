@@ -22,12 +22,14 @@ export function useUpdateTask() {
       return updateTaskRequest(taskId, payload, access_token);
     },
     onSuccess: async (updatedTask) => {
-      queryClient.setQueryData<TaskRecord[]>(['tasks'], (currentTasks) => {
-        if (!currentTasks) {
+      queryClient.setQueriesData({ queryKey: ['tasks'] }, (currentTasks) => {
+        if (!Array.isArray(currentTasks)) {
           return currentTasks;
         }
 
-        return currentTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task));
+        return (currentTasks as TaskRecord[]).map((task) =>
+          task.id === updatedTask.id ? updatedTask : task,
+        );
       });
 
       await queryClient.invalidateQueries({ queryKey: ['tasks'] });

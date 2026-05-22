@@ -8,9 +8,11 @@ import { useNotes } from '../features/notes/use-notes';
 import { useOrders } from '../features/orders/use-orders';
 import { useReminders } from '../features/reminders/use-reminders';
 import { useTasks } from '../features/tasks/use-tasks';
+import { useUpdateTask } from '../features/tasks/use-update-task';
 import { t } from '../shared/lib/i18n';
 import { Badge } from '../shared/ui/badge';
 import { buttonVariants } from '../shared/ui/button';
+import { Button } from '../shared/ui/button';
 import {
   Card,
   CardContent,
@@ -19,12 +21,11 @@ import {
   CardTitle,
 } from '../shared/ui/card';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../shared/ui/select';
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../shared/ui/tooltip';
 import {
   Table,
   TableBody,
@@ -39,7 +40,7 @@ import { ReminderRecord } from '../shared/types/reminder';
 import { TaskRecord } from '../shared/types/task';
 import { OrderStatus } from '../shared/types/order';
 
-type OrderStatusFilter = 'all' | OrderStatus;
+const orderStatusOptions = ['created', 'inprogress', 'done'] as const satisfies OrderStatus[];
 
 function formatClientStatus(status: ClientRecord['status']) {
   return status === 'legal_entity'
@@ -57,6 +58,82 @@ function formatPrice(price: number) {
     currency: 'RUB',
     maximumFractionDigits: 2,
   }).format(price);
+}
+
+function getEndOfCurrentWeek(now = new Date()) {
+  const endOfWeek = new Date(now);
+  const day = endOfWeek.getDay();
+  const daysUntilSunday = day === 0 ? 0 : 7 - day;
+
+  endOfWeek.setDate(endOfWeek.getDate() + daysUntilSunday);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  return endOfWeek;
+}
+
+function getDeadlineState(deadline: string) {
+  const deadlineDate = new Date(deadline);
+  const now = new Date();
+
+  if (Number.isNaN(deadlineDate.getTime())) {
+    return 'default';
+  }
+
+  if (deadlineDate.getTime() < now.getTime()) {
+    return 'overdue';
+  }
+
+  if (deadlineDate.getTime() <= getEndOfCurrentWeek(now).getTime()) {
+    return 'this-week';
+  }
+
+  return 'default';
+}
+
+function formatDuration(milliseconds: number) {
+  const absMilliseconds = Math.abs(milliseconds);
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (absMilliseconds < hour) {
+    const minutes = Math.max(1, Math.round(absMilliseconds / minute));
+    return `${minutes} мин.`;
+  }
+
+  if (absMilliseconds < day) {
+    const hours = Math.max(1, Math.round(absMilliseconds / hour));
+    return `${hours} ч.`;
+  }
+
+  const days = Math.max(1, Math.round(absMilliseconds / day));
+  return `${days} дн.`;
+}
+
+function getDeadlineTooltip(deadline: string) {
+  const deadlineDate = new Date(deadline);
+
+  if (Number.isNaN(deadlineDate.getTime())) {
+    return '';
+  }
+
+  const difference = deadlineDate.getTime() - Date.now();
+  const duration = formatDuration(difference);
+
+  return difference < 0
+    ? t('common.deadlineOverdueBy', undefined, { duration })
+    : t('common.deadlineRemaining', undefined, { duration });
+}
+
+function getDeadlineBadgeClassName(deadline: string) {
+  switch (getDeadlineState(deadline)) {
+    case 'overdue':
+      return 'border-transparent bg-rose-100 text-rose-700';
+    case 'this-week':
+      return 'border-transparent bg-amber-100 text-amber-800';
+    default:
+      return '';
+  }
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -127,17 +204,129 @@ function ClientItemsBlock<T>({
   );
 }
 
+function ClientTasksBlock({
+  emptyText,
+  errorText,
+  isError,
+  isLoading,
+  isUpdating,
+  onToggleTaskStatus,
+  tasks,
+}: {
+  emptyText: string;
+  errorText: string;
+  isError: boolean;
+  isLoading: boolean;
+  isUpdating: boolean;
+  onToggleTaskStatus: (task: TaskRecord) => void;
+  tasks: TaskRecord[];
+}) {
+  return (
+    <Card>
+      <CardHeader className="p-4">
+        <CardTitle className="text-lg">{t('page.tasks')}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+        ) : isError ? (
+          <p className="text-sm text-rose-700">{errorText}</p>
+        ) : tasks.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{emptyText}</p>
+        ) : (
+          <ul className="grid gap-2">
+            {tasks.map((task) => (
+              <li
+                className="grid gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                key={task.id}
+              >
+                {task.deadline ? (
+                  <div className="flex justify-end">
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex shrink-0 cursor-help" tabIndex={0}>
+                            <Badge
+                              className={getDeadlineBadgeClassName(task.deadline)}
+                              variant="secondary"
+                            >
+                              {t('common.completeBefore', undefined, {
+                                deadline: formatDate(task.deadline),
+                              })}
+                            </Badge>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent align="end">
+                          {getDeadlineTooltip(task.deadline)}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                ) : null}
+                <div className="flex items-start gap-3">
+                  <button
+                    aria-label={task.content}
+                    aria-checked={task.status === 'complete'}
+                    aria-pressed={task.status === 'complete'}
+                    className={[
+                      'mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
+                      task.status === 'complete'
+                        ? 'border-emerald-600 bg-emerald-100 text-emerald-700'
+                        : 'border-foreground/70 bg-background text-transparent hover:bg-muted',
+                      isUpdating ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                    ].join(' ')}
+                    disabled={isUpdating}
+                    role="checkbox"
+                    type="button"
+                    onClick={() => onToggleTaskStatus(task)}
+                  >
+                    <svg
+                      aria-hidden="true"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 16 16"
+                    >
+                      <path
+                        d="m3.25 8.25 3 3L12.75 4.75"
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2.2"
+                      />
+                    </svg>
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">{task.content}</p>
+                    {!task.deadline ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {formatDate(task.created_at)}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ClientDetailsPage() {
   const { clientId } = useParams();
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersPageSize, setOrdersPageSize] = useState(10);
-  const [orderStatusFilter, setOrderStatusFilter] =
-    useState<OrderStatusFilter>('all');
+  const [selectedOrderStatuses, setSelectedOrderStatuses] = useState<OrderStatus[]>([
+    'created',
+    'inprogress',
+  ]);
   const clientsQuery = useClients();
-  const ordersQuery = useOrders();
-  const notesQuery = useNotes();
-  const tasksQuery = useTasks();
-  const remindersQuery = useReminders();
+  const ordersQuery = useOrders({ clientId });
+  const notesQuery = useNotes({ clientId });
+  const tasksQuery = useTasks({ clientId });
+  const updateTask = useUpdateTask();
+  const remindersQuery = useReminders({ clientId });
   const client = (clientsQuery.data ?? []).find((item) => item.id === clientId);
   const baseNotes = (notesQuery.data ?? [])
     .filter((note) => note.client_id === clientId && note.order_id == null)
@@ -166,9 +355,10 @@ export function ClientDetailsPage() {
   const orders = useMemo(
     () =>
       (ordersQuery.data ?? [])
-        .filter((order) => order.client_id === clientId)
         .filter((order) =>
-          orderStatusFilter === 'all' ? true : order.status === orderStatusFilter,
+          selectedOrderStatuses.length === 0
+            ? true
+            : selectedOrderStatuses.includes(order.status),
         )
         .sort((left, right) => {
           const leftTime = left.created_at ? new Date(left.created_at).getTime() : 0;
@@ -176,7 +366,7 @@ export function ClientDetailsPage() {
 
           return rightTime - leftTime;
         }),
-    [clientId, orderStatusFilter, ordersQuery.data],
+    [clientId, selectedOrderStatuses, ordersQuery.data],
   );
   const ordersTotal = orders.length;
   const paginatedOrders = useMemo(() => {
@@ -205,9 +395,26 @@ export function ClientDetailsPage() {
     }
   }, [ordersPage, ordersPageSize, ordersTotal]);
 
-  function handleStatusFilterChange(value: string) {
-    setOrderStatusFilter(value as OrderStatusFilter);
+  function toggleOrderStatusFilter(status: OrderStatus) {
+    setSelectedOrderStatuses((current) =>
+      current.includes(status)
+        ? current.filter((item) => item !== status)
+        : [...current, status],
+    );
     setOrdersPage(1);
+  }
+
+  function toggleTaskStatus(task: TaskRecord) {
+    void updateTask.mutateAsync({
+      taskId: task.id,
+      payload: {
+        client_id: task.client_id,
+        content: task.content,
+        order_id: task.order_id ?? null,
+        status: task.status === 'complete' ? 'pending' : 'complete',
+        deadline: task.deadline ?? null,
+      },
+    });
   }
 
   return (
@@ -270,19 +477,14 @@ export function ClientDetailsPage() {
           items={baseNotes}
           title={t('page.notes')}
         />
-        <ClientItemsBlock<TaskRecord>
+        <ClientTasksBlock
           emptyText={t('empty.clientTasks')}
           errorText={t('feedback.tasksLoadFailed')}
-          getMeta={(task) =>
-            task.deadline
-              ? `${t('common.deadline')}: ${formatDate(task.deadline)}`
-              : formatDate(task.created_at)
-          }
-          getTitle={(task) => task.content}
           isError={tasksQuery.isError}
           isLoading={tasksQuery.isLoading}
-          items={baseTasks}
-          title={t('page.tasks')}
+          isUpdating={updateTask.isPending}
+          onToggleTaskStatus={toggleTaskStatus}
+          tasks={baseTasks}
         />
         <ClientItemsBlock<ReminderRecord>
           emptyText={t('empty.clientReminders')}
@@ -303,21 +505,23 @@ export function ClientDetailsPage() {
               <CardTitle>{t('page.orders')}</CardTitle>
               <CardDescription>{t('dashboard.openOrdersDescription')}</CardDescription>
             </div>
-            <Select
-              value={orderStatusFilter}
-              onValueChange={handleStatusFilterChange}
-            >
-              <SelectTrigger className="w-full lg:w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('placeholder.allStatuses')}</SelectItem>
-                <SelectItem value="created">{t('status.created')}</SelectItem>
-                <SelectItem value="inprogress">{t('status.inProgress')}</SelectItem>
-                <SelectItem value="done">{t('status.done')}</SelectItem>
-                <SelectItem value="reopened">{t('status.reopened')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2">
+              {orderStatusOptions.map((status) => (
+                <Button
+                  className="h-8 px-3"
+                  key={status}
+                  onClick={() => toggleOrderStatusFilter(status)}
+                  type="button"
+                  variant={selectedOrderStatuses.includes(status) ? 'default' : 'outline'}
+                >
+                  {status === 'created'
+                    ? t('status.created')
+                    : status === 'inprogress'
+                      ? t('status.inProgress')
+                      : t('status.done')}
+                </Button>
+              ))}
+            </div>
           </div>
         </CardHeader>
         <CardContent>

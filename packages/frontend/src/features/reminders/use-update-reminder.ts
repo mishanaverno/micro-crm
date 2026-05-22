@@ -22,12 +22,12 @@ export function useUpdateReminder() {
       return updateReminderRequest(reminderId, payload, access_token);
     },
     onSuccess: async (updatedReminder) => {
-      queryClient.setQueryData<ReminderRecord[]>(['reminders'], (currentReminders) => {
-        if (!currentReminders) {
+      queryClient.setQueriesData({ queryKey: ['reminders'] }, (currentReminders) => {
+        if (!Array.isArray(currentReminders)) {
           return currentReminders;
         }
 
-        return currentReminders.map((reminder) =>
+        return (currentReminders as ReminderRecord[]).map((reminder) =>
           reminder.id === updatedReminder.id ? updatedReminder : reminder,
         );
       });

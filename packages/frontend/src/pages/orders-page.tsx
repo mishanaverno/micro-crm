@@ -388,28 +388,6 @@ export function OrdersPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="status">{t('common.status')}</Label>
-                      <Select
-                        value={form.status}
-                        onValueChange={(value) =>
-                          setForm((current) => ({
-                            ...current,
-                            status: value as OrderStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger id="status">
-                          <SelectValue placeholder={t('placeholder.selectStatus')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="created">{t('status.created')}</SelectItem>
-                          <SelectItem value="inprogress">{t('status.inProgress')}</SelectItem>
-                          <SelectItem value="done">{t('status.done')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid gap-2">
                       <Label htmlFor="content">{t('common.content')}</Label>
                       <Textarea
                         id="content"

@@ -1,11 +1,20 @@
 import { httpRequest } from './http';
-import { OrderDraft, OrderRecord, UpdateOrderDraft } from '../types/order';
+import { OrderDraft, OrderRecord, OrderStatus, UpdateOrderDraft } from '../types/order';
 import { PaginatedResponse, PaginationParams } from '../types/pagination';
 import { toPaginationQuery } from './pagination';
 
-interface ApiOrderRecord extends Omit<OrderRecord, 'id' | 'sync_status'> {
+interface OrdersRequestFilters {
+  clientId?: string;
+}
+
+interface ApiOrderRecord extends Omit<OrderRecord, 'id' | 'sync_status' | 'status'> {
   id: number | string;
+  status: OrderStatus | 'reopened';
   sync_status?: OrderRecord['sync_status'];
+}
+
+function toOrderStatus(status: ApiOrderRecord['status']): OrderStatus {
+  return status === 'reopened' ? 'created' : status;
 }
 
 function toOrderRecord(order: ApiOrderRecord): OrderRecord {
@@ -13,14 +22,30 @@ function toOrderRecord(order: ApiOrderRecord): OrderRecord {
     ...order,
     id: String(order.id),
     price: Number(order.price),
+    status: toOrderStatus(order.status),
     sync_status: order.sync_status ?? 'synced',
     updated_at: order.updated_at ?? order.created_at,
   };
 }
 
-export async function fetchOrdersRequest(accessToken: string) {
+function toOrdersQuery(filters?: OrdersRequestFilters) {
+  const params = new URLSearchParams();
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
+  const query = params.toString();
+
+  return query ? `?${query}` : '';
+}
+
+export async function fetchOrdersRequest(
+  accessToken: string,
+  filters?: OrdersRequestFilters,
+) {
   const orders = await httpRequest<ApiOrderRecord[]>({
-    path: '/orders',
+    path: `/orders${toOrdersQuery(filters)}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -33,9 +58,16 @@ export async function fetchOrdersRequest(accessToken: string) {
 export async function fetchPaginatedOrdersRequest(
   accessToken: string,
   pagination: PaginationParams,
+  filters?: OrdersRequestFilters,
 ) {
+  const params = new URLSearchParams(toPaginationQuery(pagination));
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
   const response = await httpRequest<PaginatedResponse<ApiOrderRecord>>({
-    path: `/orders?${toPaginationQuery(pagination)}`,
+    path: `/orders?${params.toString()}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,

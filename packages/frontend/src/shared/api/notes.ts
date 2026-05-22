@@ -3,6 +3,10 @@ import { NoteDraft, NoteRecord } from '../types/note';
 import { PaginatedResponse, PaginationParams } from '../types/pagination';
 import { toPaginationQuery } from './pagination';
 
+interface NotesRequestFilters {
+  clientId?: string;
+}
+
 interface ApiNoteRecord extends Omit<NoteRecord, 'id' | 'sync_status'> {
   id: number | string;
   sync_status?: NoteRecord['sync_status'];
@@ -17,9 +21,24 @@ function toNoteRecord(note: ApiNoteRecord): NoteRecord {
   };
 }
 
-export async function fetchNotesRequest(accessToken: string) {
+function toNotesQuery(filters?: NotesRequestFilters) {
+  const params = new URLSearchParams();
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
+  const query = params.toString();
+
+  return query ? `?${query}` : '';
+}
+
+export async function fetchNotesRequest(
+  accessToken: string,
+  filters?: NotesRequestFilters,
+) {
   const notes = await httpRequest<ApiNoteRecord[]>({
-    path: '/notes',
+    path: `/notes${toNotesQuery(filters)}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -32,9 +51,16 @@ export async function fetchNotesRequest(accessToken: string) {
 export async function fetchPaginatedNotesRequest(
   accessToken: string,
   pagination: PaginationParams,
+  filters?: NotesRequestFilters,
 ) {
+  const params = new URLSearchParams(toPaginationQuery(pagination));
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
   const response = await httpRequest<PaginatedResponse<ApiNoteRecord>>({
-    path: `/notes?${toPaginationQuery(pagination)}`,
+    path: `/notes?${params.toString()}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,

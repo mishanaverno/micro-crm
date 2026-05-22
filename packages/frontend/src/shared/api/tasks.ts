@@ -3,6 +3,10 @@ import { TaskDraft, TaskRecord } from '../types/task';
 import { PaginatedResponse, PaginationParams } from '../types/pagination';
 import { toPaginationQuery } from './pagination';
 
+interface TasksRequestFilters {
+  clientId?: string;
+}
+
 interface ApiTaskRecord extends Omit<TaskRecord, 'id' | 'sync_status'> {
   id: number | string;
   sync_status?: TaskRecord['sync_status'];
@@ -18,9 +22,24 @@ function toTaskRecord(task: ApiTaskRecord): TaskRecord {
   };
 }
 
-export async function fetchTasksRequest(accessToken: string) {
+function toTasksQuery(filters?: TasksRequestFilters) {
+  const params = new URLSearchParams();
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
+  const query = params.toString();
+
+  return query ? `?${query}` : '';
+}
+
+export async function fetchTasksRequest(
+  accessToken: string,
+  filters?: TasksRequestFilters,
+) {
   const tasks = await httpRequest<ApiTaskRecord[]>({
-    path: '/tasks',
+    path: `/tasks${toTasksQuery(filters)}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -33,9 +52,16 @@ export async function fetchTasksRequest(accessToken: string) {
 export async function fetchPaginatedTasksRequest(
   accessToken: string,
   pagination: PaginationParams,
+  filters?: TasksRequestFilters,
 ) {
+  const params = new URLSearchParams(toPaginationQuery(pagination));
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
   const response = await httpRequest<PaginatedResponse<ApiTaskRecord>>({
-    path: `/tasks?${toPaginationQuery(pagination)}`,
+    path: `/tasks?${params.toString()}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,

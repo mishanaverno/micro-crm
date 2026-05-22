@@ -18,8 +18,6 @@ function StatusLabel({ status }: { status: OrderStatus | TaskStatus }) {
       return t('status.inProgress');
     case 'pending':
       return t('status.pending');
-    case 'reopened':
-      return t('status.reopened');
     default:
       return String(status).trim();
   }
@@ -50,7 +48,6 @@ export function StatusBadge({
         </Badge>
       );
     case 'created':
-    case 'reopened':
     default:
       return (
         <Badge

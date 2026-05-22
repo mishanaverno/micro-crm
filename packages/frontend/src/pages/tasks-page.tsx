@@ -414,27 +414,6 @@ export function TasksPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="status">{t('common.status')}</Label>
-                      <Select
-                        value={form.status}
-                        onValueChange={(value) =>
-                          setForm((current) => ({
-                            ...current,
-                            status: value as TaskStatus,
-                          }))
-                        }
-                      >
-                        <SelectTrigger id="status">
-                          <SelectValue placeholder={t('placeholder.selectStatus')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">{t('status.pending')}</SelectItem>
-                          <SelectItem value="complete">{t('status.complete')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="grid gap-2">
                       <ReminderDateTimeField
                         idPrefix="task-deadline"
                         label={t('common.deadline')}

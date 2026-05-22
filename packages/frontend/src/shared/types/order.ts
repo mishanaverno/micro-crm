@@ -1,6 +1,6 @@
 import { OfflineRecord } from './common';
 
-export type OrderStatus = 'created' | 'inprogress' | 'done' | 'reopened';
+export type OrderStatus = 'created' | 'inprogress' | 'done';
 
 export interface OrderDraft {
   client_id: string;

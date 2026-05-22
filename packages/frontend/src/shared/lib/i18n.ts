@@ -31,6 +31,9 @@ export const localization = {
     'common.createdAt': 'Создано',
     'common.date': 'Дата',
     'common.deadline': 'Дедлайн',
+    'common.completeBefore': 'Выполнить до: {deadline}',
+    'common.deadlineOverdueBy': 'Просрочено на {duration}',
+    'common.deadlineRemaining': 'Осталось {duration}',
     'common.email': 'Email',
     'common.firstName': 'Имя',
     'common.id': 'ID',
@@ -225,7 +228,6 @@ export const localization = {
     'status.individual': 'Физ. лицо',
     'status.legalEntity': 'Юр. лицо',
     'status.pending': 'Ожидает',
-    'status.reopened': 'Переоткрыт',
   },
   en: {
     'actions.add': 'Add',
@@ -257,6 +259,9 @@ export const localization = {
     'common.createdAt': 'Created at',
     'common.date': 'Date',
     'common.deadline': 'Deadline',
+    'common.completeBefore': 'Complete before: {deadline}',
+    'common.deadlineOverdueBy': 'Overdue by {duration}',
+    'common.deadlineRemaining': '{duration} remaining',
     'common.email': 'Email',
     'common.firstName': 'First name',
     'common.id': 'ID',
@@ -451,7 +456,6 @@ export const localization = {
     'status.individual': 'Individual',
     'status.legalEntity': 'Legal entity',
     'status.pending': 'Pending',
-    'status.reopened': 'Reopened',
   },
 } as const;
 

@@ -29,7 +29,6 @@ export function OrderReopenedEventsLogItem({
       event={event}
       compactTitle={`: #${event.payload.order_id}`}
       type="order_reopened"
-      badge='reopened'
       specificActions={specificActions}
       title={`: #${event.payload.order_id} - ${event.payload.title?.trim()}`}
     >
