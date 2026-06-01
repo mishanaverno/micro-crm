@@ -1,0 +1,114 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: crm-postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm_user} -d ${POSTGRES_DB:-crm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - crm-network
+
+  migrator:
+    image: postgres:15-alpine
+    container_name: crm-migrator-prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER:-crm_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME:-crm_db}
+      DEV_SEED_ENABLED: "false"
+    volumes:
+      - ../../db/migrations:/app/migrations:ro
+      - ../../db/up.sh:/app/up.sh:ro
+      - ../../db/init.sql:/app/init.sql:ro
+    working_dir: /app
+    command: ["sh", "/app/up.sh"]
+    networks:
+      - crm-network
+    restart: "no"
+
+  backend:
+    image: ${BACKEND_IMAGE:-project-crm-backend}:${IMAGE_TAG:-latest}
+    build:
+      context: ../../packages/backend
+      dockerfile: Dockerfile
+    container_name: crm-backend-prod
+    env_file:
+      - ./.env.backend
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/docs >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - crm-network
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-project-crm-frontend}:${IMAGE_TAG:-latest}
+    build:
+      context: ../../packages/frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+    container_name: crm-frontend-prod
+    env_file:
+      - ./.env.frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - crm-network
+
+  caddy:
+    image: caddy:2.9-alpine
+    container_name: crm-caddy-prod
+    env_file:
+      - ./.env.caddy
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+    networks:
+      - crm-network
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  crm-network:
+    driver: bridge

@@ -1,4 +1,4 @@
-FROM node:24-alpine AS base
+FROM node:24-alpine
 
 WORKDIR /app
 
@@ -9,26 +9,13 @@ RUN npm config set registry https://registry.npmjs.org/ \
   && npm config set fetch-retry-mintimeout 20000 \
   && npm config set fetch-retry-maxtimeout 120000 \
   && npm config set fetch-timeout 300000 \
-  && npm config set maxsockets 1
-
-FROM base AS deps
-
-RUN npm ci --no-audit --no-fund
-
-FROM deps AS build
+  && npm config set maxsockets 1 \
+  && npm ci --no-audit --no-fund --verbose
 
 COPY . .
 
 RUN npm run build
 
-FROM base AS runtime
-
-ENV NODE_ENV=production
-
-RUN npm ci --omit=dev --no-audit --no-fund
-
-COPY --from=build /app/dist ./dist
-
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+CMD ["npm", "run", "dev"]

@@ -56,3 +56,27 @@ db-shell:
 
 migrate:
 	cd $(ENV_DIR) && docker-compose run --rm migrator
+
+.PHONY: prod-up prod-down prod-clean prod-restart prod-logs prod-ps prod-migrate
+
+prod-up:
+	cd $(PROD_DIR) && ./start.sh
+
+prod-down:
+	cd $(PROD_DIR) && ./stop.sh
+
+prod-clean:
+	cd $(PROD_DIR) && ./clean.sh
+
+prod-restart:
+	$(MAKE) prod-down
+	$(MAKE) prod-up
+
+prod-logs:
+	cd $(PROD_DIR) && docker compose logs -f
+
+prod-ps:
+	cd $(PROD_DIR) && docker compose ps
+
+prod-migrate:
+	cd $(PROD_DIR) && ./migrate.sh

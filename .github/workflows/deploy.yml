@@ -1,0 +1,75 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare image names
+        run: |
+          echo "IMAGE_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./packages/backend
+          file: ./packages/backend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.IMAGE_REPO }}/backend:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.IMAGE_REPO }}/backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./packages/frontend
+          file: ./packages/frontend/Dockerfile
+          build-args: |
+            VITE_API_BASE_URL=/api
+          push: true
+          tags: |
+            ghcr.io/${{ env.IMAGE_REPO }}/frontend:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.IMAGE_REPO }}/frontend:latest
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /opt/project-crm
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+            cd environments/prod
+            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
+            export FRONTEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/frontend
+            export IMAGE_TAG=${{ env.IMAGE_TAG }}
+            ./deploy.sh
+            docker image prune -f

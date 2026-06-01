@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
@@ -10,10 +10,20 @@ RUN npm config set registry https://registry.npmjs.org/ \
   && npm config set fetch-retry-maxtimeout 120000 \
   && npm config set fetch-timeout 300000 \
   && npm config set maxsockets 1 \
-  && npm ci --no-audit --no-fund --verbose
+  && npm ci --no-audit --no-fund
 
 COPY . .
 
-EXPOSE 5173
+ARG VITE_API_BASE_URL=/api
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
-CMD ["npm", "run", "dev"]
+RUN npm run build
+
+FROM caddy:2.9-alpine AS runtime
+
+COPY Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/dist /srv
+
+EXPOSE 80
+
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

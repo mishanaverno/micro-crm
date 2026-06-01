@@ -47,7 +47,7 @@ services:
   backend:
     build:
       context: ../packages/backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: crm-backend
     ports:
       - "3000:3000"
@@ -77,7 +77,7 @@ services:
   frontend:
     build:
       context: ../packages/frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: crm-frontend
     ports:
       - "5173:5173"
