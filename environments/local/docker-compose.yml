@@ -34,10 +34,9 @@ services:
       DEV_SEED_ENABLED: "true"
       DEV_SEED_SQL: /app/dev-seed.sql
     volumes:
-      - ../db/migrations:/app/migrations:ro
-      - ../db/up.sh:/app/up.sh:ro
-      - ../db/init.sql:/app/init.sql:ro
-      - ../db/dev-seed.sql:/app/dev-seed.sql:ro
+      - ../../db/migrations:/app/migrations:ro
+      - ../../db/up.sh:/app/up.sh:ro
+      - ../../db/dev-seed.sql:/app/dev-seed.sql:ro
     working_dir: /app
     command: ["sh", "/app/up.sh"]
     networks:
@@ -46,7 +45,7 @@ services:
 
   backend:
     build:
-      context: ../packages/backend
+      context: ../../packages/backend
       dockerfile: Dockerfile.dev
     container_name: crm-backend
     ports:
@@ -65,7 +64,7 @@ services:
     networks:
       - crm-network
     volumes:
-      - ../packages/backend:/app
+      - ../../packages/backend:/app
       - /app/node_modules
     command: npm run dev
     healthcheck:
@@ -76,7 +75,7 @@ services:
 
   frontend:
     build:
-      context: ../packages/frontend
+      context: ../../packages/frontend
       dockerfile: Dockerfile.dev
     container_name: crm-frontend
     ports:
@@ -95,7 +94,7 @@ services:
     networks:
       - crm-network
     volumes:
-      - ../packages/frontend:/app
+      - ../../packages/frontend:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0 --port 5173
     healthcheck:

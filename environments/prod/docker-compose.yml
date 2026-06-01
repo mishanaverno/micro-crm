@@ -34,7 +34,6 @@ services:
     volumes:
       - ../../db/migrations:/app/migrations:ro
       - ../../db/up.sh:/app/up.sh:ro
-      - ../../db/init.sql:/app/init.sql:ro
     working_dir: /app
     command: ["sh", "/app/up.sh"]
     networks:

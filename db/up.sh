@@ -8,33 +8,39 @@ DB_USER=${DATABASE_USER:-crm_user}
 DB_NAME=${DATABASE_NAME:-crm_db}
 MIGRATIONS_TABLE="migrations"
 MIGRATIONS_DIR="migrations"
-INIT_SQL="init.sql"
 DEV_SEED_ENABLED=${DEV_SEED_ENABLED:-false}
 DEV_SEED_SQL=${DEV_SEED_SQL:-dev-seed.sql}
 
 export PGPASSWORD="$DATABASE_PASSWORD"
 
-psql \
-  -h "$DB_HOST" \
-  -p "$DB_PORT" \
-  -U "$DB_USER" \
-  -d "$DB_NAME" \
-  -f "$INIT_SQL" \
-  -q
+has_migrations_table() {
+  psql \
+    -h "$DB_HOST" \
+    -p "$DB_PORT" \
+    -U "$DB_USER" \
+    -d "$DB_NAME" \
+    -t -A \
+    -c "SELECT to_regclass('public.${MIGRATIONS_TABLE}') IS NOT NULL"
+}
 
 echo "Running migrations"
 
 # безопасный проход по файлам
 find "$MIGRATIONS_DIR" -name "*.sql" | sort | while IFS= read -r migration_file; do
   FILE=$(basename "$migration_file")
+  HAS_TABLE=$(has_migrations_table)
 
-  COUNT=$(psql \
-    -h "$DB_HOST" \
-    -p "$DB_PORT" \
-    -U "$DB_USER" \
-    -d "$DB_NAME" \
-    -t -A \
-    -c "SELECT 1 FROM $MIGRATIONS_TABLE WHERE file='${FILE}' LIMIT 1")
+  if [ "$HAS_TABLE" = "t" ]; then
+    COUNT=$(psql \
+      -h "$DB_HOST" \
+      -p "$DB_PORT" \
+      -U "$DB_USER" \
+      -d "$DB_NAME" \
+      -t -A \
+      -c "SELECT 1 FROM $MIGRATIONS_TABLE WHERE file='${FILE}' LIMIT 1")
+  else
+    COUNT=""
+  fi
 
   if [ -z "$COUNT" ]; then
     echo "Running migration: ${FILE}"
@@ -49,6 +55,13 @@ find "$MIGRATIONS_DIR" -name "*.sql" | sort | while IFS= read -r migration_file;
       -p "$DB_PORT" \
       -U "$DB_USER" \
       -d "$DB_NAME"
+
+    HAS_TABLE_AFTER=$(has_migrations_table)
+
+    if [ "$HAS_TABLE_AFTER" != "t" ]; then
+      echo "Migration table '${MIGRATIONS_TABLE}' was not created after applying ${FILE}" >&2
+      exit 1
+    fi
 
     psql \
       -h "$DB_HOST" \
