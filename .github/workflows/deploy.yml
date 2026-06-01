@@ -63,7 +63,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
-            cd /opt/project-crm
+            cd /home/monipchenko/project-crm
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
