@@ -13,6 +13,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: prod
     steps:
       - uses: actions/checkout@v4
 
@@ -56,10 +57,10 @@ jobs:
       - name: Deploy on server
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.prod.SSH_HOST }}
-          port: ${{ secrets.prod.SSH_PORT }}
-          username: ${{ secrets.prod.SSH_USER }}
-          key: ${{ secrets.prod.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
             cd /opt/project-crm
@@ -67,7 +68,7 @@ jobs:
             git checkout main
             git pull --ff-only origin main
             cd environments/prod
-            echo "${{ secrets.prod.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
             export FRONTEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/frontend
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
