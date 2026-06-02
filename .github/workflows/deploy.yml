@@ -37,6 +37,41 @@ jobs:
       PROD_ACME_EMAIL: ${{ vars.PROD_ACME_EMAIL }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed packages
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+            echo "landing=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          changed_files=$(git diff --name-only HEAD^ HEAD)
+
+          echo "Changed files:"
+          echo "$changed_files"
+
+          if echo "$changed_files" | grep -q '^packages/backend/'; then
+            echo "backend=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "backend=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if echo "$changed_files" | grep -q '^packages/frontend/'; then
+            echo "frontend=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "frontend=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if echo "$changed_files" | grep -q '^packages/landing/'; then
+            echo "landing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "landing=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Prepare image names
         run: |
@@ -95,6 +130,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push backend image
+        if: steps.changes.outputs.backend == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./packages/backend
@@ -105,6 +141,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_REPO }}/backend:latest
 
       - name: Build and push frontend image
+        if: steps.changes.outputs.frontend == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./packages/frontend
@@ -117,6 +154,7 @@ jobs:
             ghcr.io/${{ env.IMAGE_REPO }}/frontend:latest
 
       - name: Build and push landing image
+        if: steps.changes.outputs.landing == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./packages/landing
@@ -187,6 +225,20 @@ jobs:
             export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
             export FRONTEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/frontend
             export LANDING_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/landing
-            export IMAGE_TAG=${{ env.IMAGE_TAG }}
+            if [ "${{ steps.changes.outputs.backend }}" = "true" ]; then
+              export BACKEND_IMAGE_TAG=${{ env.IMAGE_TAG }}
+            else
+              export BACKEND_IMAGE_TAG=latest
+            fi
+            if [ "${{ steps.changes.outputs.frontend }}" = "true" ]; then
+              export FRONTEND_IMAGE_TAG=${{ env.IMAGE_TAG }}
+            else
+              export FRONTEND_IMAGE_TAG=latest
+            fi
+            if [ "${{ steps.changes.outputs.landing }}" = "true" ]; then
+              export LANDING_IMAGE_TAG=${{ env.IMAGE_TAG }}
+            else
+              export LANDING_IMAGE_TAG=latest
+            fi
             sh ./deploy.sh
             docker image prune -f
