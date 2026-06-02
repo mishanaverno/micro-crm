@@ -14,6 +14,24 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     environment: prod
+    env:
+      PROD_DATABASE_HOST: ${{ vars.PROD_DATABASE_HOST }}
+      PROD_DATABASE_PORT: ${{ vars.PROD_DATABASE_PORT }}
+      PROD_DATABASE_USER: ${{ vars.PROD_DATABASE_USER }}
+      PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
+      PROD_DATABASE_NAME: ${{ vars.PROD_DATABASE_NAME }}
+      PROD_NODE_ENV: ${{ vars.PROD_NODE_ENV }}
+      PROD_PORT: ${{ vars.PROD_PORT }}
+      PROD_JWT_ACCESS_SECRET: ${{ secrets.PROD_JWT_ACCESS_SECRET }}
+      PROD_JWT_REFRESH_SECRET: ${{ secrets.PROD_JWT_REFRESH_SECRET }}
+      PROD_JWT_ACCESS_EXPIRES_IN: ${{ vars.PROD_JWT_ACCESS_EXPIRES_IN }}
+      PROD_JWT_REFRESH_EXPIRES_IN: ${{ vars.PROD_JWT_REFRESH_EXPIRES_IN }}
+      PROD_CORS_ORIGIN: ${{ vars.PROD_CORS_ORIGIN }}
+      PROD_VITE_API_BASE_URL: ${{ vars.PROD_VITE_API_BASE_URL }}
+      PROD_LANDING_DOMAIN: ${{ vars.PROD_LANDING_DOMAIN }}
+      PROD_APP_DOMAIN: ${{ vars.PROD_APP_DOMAIN }}
+      PROD_API_DOMAIN: ${{ vars.PROD_API_DOMAIN }}
+      PROD_ACME_EMAIL: ${{ vars.PROD_ACME_EMAIL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +39,47 @@ jobs:
         run: |
           echo "IMAGE_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
           echo "IMAGE_TAG=${GITHUB_SHA}" >> "$GITHUB_ENV"
+
+      - name: Validate production variables
+        run: |
+          required_variables='
+          PROD_DATABASE_HOST
+          PROD_DATABASE_PORT
+          PROD_DATABASE_USER
+          PROD_DATABASE_NAME
+          PROD_NODE_ENV
+          PROD_PORT
+          PROD_JWT_ACCESS_EXPIRES_IN
+          PROD_JWT_REFRESH_EXPIRES_IN
+          PROD_CORS_ORIGIN
+          PROD_VITE_API_BASE_URL
+          PROD_LANDING_DOMAIN
+          PROD_APP_DOMAIN
+          PROD_API_DOMAIN
+          PROD_ACME_EMAIL
+          '
+
+          for var_name in $required_variables; do
+            if [ -z "${!var_name}" ]; then
+              echo "Missing required GitHub Variable: $var_name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Validate production secrets
+        run: |
+          required_secrets='
+          PROD_DATABASE_PASSWORD
+          PROD_JWT_ACCESS_SECRET
+          PROD_JWT_REFRESH_SECRET
+          '
+
+          for var_name in $required_secrets; do
+            if [ -z "${!var_name}" ]; then
+              echo "Missing required GitHub Secret: $var_name" >&2
+              exit 1
+            fi
+          done
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -48,7 +107,7 @@ jobs:
           context: ./packages/frontend
           file: ./packages/frontend/Dockerfile
           build-args: |
-            VITE_API_BASE_URL=https://api.crmpodrukoy.ru
+            VITE_API_BASE_URL=${{ env.PROD_VITE_API_BASE_URL }}
           push: true
           tags: |
             ghcr.io/${{ env.IMAGE_REPO }}/frontend:${{ env.IMAGE_TAG }}
@@ -66,11 +125,30 @@ jobs:
 
       - name: Deploy on server
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          PROD_DATABASE_HOST: ${{ env.PROD_DATABASE_HOST }}
+          PROD_DATABASE_PORT: ${{ env.PROD_DATABASE_PORT }}
+          PROD_DATABASE_USER: ${{ env.PROD_DATABASE_USER }}
+          PROD_DATABASE_PASSWORD: ${{ env.PROD_DATABASE_PASSWORD }}
+          PROD_DATABASE_NAME: ${{ env.PROD_DATABASE_NAME }}
+          PROD_NODE_ENV: ${{ env.PROD_NODE_ENV }}
+          PROD_PORT: ${{ env.PROD_PORT }}
+          PROD_JWT_ACCESS_SECRET: ${{ env.PROD_JWT_ACCESS_SECRET }}
+          PROD_JWT_REFRESH_SECRET: ${{ env.PROD_JWT_REFRESH_SECRET }}
+          PROD_JWT_ACCESS_EXPIRES_IN: ${{ env.PROD_JWT_ACCESS_EXPIRES_IN }}
+          PROD_JWT_REFRESH_EXPIRES_IN: ${{ env.PROD_JWT_REFRESH_EXPIRES_IN }}
+          PROD_CORS_ORIGIN: ${{ env.PROD_CORS_ORIGIN }}
+          PROD_VITE_API_BASE_URL: ${{ env.PROD_VITE_API_BASE_URL }}
+          PROD_LANDING_DOMAIN: ${{ env.PROD_LANDING_DOMAIN }}
+          PROD_APP_DOMAIN: ${{ env.PROD_APP_DOMAIN }}
+          PROD_API_DOMAIN: ${{ env.PROD_API_DOMAIN }}
+          PROD_ACME_EMAIL: ${{ env.PROD_ACME_EMAIL }}
         with:
           host: ${{ secrets.SSH_HOST }}
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: PROD_DATABASE_HOST,PROD_DATABASE_PORT,PROD_DATABASE_USER,PROD_DATABASE_PASSWORD,PROD_DATABASE_NAME,PROD_NODE_ENV,PROD_PORT,PROD_JWT_ACCESS_SECRET,PROD_JWT_REFRESH_SECRET,PROD_JWT_ACCESS_EXPIRES_IN,PROD_JWT_REFRESH_EXPIRES_IN,PROD_CORS_ORIGIN,PROD_VITE_API_BASE_URL,PROD_LANDING_DOMAIN,PROD_APP_DOMAIN,PROD_API_DOMAIN,PROD_ACME_EMAIL
           script: |
             set -e
             cd /home/monipchenko/project-crm
@@ -78,6 +156,30 @@ jobs:
             git checkout main
             git merge --ff-only FETCH_HEAD
             cd environments/prod
+            cat > .env.backend <<EOF
+            DATABASE_HOST=$PROD_DATABASE_HOST
+            DATABASE_PORT=$PROD_DATABASE_PORT
+            DATABASE_USER=$PROD_DATABASE_USER
+            DATABASE_PASSWORD=$PROD_DATABASE_PASSWORD
+            DATABASE_NAME=$PROD_DATABASE_NAME
+            NODE_ENV=$PROD_NODE_ENV
+            PORT=$PROD_PORT
+            JWT_ACCESS_SECRET=$PROD_JWT_ACCESS_SECRET
+            JWT_REFRESH_SECRET=$PROD_JWT_REFRESH_SECRET
+            JWT_ACCESS_EXPIRES_IN=$PROD_JWT_ACCESS_EXPIRES_IN
+            JWT_REFRESH_EXPIRES_IN=$PROD_JWT_REFRESH_EXPIRES_IN
+            CORS_ORIGIN=$PROD_CORS_ORIGIN
+            EOF
+            cat > .env.frontend <<EOF
+            VITE_API_BASE_URL=$PROD_VITE_API_BASE_URL
+            EOF
+            cat > .env.caddy <<EOF
+            LANDING_DOMAIN=$PROD_LANDING_DOMAIN
+            APP_DOMAIN=$PROD_APP_DOMAIN
+            API_DOMAIN=$PROD_API_DOMAIN
+            ACME_EMAIL=$PROD_ACME_EMAIL
+            EOF
+            chmod 600 .env.backend .env.frontend .env.caddy
             echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
             export FRONTEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/frontend

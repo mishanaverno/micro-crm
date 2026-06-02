@@ -140,9 +140,11 @@
   - backend runtime env
   - `CORS_ORIGIN`
 - `.env.frontend`
-  - `VITE_API_BASE_URL=/api`
+  - `VITE_API_BASE_URL=https://api.<domain>/api`
 - `.env.caddy`
-  - `SITE_ADDRESS`
+  - `LANDING_DOMAIN`
+  - `APP_DOMAIN`
+  - `API_DOMAIN`
   - `ACME_EMAIL`
 
 ### Как env загружаются
@@ -152,6 +154,11 @@
 - `. ./.env.backend`
 - `. ./.env.frontend`
 - `. ./.env.caddy`
+
+### Как env попадают на сервер
+
+- В CI/CD production `.env.backend`, `.env.frontend`, `.env.caddy` генерируются workflow `deploy.yml` из GitHub Variables и GitHub Secrets.
+- `.example` файлы остаются шаблонами для ручного bootstrap и справки.
 
 ## CI/CD
 
@@ -189,11 +196,13 @@
 
 1. Собирает backend image
 2. Собирает frontend image
-3. Пушит их в `GHCR`
-4. Заходит на сервер по SSH
-5. Обновляет код репозитория на сервере
-6. Логинится в `ghcr.io`
-7. Запускает `environments/prod/deploy.sh`
+3. Собирает landing image
+4. Пушит их в `GHCR`
+5. Заходит на сервер по SSH
+6. Обновляет код репозитория на сервере
+7. Генерирует `environments/prod/.env.backend`, `.env.frontend`, `.env.caddy` из GitHub Variables и GitHub Secrets
+8. Логинится в `ghcr.io`
+9. Запускает `environments/prod/deploy.sh`
 
 ### Как обновляется код на сервере
 
@@ -217,6 +226,27 @@ Deploy пушит образы:
 - `ghcr.io/<owner>/<repo>/backend:latest`
 - `ghcr.io/<owner>/<repo>/frontend:<sha>`
 - `ghcr.io/<owner>/<repo>/frontend:latest`
+- `ghcr.io/<owner>/<repo>/landing:<sha>`
+- `ghcr.io/<owner>/<repo>/landing:latest`
+
+## GitHub Variables
+
+Для deploy workflow нужны:
+
+- `PROD_DATABASE_HOST`
+- `PROD_DATABASE_PORT`
+- `PROD_DATABASE_USER`
+- `PROD_DATABASE_NAME`
+- `PROD_NODE_ENV`
+- `PROD_PORT`
+- `PROD_JWT_ACCESS_EXPIRES_IN`
+- `PROD_JWT_REFRESH_EXPIRES_IN`
+- `PROD_CORS_ORIGIN`
+- `PROD_VITE_API_BASE_URL`
+- `PROD_LANDING_DOMAIN`
+- `PROD_APP_DOMAIN`
+- `PROD_API_DOMAIN`
+- `PROD_ACME_EMAIL`
 
 ## GitHub Secrets
 
@@ -227,6 +257,9 @@ Deploy пушит образы:
 - `SSH_USER`
 - `SSH_PRIVATE_KEY`
 - `GHCR_READ_TOKEN`
+- `PROD_DATABASE_PASSWORD`
+- `PROD_JWT_ACCESS_SECRET`
+- `PROD_JWT_REFRESH_SECRET`
 
 ### Что такое `GHCR_READ_TOKEN`
 

@@ -2,38 +2,39 @@
 
 set -e
 
-created_files=""
-
-ensure_env_file() {
+require_env_file() {
   target_file="$1"
-  example_file="$2"
 
-  if [ -f "$target_file" ]; then
-    return 0
-  fi
-
-  if [ ! -f "$example_file" ]; then
+  if [ ! -f "$target_file" ]; then
     echo "Missing required env file: $target_file" >&2
-    echo "Template file not found: $example_file" >&2
     exit 1
   fi
-
-  cp "$example_file" "$target_file"
-  created_files="$created_files $target_file"
 }
 
-ensure_env_file ./.env.backend ./.env.backend.example
-ensure_env_file ./.env.frontend ./.env.frontend.example
-ensure_env_file ./.env.caddy ./.env.caddy.example
-
-if [ -n "$created_files" ]; then
-  echo "Created missing env files from templates:$created_files" >&2
-  echo "Review and replace placeholder values before rerunning deploy." >&2
-  exit 1
-fi
+require_env_file ./.env.backend
+require_env_file ./.env.frontend
+require_env_file ./.env.caddy
 
 set -a
 . ./.env.backend
 . ./.env.frontend
 . ./.env.caddy
 set +a
+
+require_env_var() {
+  var_name="$1"
+  var_value="$2"
+
+  if [ -z "$var_value" ]; then
+    echo "Missing required env var: $var_name" >&2
+    exit 1
+  fi
+}
+
+require_env_var DATABASE_PASSWORD "${DATABASE_PASSWORD:-}"
+require_env_var JWT_ACCESS_SECRET "${JWT_ACCESS_SECRET:-}"
+require_env_var JWT_REFRESH_SECRET "${JWT_REFRESH_SECRET:-}"
+require_env_var LANDING_DOMAIN "${LANDING_DOMAIN:-}"
+require_env_var APP_DOMAIN "${APP_DOMAIN:-}"
+require_env_var API_DOMAIN "${API_DOMAIN:-}"
+require_env_var ACME_EMAIL "${ACME_EMAIL:-}"

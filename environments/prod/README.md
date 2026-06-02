@@ -18,14 +18,11 @@
 sudo mkdir -p /opt/project-crm
 cd /opt/project-crm
 git clone <your-repo-url> .
-cp environments/prod/.env.backend.example environments/prod/.env.backend
-cp environments/prod/.env.frontend.example environments/prod/.env.frontend
-cp environments/prod/.env.caddy.example environments/prod/.env.caddy
 chmod +x environments/prod/*.sh
 ```
 
-Fill in secrets in `.env.backend` and the real domains/email in `.env.caddy`.
-If one of the `.env.*` files is missing later, prod scripts recreate it from the matching `.example` and stop with an instruction to review the placeholders.
+For CI/CD deploy, production `.env.*` files are generated on the server by `.github/workflows/deploy.yml` from GitHub Variables and GitHub Secrets.
+The `.example` files stay in the repo as templates for manual bootstrap and documentation.
 
 ## Manual first deploy
 
@@ -43,6 +40,34 @@ cd environments/prod
 IMAGE_TAG=<tag> ./deploy.sh
 ```
 
+Before the first CI/CD deploy, configure these GitHub Variables:
+
+- `PROD_DATABASE_HOST`
+- `PROD_DATABASE_PORT`
+- `PROD_DATABASE_USER`
+- `PROD_DATABASE_NAME`
+- `PROD_NODE_ENV`
+- `PROD_PORT`
+- `PROD_JWT_ACCESS_EXPIRES_IN`
+- `PROD_JWT_REFRESH_EXPIRES_IN`
+- `PROD_CORS_ORIGIN`
+- `PROD_VITE_API_BASE_URL`
+- `PROD_LANDING_DOMAIN`
+- `PROD_APP_DOMAIN`
+- `PROD_API_DOMAIN`
+- `PROD_ACME_EMAIL`
+
+Configure these GitHub Secrets:
+
+- `SSH_HOST`
+- `SSH_PORT`
+- `SSH_USER`
+- `SSH_PRIVATE_KEY`
+- `GHCR_READ_TOKEN`
+- `PROD_DATABASE_PASSWORD`
+- `PROD_JWT_ACCESS_SECRET`
+- `PROD_JWT_REFRESH_SECRET`
+
 ## Notes
 
 - external `caddy` listens on `80/443`, terminates HTTPS and proxies traffic inside docker network
@@ -50,4 +75,4 @@ IMAGE_TAG=<tag> ./deploy.sh
 - migrations are executed before app startup
 - `DEV_SEED_ENABLED` is disabled in production
 - `start.sh`, `deploy.sh` and `migrate.sh` load `.env.backend`, `.env.frontend` and `.env.caddy` automatically through `load-env.sh`
-- if any `.env.*` file is missing, the script restores it from `.example` and exits before deploy continues
+- production deploy no longer depends on manually created `.env.*` files on the server
