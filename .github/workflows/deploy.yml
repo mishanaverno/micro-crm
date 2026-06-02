@@ -64,9 +64,9 @@ jobs:
           script: |
             set -e
             cd /home/monipchenko/project-crm
-            git fetch origin main
+            git fetch https://x-access-token:${{ secrets.GHCR_READ_TOKEN }}@github.com/${{ github.repository }}.git main
             git checkout main
-            git pull --ff-only origin main
+            git merge --ff-only FETCH_HEAD
             cd environments/prod
             echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
