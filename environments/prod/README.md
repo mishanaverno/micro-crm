@@ -6,7 +6,7 @@
 - `Caddyfile` - external reverse proxy and HTTPS termination
 - `.env.backend.example` - backend environment template
 - `.env.frontend.example` - frontend environment template
-- `.env.caddy.example` - caddy domain and ACME email template
+- `.env.caddy.example` - caddy domains and ACME email template
 - `start.sh` - local production-like start with image build
 - `deploy.sh` - deploy using prebuilt images
 - `stop.sh` - stop stack
@@ -24,7 +24,7 @@ cp environments/prod/.env.caddy.example environments/prod/.env.caddy
 chmod +x environments/prod/*.sh
 ```
 
-Fill in secrets in `.env.backend` and the real domain/email in `.env.caddy`.
+Fill in secrets in `.env.backend` and the real domains/email in `.env.caddy`.
 If one of the `.env.*` files is missing later, prod scripts recreate it from the matching `.example` and stop with an instruction to review the placeholders.
 
 ## Manual first deploy
@@ -46,8 +46,7 @@ IMAGE_TAG=<tag> ./deploy.sh
 ## Notes
 
 - external `caddy` listens on `80/443`, terminates HTTPS and proxies traffic inside docker network
-- frontend is not exposed directly to the host anymore
-- `/api` requests are proxied to the backend container by the external `caddy`
+- landing is served on the root domain, frontend on the app subdomain, backend on the api subdomain
 - migrations are executed before app startup
 - `DEV_SEED_ENABLED` is disabled in production
 - `start.sh`, `deploy.sh` and `migrate.sh` load `.env.backend`, `.env.frontend` and `.env.caddy` automatically through `load-env.sh`

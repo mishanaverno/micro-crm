@@ -48,11 +48,21 @@ jobs:
           context: ./packages/frontend
           file: ./packages/frontend/Dockerfile
           build-args: |
-            VITE_API_BASE_URL=/api
+            VITE_API_BASE_URL=https://api.crmpodrukoy.ru
           push: true
           tags: |
             ghcr.io/${{ env.IMAGE_REPO }}/frontend:${{ env.IMAGE_TAG }}
             ghcr.io/${{ env.IMAGE_REPO }}/frontend:latest
+
+      - name: Build and push landing image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./packages/landing
+          file: ./packages/landing/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.IMAGE_REPO }}/landing:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.IMAGE_REPO }}/landing:latest
 
       - name: Deploy on server
         uses: appleboy/ssh-action@v1.2.0
@@ -71,6 +81,7 @@ jobs:
             echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
             export FRONTEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/frontend
+            export LANDING_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/landing
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
             sh ./deploy.sh
             docker image prune -f

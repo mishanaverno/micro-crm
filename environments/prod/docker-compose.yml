@@ -9,7 +9,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-crm_user} -d ${DATABASE_PASSWORD:-crm_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-crm_user} -d ${DATABASE_NAME:-crm_db}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -82,12 +82,29 @@ services:
     networks:
       - crm-network
 
+  landing:
+    image: ${LANDING_IMAGE:-project-crm-landing}:${IMAGE_TAG:-latest}
+    build:
+      context: ../../packages/landing
+      dockerfile: Dockerfile
+    container_name: crm-landing-prod
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - crm-network
+
   caddy:
     image: caddy:2.9-alpine
     container_name: crm-caddy-prod
     env_file:
       - ./.env.caddy
     depends_on:
+      landing:
+        condition: service_healthy
       frontend:
         condition: service_healthy
       backend:
