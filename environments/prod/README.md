@@ -25,6 +25,7 @@ chmod +x environments/prod/*.sh
 ```
 
 Fill in secrets in `.env.backend` and the real domain/email in `.env.caddy`.
+If one of the `.env.*` files is missing later, prod scripts recreate it from the matching `.example` and stop with an instruction to review the placeholders.
 
 ## Manual first deploy
 
@@ -49,4 +50,5 @@ IMAGE_TAG=<tag> ./deploy.sh
 - `/api` requests are proxied to the backend container by the external `caddy`
 - migrations are executed before app startup
 - `DEV_SEED_ENABLED` is disabled in production
-- `start.sh`, `deploy.sh` and `migrate.sh` load `.env.backend`, `.env.frontend` and `.env.caddy` automatically
+- `start.sh`, `deploy.sh` and `migrate.sh` load `.env.backend`, `.env.frontend` and `.env.caddy` automatically through `load-env.sh`
+- if any `.env.*` file is missing, the script restores it from `.example` and exits before deploy continues

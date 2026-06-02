@@ -2,11 +2,7 @@
 
 set -e
 
-set -a
-. ./.env.backend
-. ./.env.frontend
-. ./.env.caddy
-set +a
+. ./load-env.sh
 
 docker compose up -d --build postgres
 docker compose run --rm migrator

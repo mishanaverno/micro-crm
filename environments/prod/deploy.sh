@@ -2,11 +2,7 @@
 
 set -e
 
-set -a
-. ./.env.backend
-. ./.env.frontend
-. ./.env.caddy
-set +a
+. ./load-env.sh
 
 IMAGE_TAG_VALUE=${IMAGE_TAG:-latest}
 

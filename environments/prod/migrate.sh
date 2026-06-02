@@ -2,10 +2,6 @@
 
 set -e
 
-set -a
-. ./.env.backend
-. ./.env.frontend
-. ./.env.caddy
-set +a
+. ./load-env.sh
 
 docker compose run --rm migrator
