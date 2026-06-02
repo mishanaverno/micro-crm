@@ -5,6 +5,7 @@ import { ClientDetailsPage } from '../pages/client-details-page';
 import { ClientsPage } from '../pages/clients-page';
 import { NotesPage } from '../pages/notes-page';
 import { OrdersPage } from '../pages/orders-page';
+import { OrderDetailsPage } from '../pages/order-details-page';
 import { FinancesPage } from '../pages/finances-page';
 import { RemindersPage } from '../pages/reminders-page';
 import { TasksPage } from '../pages/tasks-page';
@@ -61,6 +62,10 @@ export const router = createHashRouter([
           {
             path: 'orders',
             element: <OrdersPage />,
+          },
+          {
+            path: 'orders/:orderId',
+            element: <OrderDetailsPage />,
           },
           {
             path: 'finances',

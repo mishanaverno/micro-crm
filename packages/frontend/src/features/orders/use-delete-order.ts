@@ -15,8 +15,10 @@ export function useDeleteOrder() {
 
       return deleteOrderRequest(orderId, access_token);
     },
-    onSuccess: async () => {
+    onSuccess: async (_, orderId) => {
+      queryClient.removeQueries({ queryKey: ['orders', 'detail', orderId] });
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
+      await queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

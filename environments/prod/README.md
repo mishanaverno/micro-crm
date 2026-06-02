@@ -23,6 +23,7 @@ chmod +x environments/prod/*.sh
 
 For CI/CD deploy, production `.env.*` files are generated on the server by `.github/workflows/deploy.yml` from GitHub Variables and GitHub Secrets.
 The `.example` files stay in the repo as templates for manual bootstrap and documentation.
+CI runs on every push and pull request, while deploy runs manually or after a PR is merged into `main`.
 
 ## Manual first deploy
 

@@ -53,9 +53,18 @@ export class RemindersController {
   @Get()
   @ApiOperation({ summary: 'Get reminders for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter reminders by client ID' })
+  @ApiQuery({ name: 'order_id', required: false, description: 'Filter reminders by order ID' })
   @ApiResponse({ status: 200, description: 'List of reminders', type: [Reminder] })
-  findAll(@Req() request: AuthenticatedRequest, @Query('client_id') clientId?: string) {
-    return this.remindersService.findAll(request.user.sub, clientId);
+  findAll(
+    @Req() request: AuthenticatedRequest,
+    @Query('client_id') clientId?: string,
+    @Query('order_id') orderId?: string,
+  ) {
+    return this.remindersService.findAll(
+      request.user.sub,
+      clientId,
+      orderId ? Number(orderId) : undefined,
+    );
   }
 
   @Get(':id')

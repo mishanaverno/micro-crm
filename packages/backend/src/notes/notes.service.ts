@@ -56,16 +56,15 @@ export class NotesService {
     return createdNote;
   }
 
-  findAll(userId: string, clientId?: string): Promise<Note[]> {
-    if (clientId) {
-      return this.notesRepository.find({
-        where: { user_id: userId, client_id: clientId },
-        order: { created_at: 'DESC' },
-      });
-    }
+  findAll(userId: string, clientId?: string, orderId?: number): Promise<Note[]> {
+    const where = {
+      user_id: userId,
+      ...(clientId ? { client_id: clientId } : {}),
+      ...(orderId !== undefined ? { order_id: orderId } : {}),
+    };
 
     return this.notesRepository.find({
-      where: { user_id: userId },
+      where,
       order: { created_at: 'DESC' },
     });
   }
@@ -74,11 +73,14 @@ export class NotesService {
     userId: string,
     pagination: PaginationOptions,
     clientId?: string,
+    orderId?: number,
   ): Promise<PaginatedResponse<Note>> {
     const [items, total] = await this.notesRepository.findAndCount({
-      where: clientId
-        ? { user_id: userId, client_id: clientId }
-        : { user_id: userId },
+      where: {
+        user_id: userId,
+        ...(clientId ? { client_id: clientId } : {}),
+        ...(orderId !== undefined ? { order_id: orderId } : {}),
+      },
       order: { created_at: 'DESC' },
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,

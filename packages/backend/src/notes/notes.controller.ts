@@ -53,10 +53,12 @@ export class NotesController {
   @Get()
   @ApiOperation({ summary: 'Get notes for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter notes by client ID' })
+  @ApiQuery({ name: 'order_id', required: false, description: 'Filter notes by order ID' })
   @ApiResponse({ status: 200, description: 'List of notes', type: [Note] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('client_id') clientId?: string,
+    @Query('order_id') orderId?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
   ) {
@@ -65,10 +67,11 @@ export class NotesController {
         request.user.sub,
         parsePaginationParams(page, pageSize),
         clientId,
+        orderId ? Number(orderId) : undefined,
       );
     }
 
-    return this.notesService.findAll(request.user.sub, clientId);
+    return this.notesService.findAll(request.user.sub, clientId, orderId ? Number(orderId) : undefined);
   }
 
   @Get(':id')

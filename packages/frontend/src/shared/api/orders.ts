@@ -55,6 +55,18 @@ export async function fetchOrdersRequest(
   return orders.map(toOrderRecord);
 }
 
+export async function fetchOrderRequest(orderId: string, accessToken: string) {
+  const order = await httpRequest<ApiOrderRecord>({
+    path: `/orders/${orderId}`,
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return toOrderRecord(order);
+}
+
 export async function fetchPaginatedOrdersRequest(
   accessToken: string,
   pagination: PaginationParams,

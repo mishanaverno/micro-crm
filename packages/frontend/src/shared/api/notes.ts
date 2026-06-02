@@ -5,6 +5,7 @@ import { toPaginationQuery } from './pagination';
 
 interface NotesRequestFilters {
   clientId?: string;
+  orderId?: string;
 }
 
 interface ApiNoteRecord extends Omit<NoteRecord, 'id' | 'sync_status'> {
@@ -26,6 +27,10 @@ function toNotesQuery(filters?: NotesRequestFilters) {
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.orderId) {
+    params.set('order_id', filters.orderId);
   }
 
   const query = params.toString();
@@ -57,6 +62,10 @@ export async function fetchPaginatedNotesRequest(
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.orderId) {
+    params.set('order_id', filters.orderId);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiNoteRecord>>({

@@ -62,16 +62,15 @@ export class TasksService {
     return createdTask;
   }
 
-  findAll(userId: string, clientId?: string): Promise<Task[]> {
-    if (clientId) {
-      return this.tasksRepository.find({
-        where: { user_id: userId, client_id: clientId },
-        order: { created_at: 'DESC' },
-      });
-    }
+  findAll(userId: string, clientId?: string, orderId?: number): Promise<Task[]> {
+    const where = {
+      user_id: userId,
+      ...(clientId ? { client_id: clientId } : {}),
+      ...(orderId !== undefined ? { order_id: orderId } : {}),
+    };
 
     return this.tasksRepository.find({
-      where: { user_id: userId },
+      where,
       order: { created_at: 'DESC' },
     });
   }
@@ -80,11 +79,14 @@ export class TasksService {
     userId: string,
     pagination: PaginationOptions,
     clientId?: string,
+    orderId?: number,
   ): Promise<PaginatedResponse<Task>> {
     const [items, total] = await this.tasksRepository.findAndCount({
-      where: clientId
-        ? { user_id: userId, client_id: clientId }
-        : { user_id: userId },
+      where: {
+        user_id: userId,
+        ...(clientId ? { client_id: clientId } : {}),
+        ...(orderId !== undefined ? { order_id: orderId } : {}),
+      },
       order: { created_at: 'DESC' },
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,
