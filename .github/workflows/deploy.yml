@@ -72,5 +72,5 @@ jobs:
             export BACKEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/backend
             export FRONTEND_IMAGE=ghcr.io/${{ env.IMAGE_REPO }}/frontend
             export IMAGE_TAG=${{ env.IMAGE_TAG }}
-            ./deploy.sh
+            sh ./deploy.sh
             docker image prune -f
