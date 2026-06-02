@@ -169,7 +169,7 @@
 Запускается:
 
 - на `pull_request`
-- на `push` в `main`
+- на каждый `push`
 
 Проверяет:
 
@@ -190,7 +190,7 @@
 Запускается:
 
 - вручную через `workflow_dispatch`
-- на `push` в `main`
+- при merge `pull_request` в `main`
 
 Что делает:
 
@@ -217,6 +217,11 @@
 Это было сделано потому, что раньше падало с ошибкой:
 
 - `git@github.com: Permission denied (publickey)`
+
+### Важный нюанс trigger'ов
+
+- deploy workflow при событии merge PR в `main` выкатывает уже актуальный `main` с сервера, а не head ветки PR
+- поэтому deploy привязан именно к завершенному merge, а не к каждому обновлению pull request
 
 ### GHCR
 
