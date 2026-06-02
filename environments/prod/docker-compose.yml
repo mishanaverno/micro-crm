@@ -41,7 +41,7 @@ services:
     restart: "no"
 
   backend:
-    image: ${BACKEND_IMAGE:-project-crm-backend}:${IMAGE_TAG:-latest}
+    image: ${BACKEND_IMAGE:-project-crm-backend}:${BACKEND_IMAGE_TAG:-latest}
     build:
       context: ../../packages/backend
       dockerfile: Dockerfile
@@ -61,7 +61,7 @@ services:
       - crm-network
 
   frontend:
-    image: ${FRONTEND_IMAGE:-project-crm-frontend}:${IMAGE_TAG:-latest}
+    image: ${FRONTEND_IMAGE:-project-crm-frontend}:${FRONTEND_IMAGE_TAG:-latest}
     build:
       context: ../../packages/frontend
       dockerfile: Dockerfile
@@ -83,7 +83,7 @@ services:
       - crm-network
 
   landing:
-    image: ${LANDING_IMAGE:-project-crm-landing}:${IMAGE_TAG:-latest}
+    image: ${LANDING_IMAGE:-project-crm-landing}:${LANDING_IMAGE_TAG:-latest}
     build:
       context: ../../packages/landing
       dockerfile: Dockerfile

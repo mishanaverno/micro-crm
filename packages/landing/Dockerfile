@@ -2,6 +2,7 @@ FROM caddy:2.9-alpine
 
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY index.html /srv/index.html
+COPY robots.txt /srv/robots.txt
 COPY styles.css /srv/styles.css
 
 EXPOSE 80
