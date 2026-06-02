@@ -3,13 +3,13 @@ services:
     image: postgres:15-alpine
     container_name: crm-postgres-prod
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-crm_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+      POSTGRES_USER: ${DATABASE_USER:-crm_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-change-me}
+      POSTGRES_DB: ${DATABASE_NAME:-crm_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm_user} -d ${POSTGRES_DB:-crm_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-crm_user} -d ${DATABASE_PASSWORD:-crm_db}"]
       interval: 10s
       timeout: 5s
       retries: 10
