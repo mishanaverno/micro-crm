@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ClientAvatar } from '../components/client-avatar';
 import { ReminderCalendar } from '../components/reminder-calendar';
+import { OrderLink } from '../components/order-link';
 import { StatusBadge } from '../components/status-badges';
 import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
@@ -580,11 +581,17 @@ export function ClientDetailsPage() {
                 <TableBody>
                   {paginatedOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium">#{order.id}</TableCell>
+                      <TableCell className="font-medium">
+                        <OrderLink orderId={order.id}>#{order.id}</OrderLink>
+                      </TableCell>
                       <TableCell>
                         <StatusBadge status={order.status} />
                       </TableCell>
-                      <TableCell>{order.title || t('empty.orderTitle')}</TableCell>
+                      <TableCell>
+                        <OrderLink orderId={order.id}>
+                          {order.title || t('empty.orderTitle')}
+                        </OrderLink>
+                      </TableCell>
                       <TableCell className="max-w-[420px] text-muted-foreground">
                         <span className="line-clamp-2">{order.content}</span>
                       </TableCell>

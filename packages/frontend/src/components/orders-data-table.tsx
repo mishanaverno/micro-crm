@@ -2,6 +2,7 @@ import { OrderRecord } from '../shared/types/order';
 import { t } from '../shared/lib/i18n';
 import { StatusBadge } from './status-badges';
 import { ClientLink } from './client-link';
+import { OrderLink } from './order-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -117,7 +118,11 @@ export function OrdersDataTable({
       <TableBody>
         {orders.map((order) => (
           <TableRow key={order.id}>
-            {visibleColumns.id ? <TableCell className="font-medium">#{order.id}</TableCell> : null}
+            {visibleColumns.id ? (
+              <TableCell className="font-medium">
+                <OrderLink orderId={order.id}>#{order.id}</OrderLink>
+              </TableCell>
+            ) : null}
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
                 <ClientLink clientId={order.client_id}>
@@ -130,7 +135,11 @@ export function OrdersDataTable({
                 <StatusBadge status={order.status} />
               </TableCell>
             ) : null}
-            {visibleColumns.title ? <TableCell>{order.title || t('empty.orderTitle')}</TableCell> : null}
+            {visibleColumns.title ? (
+              <TableCell>
+                <OrderLink orderId={order.id}>{order.title || t('empty.orderTitle')}</OrderLink>
+              </TableCell>
+            ) : null}
             <TableCell className="max-w-[420px] text-muted-foreground">
               <span className="line-clamp-2">{order.content}</span>
             </TableCell>

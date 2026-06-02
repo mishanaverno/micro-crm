@@ -22,6 +22,8 @@ export function useUpdateOrder() {
       return updateOrderRequest(orderId, payload, access_token);
     },
     onSuccess: async (updatedOrder) => {
+      queryClient.setQueryData(['orders', 'detail', updatedOrder.id], updatedOrder);
+
       queryClient.setQueriesData({ queryKey: ['orders'] }, (currentOrders) => {
         if (!Array.isArray(currentOrders)) {
           return currentOrders;

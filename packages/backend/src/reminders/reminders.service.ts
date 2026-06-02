@@ -55,16 +55,15 @@ export class RemindersService {
     return createdReminder;
   }
 
-  findAll(userId: string, clientId?: string): Promise<Reminder[]> {
-    if (clientId) {
-      return this.remindersRepository.find({
-        where: { user_id: userId, client_id: clientId },
-        order: { timestamp: 'ASC', created_at: 'DESC' },
-      });
-    }
+  findAll(userId: string, clientId?: string, orderId?: number): Promise<Reminder[]> {
+    const where = {
+      user_id: userId,
+      ...(clientId ? { client_id: clientId } : {}),
+      ...(orderId !== undefined ? { order_id: orderId } : {}),
+    };
 
     return this.remindersRepository.find({
-      where: { user_id: userId },
+      where,
       order: { timestamp: 'ASC', created_at: 'DESC' },
     });
   }

@@ -3,6 +3,7 @@ import { ReminderDraft, ReminderRecord } from '../types/reminder';
 
 interface RemindersRequestFilters {
   clientId?: string;
+  orderId?: string;
 }
 
 interface ApiReminderRecord extends Omit<ReminderRecord, 'id' | 'sync_status'> {
@@ -24,6 +25,10 @@ function toRemindersQuery(filters?: RemindersRequestFilters) {
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.orderId) {
+    params.set('order_id', filters.orderId);
   }
 
   const query = params.toString();

@@ -5,6 +5,7 @@ import { toPaginationQuery } from './pagination';
 
 interface TasksRequestFilters {
   clientId?: string;
+  orderId?: string;
 }
 
 interface ApiTaskRecord extends Omit<TaskRecord, 'id' | 'sync_status'> {
@@ -27,6 +28,10 @@ function toTasksQuery(filters?: TasksRequestFilters) {
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.orderId) {
+    params.set('order_id', filters.orderId);
   }
 
   const query = params.toString();
@@ -58,6 +63,10 @@ export async function fetchPaginatedTasksRequest(
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.orderId) {
+    params.set('order_id', filters.orderId);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiTaskRecord>>({
