@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ClientAvatar } from '../components/client-avatar';
-import { ReminderCalendar } from '../components/reminder-calendar';
+import { NotesBlock } from '../components/notes-block';
 import { OrderLink } from '../components/order-link';
+import { RemindersBlock } from '../components/reminders-block';
 import { StatusBadge } from '../components/status-badges';
 import { TablePagination } from '../components/table-pagination';
+import { TasksBlock } from '../components/tasks-block';
 import { useClients } from '../features/clients/use-clients';
 import { useNotes } from '../features/notes/use-notes';
 import { useOrders } from '../features/orders/use-orders';
@@ -23,12 +25,6 @@ import {
   CardTitle,
 } from '../shared/ui/card';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '../shared/ui/tooltip';
-import {
   Table,
   TableBody,
   TableCell,
@@ -37,8 +33,6 @@ import {
   TableRow,
 } from '../components/ui/table';
 import { ClientRecord } from '../shared/types/client';
-import { NoteRecord } from '../shared/types/note';
-import { ReminderRecord } from '../shared/types/reminder';
 import { TaskRecord } from '../shared/types/task';
 import { OrderStatus } from '../shared/types/order';
 
@@ -62,82 +56,6 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-function getEndOfCurrentWeek(now = new Date()) {
-  const endOfWeek = new Date(now);
-  const day = endOfWeek.getDay();
-  const daysUntilSunday = day === 0 ? 0 : 7 - day;
-
-  endOfWeek.setDate(endOfWeek.getDate() + daysUntilSunday);
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  return endOfWeek;
-}
-
-function getDeadlineState(deadline: string) {
-  const deadlineDate = new Date(deadline);
-  const now = new Date();
-
-  if (Number.isNaN(deadlineDate.getTime())) {
-    return 'default';
-  }
-
-  if (deadlineDate.getTime() < now.getTime()) {
-    return 'overdue';
-  }
-
-  if (deadlineDate.getTime() <= getEndOfCurrentWeek(now).getTime()) {
-    return 'this-week';
-  }
-
-  return 'default';
-}
-
-function formatDuration(milliseconds: number) {
-  const absMilliseconds = Math.abs(milliseconds);
-  const minute = 60 * 1000;
-  const hour = 60 * minute;
-  const day = 24 * hour;
-
-  if (absMilliseconds < hour) {
-    const minutes = Math.max(1, Math.round(absMilliseconds / minute));
-    return `${minutes} мин.`;
-  }
-
-  if (absMilliseconds < day) {
-    const hours = Math.max(1, Math.round(absMilliseconds / hour));
-    return `${hours} ч.`;
-  }
-
-  const days = Math.max(1, Math.round(absMilliseconds / day));
-  return `${days} дн.`;
-}
-
-function getDeadlineTooltip(deadline: string) {
-  const deadlineDate = new Date(deadline);
-
-  if (Number.isNaN(deadlineDate.getTime())) {
-    return '';
-  }
-
-  const difference = deadlineDate.getTime() - Date.now();
-  const duration = formatDuration(difference);
-
-  return difference < 0
-    ? t('common.deadlineOverdueBy', undefined, { duration })
-    : t('common.deadlineRemaining', undefined, { duration });
-}
-
-function getDeadlineBadgeClassName(deadline: string) {
-  switch (getDeadlineState(deadline)) {
-    case 'overdue':
-      return 'border-transparent bg-rose-100 text-rose-700';
-    case 'this-week':
-      return 'border-transparent bg-amber-100 text-amber-800';
-    default:
-      return '';
-  }
-}
-
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[8px] border border-border bg-background px-3 py-2">
@@ -148,205 +66,6 @@ function DetailRow({ label, value }: { label: string; value: string }) {
         {value || '—'}
       </dd>
     </div>
-  );
-}
-
-function ClientItemsBlock<T>({
-  emptyText,
-  errorText,
-  getMeta,
-  getTitle,
-  isError,
-  isLoading,
-  items,
-  title,
-}: {
-  emptyText: string;
-  errorText: string;
-  getMeta?: (item: T) => string | null;
-  getTitle: (item: T) => string;
-  isError: boolean;
-  isLoading: boolean;
-  items: T[];
-  title: string;
-}) {
-  return (
-    <Card>
-      <CardHeader className="p-4">
-        <CardTitle className="text-lg">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-        ) : isError ? (
-          <p className="text-sm text-rose-700">{errorText}</p>
-        ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{emptyText}</p>
-        ) : (
-          <ul className="grid gap-2">
-            {items.map((item, index) => {
-              const meta = getMeta?.(item);
-
-              return (
-                <li
-                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-                  key={index}
-                >
-                  <p className="font-medium text-foreground">{getTitle(item)}</p>
-                  {meta ? (
-                    <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientTasksBlock({
-  emptyText,
-  errorText,
-  isError,
-  isLoading,
-  isUpdating,
-  onToggleTaskStatus,
-  tasks,
-}: {
-  emptyText: string;
-  errorText: string;
-  isError: boolean;
-  isLoading: boolean;
-  isUpdating: boolean;
-  onToggleTaskStatus: (task: TaskRecord) => void;
-  tasks: TaskRecord[];
-}) {
-  return (
-    <Card>
-      <CardHeader className="p-4">
-        <CardTitle className="text-lg">{t('page.tasks')}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-        ) : isError ? (
-          <p className="text-sm text-rose-700">{errorText}</p>
-        ) : tasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{emptyText}</p>
-        ) : (
-          <ul className="grid gap-2">
-            {tasks.map((task) => (
-              <li
-                className="grid gap-2 rounded-[8px] border border-border bg-background px-3 py-2 text-sm"
-                key={task.id}
-              >
-                {task.deadline ? (
-                  <div className="flex justify-end">
-                    <TooltipProvider delayDuration={150}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="inline-flex shrink-0 cursor-help" tabIndex={0}>
-                            <Badge
-                              className={getDeadlineBadgeClassName(task.deadline)}
-                              variant="secondary"
-                            >
-                              {t('common.completeBefore', undefined, {
-                                deadline: formatDate(task.deadline),
-                              })}
-                            </Badge>
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent align="end">
-                          {getDeadlineTooltip(task.deadline)}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                ) : null}
-                <div className="flex items-start gap-3">
-                  <button
-                    aria-label={task.content}
-                    aria-checked={task.status === 'complete'}
-                    aria-pressed={task.status === 'complete'}
-                    className={[
-                      'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
-                      task.status === 'complete'
-                        ? 'border-emerald-600 bg-emerald-100 text-emerald-700'
-                        : 'border-foreground/70 bg-background text-transparent hover:bg-muted',
-                      isUpdating ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
-                    ].join(' ')}
-                    disabled={isUpdating}
-                    role="checkbox"
-                    type="button"
-                    onClick={() => onToggleTaskStatus(task)}
-                  >
-                    <svg
-                      aria-hidden="true"
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 16 16"
-                    >
-                      <path
-                        d="m3.25 8.25 3 3L12.75 4.75"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.2"
-                      />
-                    </svg>
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground">{task.content}</p>
-                    {!task.deadline ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDate(task.created_at)}
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClientRemindersBlock({
-  emptyText,
-  errorText,
-  isError,
-  isLoading,
-  reminders,
-}: {
-  emptyText: string;
-  errorText: string;
-  isError: boolean;
-  isLoading: boolean;
-  reminders: ReminderRecord[];
-}) {
-  return (
-    <Card>
-      <CardHeader className="p-4">
-        <CardTitle className="text-lg">{t('page.reminders')}</CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3 px-4 pb-4">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-        ) : isError ? (
-          <p className="text-sm text-rose-700">{errorText}</p>
-        ) : reminders.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{emptyText}</p>
-        ) : (
-          <div className="flex justify-center">
-            <ReminderCalendar reminders={reminders} />
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 }
 
@@ -504,17 +223,15 @@ export function ClientDetailsPage() {
       </Card>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <ClientItemsBlock<NoteRecord>
+        <NotesBlock
           emptyText={t('empty.clientNotes')}
           errorText={t('feedback.notesLoadFailed')}
-          getMeta={(note) => formatDate(note.created_at)}
-          getTitle={(note) => note.content}
           isError={notesQuery.isError}
           isLoading={notesQuery.isLoading}
-          items={baseNotes}
-          title={t('page.notes')}
+          notes={baseNotes}
+          variant="inverse"
         />
-        <ClientTasksBlock
+        <TasksBlock
           emptyText={t('empty.clientTasks')}
           errorText={t('feedback.tasksLoadFailed')}
           isError={tasksQuery.isError}
@@ -523,12 +240,13 @@ export function ClientDetailsPage() {
           onToggleTaskStatus={toggleTaskStatus}
           tasks={baseTasks}
         />
-        <ClientRemindersBlock
+        <RemindersBlock
           emptyText={t('empty.clientReminders')}
           errorText={t('feedback.remindersLoadFailed')}
           isError={remindersQuery.isError}
           isLoading={remindersQuery.isLoading}
           reminders={baseReminders}
+          tasks={baseTasks}
         />
       </section>
 
