@@ -6,6 +6,7 @@ import { toPaginationQuery } from './pagination';
 interface TasksRequestFilters {
   clientId?: string;
   orderId?: string;
+  status?: 'pending' | 'complete';
 }
 
 interface TasksSortOptions {
@@ -37,6 +38,10 @@ function toTasksQuery(filters?: TasksRequestFilters) {
 
   if (filters?.orderId) {
     params.set('order_id', filters.orderId);
+  }
+
+  if (filters?.status) {
+    params.set('status', filters.status);
   }
 
   const query = params.toString();
@@ -73,6 +78,10 @@ export async function fetchPaginatedTasksRequest(
 
   if (filters?.orderId) {
     params.set('order_id', filters.orderId);
+  }
+
+  if (filters?.status) {
+    params.set('status', filters.status);
   }
 
   if (sort?.sortBy) {

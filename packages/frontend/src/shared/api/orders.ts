@@ -5,6 +5,7 @@ import { toPaginationQuery } from './pagination';
 
 interface OrdersRequestFilters {
   clientId?: string;
+  status?: OrderStatus;
 }
 
 interface OrdersSortOptions {
@@ -38,6 +39,10 @@ function toOrdersQuery(filters?: OrdersRequestFilters) {
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.status) {
+    params.set('status', filters.status);
   }
 
   const query = params.toString();
@@ -82,6 +87,10 @@ export async function fetchPaginatedOrdersRequest(
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.status) {
+    params.set('status', filters.status);
   }
 
   if (sort?.sortBy) {

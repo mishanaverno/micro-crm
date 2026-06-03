@@ -1,7 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
-import { EntityListToolbar } from '../components/entity-list-toolbar';
-import { EntitySortSelect } from '../components/entity-sort-select';
+import { EntityListCard } from '../components/entity-list-card';
 import { TasksDataTable } from '../components/tasks-data-table';
 import {
   ReminderDateTimeField,
@@ -15,9 +13,8 @@ import { useCreateTask } from '../features/tasks/use-create-task';
 import { useDeleteTask } from '../features/tasks/use-delete-task';
 import { usePaginatedTasks } from '../features/tasks/use-paginated-tasks';
 import { useUpdateTask } from '../features/tasks/use-update-task';
-import { TablePagination } from '../components/table-pagination';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent } from '../shared/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
 import {
   Dialog,
   DialogContent,
@@ -61,6 +58,7 @@ const defaultVisibleColumns = {
 
 type VisibleColumns = typeof defaultVisibleColumns;
 type TasksSortField = 'created_at' | 'updated_at' | 'deadline';
+type TaskStatusFilter = 'all' | TaskStatus;
 
 export function TasksPage() {
   const [form, setForm] = useState(initialFormState);
@@ -69,6 +67,7 @@ export function TasksPage() {
   const [taskToDelete, setTaskToDelete] = useState<TaskRecord | null>(null);
   const [tasksPage, setTasksPage] = useState(1);
   const [tasksPageSize, setTasksPageSize] = useState(10);
+  const [statusFilter, setStatusFilter] = useState<TaskStatusFilter>('all');
   const [sortBy, setSortBy] = useState<TasksSortField>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
@@ -101,6 +100,9 @@ export function TasksPage() {
     {
       sortBy,
       sortDirection,
+    },
+    {
+      status: statusFilter === 'all' ? undefined : statusFilter,
     },
   );
   const createTask = useCreateTask();
@@ -210,6 +212,12 @@ export function TasksPage() {
     { value: 'deadline', label: t('common.deadline') },
   ];
 
+  const statusFilterOptions: Array<{ value: TaskStatusFilter; label: string }> = [
+    { value: 'all', label: t('common.all') },
+    { value: 'pending', label: t('status.pending') },
+    { value: 'complete', label: t('status.complete') },
+  ];
+
   function openCreateDialog() {
     createTask.reset();
     updateTask.reset();
@@ -297,20 +305,9 @@ export function TasksPage() {
 
   return (
     <main className="grid gap-4">
-      <Card>
-        <EntityListToolbar title={t('page.tasks')}>
-              <EntitySortSelect
-                onSortByChange={setSortBy}
-                onSortDirectionChange={setSortDirection}
-                options={sortOptions}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-              />
-              <ColumnVisibilityMenu
-                columns={columnOptions}
-                visibleColumns={visibleColumns}
-                onToggle={toggleColumn}
-              />
+      <EntityListCard
+        actions={
+          <>
               <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
@@ -482,9 +479,57 @@ export function TasksPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-        </EntityListToolbar>
-
-        <CardContent>
+          </>
+        }
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        leadingControls={
+          <ToggleGroup
+            className="rounded-full border border-input bg-background p-1"
+            onValueChange={(value) => {
+              const nextValue = (value || 'all') as TaskStatusFilter;
+              setStatusFilter(nextValue);
+              setTasksPage(1);
+            }}
+            type="single"
+            value={statusFilter}
+            variant="ghost"
+          >
+            {statusFilterOptions.map((option) => (
+              <ToggleGroupItem
+                className="h-8 rounded-full px-3 text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        }
+        sort={{
+          sortBy,
+          sortDirection,
+        }}
+        sortOptions={sortOptions}
+        title={t('page.tasks')}
+        onSortChange={(nextSort) => {
+          setSortBy(nextSort.sortBy);
+          setSortDirection(nextSort.sortDirection);
+        }}
+        pagination={{
+          page: tasksPage,
+          pageSize: tasksPageSize,
+          totalItems: tasksTotal,
+          onPageChange: setTasksPage,
+          onPageSizeChange: (pageSize) => {
+            setTasksPageSize(pageSize);
+            setTasksPage(1);
+          },
+        }}
+      >
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
               {mutationError.message || t('feedback.taskSaveFailed')}
@@ -505,24 +550,13 @@ export function TasksPage() {
                 tasks={tasks}
                 visibleColumns={visibleColumns}
               />
-              <TablePagination
-                page={tasksPage}
-                pageSize={tasksPageSize}
-                totalItems={tasksTotal}
-                onPageChange={setTasksPage}
-                onPageSizeChange={(pageSize) => {
-                  setTasksPageSize(pageSize);
-                  setTasksPage(1);
-                }}
-              />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.tasks')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </EntityListCard>
     </main>
   );
 }

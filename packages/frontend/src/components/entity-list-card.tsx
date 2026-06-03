@@ -2,6 +2,7 @@ import { ReactNode, useMemo, useState } from 'react';
 import { ColumnVisibilityMenu } from './column-visibility-menu';
 import { EntitySortSelect } from './entity-sort-select';
 import { EntityListToolbar } from './entity-list-toolbar';
+import { TablePagination } from './table-pagination';
 import { Card, CardContent } from '../shared/ui/card';
 
 type SortDirection = 'asc' | 'desc';
@@ -17,21 +18,33 @@ type EntityListCardColumns<TColumn extends string> = {
   onToggle: (column: TColumn) => void;
 };
 
+type EntityListCardPagination = {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+  pageSizeOptions?: number[];
+};
+
 type EntityListCardProps<TSort extends string, TColumn extends string> = {
   title: string;
   actions?: ReactNode;
   children: ReactNode;
+  leadingControls?: ReactNode;
   sortOptions?: Array<{ value: TSort; label: string }>;
   sort?: EntityListSortState<TSort>;
   defaultSort?: EntityListSortState<TSort>;
   onSortChange?: (nextSort: EntityListSortState<TSort>) => void;
   columns?: EntityListCardColumns<TColumn>;
+  pagination?: EntityListCardPagination;
 };
 
 export function EntityListCard<TSort extends string, TColumn extends string>({
   title,
   actions,
   children,
+  leadingControls,
   ...props
 }: EntityListCardProps<TSort, TColumn>) {
   const sortOptions = props.sortOptions ?? [];
@@ -72,6 +85,7 @@ export function EntityListCard<TSort extends string, TColumn extends string>({
   return (
     <Card>
       <EntityListToolbar title={title}>
+        {leadingControls}
         {hasSort && activeSort ? (
           <EntitySortSelect
             onSortByChange={(sortBy) =>
@@ -100,7 +114,10 @@ export function EntityListCard<TSort extends string, TColumn extends string>({
         ) : null}
         {actions}
       </EntityListToolbar>
-      <CardContent>{children}</CardContent>
+      <CardContent>
+        {children}
+        {props.pagination ? <TablePagination {...props.pagination} /> : null}
+      </CardContent>
     </Card>
   );
 }

@@ -53,12 +53,14 @@ export class OrdersController {
   @Get()
   @ApiOperation({ summary: 'Get orders for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter orders by client ID' })
+  @ApiQuery({ name: 'status', required: false, description: 'Filter orders by status: created, inprogress, or done' })
   @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at, updated_at, price, or status' })
   @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
   @ApiResponse({ status: 200, description: 'List of orders', type: [Order] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('client_id') clientId?: string,
+    @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
     @Query('sortBy') sortBy?: string,
@@ -69,12 +71,19 @@ export class OrdersController {
         request.user.sub,
         parsePaginationParams(page, pageSize),
         clientId,
+        status,
         sortBy,
         sortDirection,
       );
     }
 
-    return this.ordersService.findAll(request.user.sub, clientId, sortBy, sortDirection);
+    return this.ordersService.findAll(
+      request.user.sub,
+      clientId,
+      status,
+      sortBy,
+      sortDirection,
+    );
   }
 
   @Get(':id')

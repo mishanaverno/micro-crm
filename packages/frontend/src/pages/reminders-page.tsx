@@ -1,7 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
-import { EntityListToolbar } from '../components/entity-list-toolbar';
-import { EntitySortSelect } from '../components/entity-sort-select';
+import { EntityListCard } from '../components/entity-list-card';
 import { RemindersDataTable } from '../components/reminders-data-table';
 import {
   isReminderDateTimeReady,
@@ -9,7 +7,6 @@ import {
   toReminderLocalDateTime,
 } from '../components/reminder-date-time-field';
 import { ReminderDialog } from '../components/reminder-dialog';
-import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreateReminder } from '../features/reminders/use-create-reminder';
@@ -17,7 +14,6 @@ import { useDeleteReminder } from '../features/reminders/use-delete-reminder';
 import { usePaginatedReminders } from '../features/reminders/use-paginated-reminders';
 import { useUpdateReminder } from '../features/reminders/use-update-reminder';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -284,20 +280,9 @@ export function RemindersPage() {
 
   return (
     <main className="grid gap-4">
-      <Card>
-        <EntityListToolbar title={t('page.reminders')}>
-              <EntitySortSelect
-                onSortByChange={setSortBy}
-                onSortDirectionChange={setSortDirection}
-                options={sortOptions}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-              />
-              <ColumnVisibilityMenu
-                columns={columnOptions}
-                visibleColumns={visibleColumns}
-                onToggle={toggleColumn}
-              />
+      <EntityListCard
+        actions={
+          <>
               <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
               <ReminderDialog
                 clientField={{
@@ -401,9 +386,34 @@ export function RemindersPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-        </EntityListToolbar>
-
-        <CardContent>
+          </>
+        }
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        sort={{
+          sortBy,
+          sortDirection,
+        }}
+        sortOptions={sortOptions}
+        title={t('page.reminders')}
+        onSortChange={(nextSort) => {
+          setSortBy(nextSort.sortBy);
+          setSortDirection(nextSort.sortDirection);
+        }}
+        pagination={{
+          page: remindersPage,
+          pageSize: remindersPageSize,
+          totalItems: remindersTotal,
+          onPageChange: setRemindersPage,
+          onPageSizeChange: (pageSize) => {
+            setRemindersPageSize(pageSize);
+            setRemindersPage(1);
+          },
+        }}
+      >
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
               {mutationError.message || t('feedback.reminderSaveFailed')}
@@ -424,24 +434,13 @@ export function RemindersPage() {
                 resolveOrderLabel={resolveOrderLabel}
                 visibleColumns={visibleColumns}
               />
-              <TablePagination
-                page={remindersPage}
-                pageSize={remindersPageSize}
-                totalItems={remindersTotal}
-                onPageChange={setRemindersPage}
-                onPageSizeChange={(pageSize) => {
-                  setRemindersPageSize(pageSize);
-                  setRemindersPage(1);
-                }}
-              />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.reminders')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </EntityListCard>
     </main>
   );
 }

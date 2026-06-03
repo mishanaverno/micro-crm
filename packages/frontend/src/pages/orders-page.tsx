@@ -1,16 +1,13 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
-import { EntityListToolbar } from '../components/entity-list-toolbar';
-import { EntitySortSelect } from '../components/entity-sort-select';
+import { EntityListCard } from '../components/entity-list-card';
 import { OrdersDataTable } from '../components/orders-data-table';
-import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateOrder } from '../features/orders/use-create-order';
 import { useDeleteOrder } from '../features/orders/use-delete-order';
 import { usePaginatedOrders } from '../features/orders/use-paginated-orders';
 import { useUpdateOrder } from '../features/orders/use-update-order';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent } from '../shared/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
 import {
   Dialog,
   DialogContent,
@@ -55,6 +52,7 @@ const defaultVisibleColumns = {
 
 type VisibleColumns = typeof defaultVisibleColumns;
 type OrdersSortField = 'created_at' | 'updated_at' | 'price' | 'status';
+type OrderStatusFilter = 'all' | OrderStatus;
 
 export function OrdersPage() {
   const [form, setForm] = useState(initialFormState);
@@ -64,6 +62,7 @@ export function OrdersPage() {
   const [orderToDelete, setOrderToDelete] = useState<OrderRecord | null>(null);
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersPageSize, setOrdersPageSize] = useState(10);
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all');
   const [sortBy, setSortBy] = useState<OrdersSortField>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
@@ -95,6 +94,9 @@ export function OrdersPage() {
     {
       sortBy,
       sortDirection,
+    },
+    {
+      status: statusFilter === 'all' ? undefined : statusFilter,
     },
   );
   const createOrder = useCreateOrder();
@@ -167,6 +169,13 @@ export function OrdersPage() {
     { value: 'updated_at', label: t('common.updatedAt') },
     { value: 'price', label: t('common.price') },
     { value: 'status', label: t('common.status') },
+  ];
+
+  const statusFilterOptions: Array<{ value: OrderStatusFilter; label: string }> = [
+    { value: 'all', label: t('common.all') },
+    { value: 'created', label: t('status.created') },
+    { value: 'inprogress', label: t('status.inProgress') },
+    { value: 'done', label: t('status.done') },
   ];
 
   function openCreateDialog() {
@@ -271,20 +280,9 @@ export function OrdersPage() {
 
   return (
     <main className="grid gap-4">
-      <Card>
-        <EntityListToolbar title={t('page.orders')}>
-              <EntitySortSelect
-                onSortByChange={setSortBy}
-                onSortDirectionChange={setSortDirection}
-                options={sortOptions}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-              />
-              <ColumnVisibilityMenu
-                columns={columnOptions}
-                visibleColumns={visibleColumns}
-                onToggle={toggleColumn}
-              />
+      <EntityListCard
+        actions={
+          <>
               <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
@@ -437,9 +435,57 @@ export function OrdersPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-        </EntityListToolbar>
-
-        <CardContent>
+          </>
+        }
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        leadingControls={
+          <ToggleGroup
+            className="rounded-full border border-input bg-background p-1"
+            onValueChange={(value) => {
+              const nextValue = (value || 'all') as OrderStatusFilter;
+              setStatusFilter(nextValue);
+              setOrdersPage(1);
+            }}
+            type="single"
+            value={statusFilter}
+            variant="ghost"
+          >
+            {statusFilterOptions.map((option) => (
+              <ToggleGroupItem
+                className="h-8 rounded-full px-3 text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        }
+        sort={{
+          sortBy,
+          sortDirection,
+        }}
+        sortOptions={sortOptions}
+        title={t('page.orders')}
+        onSortChange={(nextSort) => {
+          setSortBy(nextSort.sortBy);
+          setSortDirection(nextSort.sortDirection);
+        }}
+        pagination={{
+          page: ordersPage,
+          pageSize: ordersPageSize,
+          totalItems: ordersTotal,
+          onPageChange: setOrdersPage,
+          onPageSizeChange: (pageSize) => {
+            setOrdersPageSize(pageSize);
+            setOrdersPage(1);
+          },
+        }}
+      >
           {formError ? (
             <p className="mb-4 text-sm text-rose-700">{formError}</p>
           ) : null}
@@ -463,24 +509,13 @@ export function OrdersPage() {
                 resolveClientLabel={resolveClientLabel}
                 visibleColumns={visibleColumns}
               />
-              <TablePagination
-                page={ordersPage}
-                pageSize={ordersPageSize}
-                totalItems={ordersTotal}
-                onPageChange={setOrdersPage}
-                onPageSizeChange={(pageSize) => {
-                  setOrdersPageSize(pageSize);
-                  setOrdersPage(1);
-                }}
-              />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.orders')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </EntityListCard>
     </main>
   );
 }

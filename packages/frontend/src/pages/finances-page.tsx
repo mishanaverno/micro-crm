@@ -1,10 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
-import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
-import { EntityListToolbar } from '../components/entity-list-toolbar';
-import { EntitySortSelect } from '../components/entity-sort-select';
+import { EntityListCard } from '../components/entity-list-card';
 import { FinancesDataTable } from '../components/finances-data-table';
-import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { usePaginatedFinances } from '../features/finances/use-paginated-finances';
 import { useOrders } from '../features/orders/use-orders';
@@ -620,20 +617,9 @@ export function FinancesPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <EntityListToolbar title={t('page.finances')}>
-              <EntitySortSelect
-                onSortByChange={setSortBy}
-                onSortDirectionChange={setSortDirection}
-                options={sortOptions}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-              />
-              <ColumnVisibilityMenu
-                columns={columnOptions}
-                visibleColumns={visibleColumns}
-                onToggle={toggleColumn}
-              />
+      <EntityListCard
+        actions={
+          <>
               <Dialog open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => openCreateDialog()}>{t('actions.create')}</Button>
@@ -796,9 +782,34 @@ export function FinancesPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-        </EntityListToolbar>
-
-        <CardContent>
+          </>
+        }
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        sort={{
+          sortBy,
+          sortDirection,
+        }}
+        sortOptions={sortOptions}
+        title={t('page.finances')}
+        onSortChange={(nextSort) => {
+          setSortBy(nextSort.sortBy);
+          setSortDirection(nextSort.sortDirection);
+        }}
+        pagination={{
+          page: recordsPage,
+          pageSize: recordsPageSize,
+          totalItems: recordsTotal,
+          onPageChange: setRecordsPage,
+          onPageSizeChange: (pageSize) => {
+            setRecordsPageSize(pageSize);
+            setRecordsPage(1);
+          },
+        }}
+      >
           {formError ? <p className="mb-4 text-sm text-rose-700">{formError}</p> : null}
 
           {mutationError ? (
@@ -821,24 +832,13 @@ export function FinancesPage() {
                 resolveOrderLabel={resolveOrderLabel}
                 visibleColumns={visibleColumns}
               />
-              <TablePagination
-                page={recordsPage}
-                pageSize={recordsPageSize}
-                totalItems={recordsTotal}
-                onPageChange={setRecordsPage}
-                onPageSizeChange={(pageSize) => {
-                  setRecordsPageSize(pageSize);
-                  setRecordsPage(1);
-                }}
-              />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.financeRecords')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </EntityListCard>
     </main>
   );
 }

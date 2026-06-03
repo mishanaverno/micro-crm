@@ -1,9 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
-import { EntityListToolbar } from '../components/entity-list-toolbar';
-import { EntitySortSelect } from '../components/entity-sort-select';
+import { EntityListCard } from '../components/entity-list-card';
 import { NotesDataTable } from '../components/notes-data-table';
-import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateNote } from '../features/notes/use-create-note';
 import { useDeleteNote } from '../features/notes/use-delete-note';
@@ -11,7 +8,6 @@ import { usePaginatedNotes } from '../features/notes/use-paginated-notes';
 import { useUpdateNote } from '../features/notes/use-update-note';
 import { useOrders } from '../features/orders/use-orders';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -276,20 +272,9 @@ export function NotesPage() {
 
   return (
     <main className="grid gap-4">
-      <Card>
-        <EntityListToolbar title={t('page.notes')}>
-              <EntitySortSelect
-                onSortByChange={setSortBy}
-                onSortDirectionChange={setSortDirection}
-                options={sortOptions}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-              />
-              <ColumnVisibilityMenu
-                columns={columnOptions}
-                visibleColumns={visibleColumns}
-                onToggle={toggleColumn}
-              />
+      <EntityListCard
+        actions={
+          <>
               <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
@@ -437,9 +422,34 @@ export function NotesPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-        </EntityListToolbar>
-
-        <CardContent>
+          </>
+        }
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        sort={{
+          sortBy,
+          sortDirection,
+        }}
+        sortOptions={sortOptions}
+        title={t('page.notes')}
+        onSortChange={(nextSort) => {
+          setSortBy(nextSort.sortBy);
+          setSortDirection(nextSort.sortDirection);
+        }}
+        pagination={{
+          page: notesPage,
+          pageSize: notesPageSize,
+          totalItems: notesTotal,
+          onPageChange: setNotesPage,
+          onPageSizeChange: (pageSize) => {
+            setNotesPageSize(pageSize);
+            setNotesPage(1);
+          },
+        }}
+      >
           {mutationError ? (
             <p className="mb-4 text-sm text-rose-700">
               {mutationError.message || t('feedback.noteSaveFailed')}
@@ -460,24 +470,13 @@ export function NotesPage() {
                 resolveOrderLabel={resolveOrderLabel}
                 visibleColumns={visibleColumns}
               />
-              <TablePagination
-                page={notesPage}
-                pageSize={notesPageSize}
-                totalItems={notesTotal}
-                onPageChange={setNotesPage}
-                onPageSizeChange={(pageSize) => {
-                  setNotesPageSize(pageSize);
-                  setNotesPage(1);
-                }}
-              />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.notes')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </EntityListCard>
     </main>
   );
 }

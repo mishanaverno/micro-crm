@@ -20,6 +20,9 @@
   - управление колонками
   - управление сортировкой
 - `CardDescription` и любой лишний explanatory text в header общих страниц со списками не использовать.
+- Для общей обвязки list pages использовать `packages/frontend/src/components/entity-list-card.tsx`, а не собирать заново вручную связку `Card + toolbar + sort + columns`.
+- Если странице нужна сортировка, в `EntityListCard` передавать `sortOptions`; при неконтролируемом использовании можно задавать `defaultSort`.
+- Для backend-driven list pages предпочтителен контролируемый режим `EntityListCard`: страница хранит `sortBy/sortDirection` в state, передает их в `sort` и синхронизирует через `onSortChange`.
 
 ## Локальная среда
 

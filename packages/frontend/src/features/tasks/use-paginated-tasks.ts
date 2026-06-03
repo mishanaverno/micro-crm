@@ -8,20 +8,25 @@ interface TasksSortOptions {
   sortDirection?: 'asc' | 'desc';
 }
 
+interface TasksFilterOptions {
+  status?: 'pending' | 'complete';
+}
+
 export function usePaginatedTasks(
   pagination: PaginationParams,
   sort: TasksSortOptions = {},
+  filters: TasksFilterOptions = {},
 ) {
   const { access_token } = useAuth();
 
   return useQuery({
-    queryKey: ['tasks', 'paginated', pagination, sort],
+    queryKey: ['tasks', 'paginated', pagination, sort, filters],
     queryFn: async () => {
       if (!access_token) {
         throw new Error('Authentication is required to load tasks.');
       }
 
-      return fetchPaginatedTasksRequest(access_token, pagination, undefined, sort);
+      return fetchPaginatedTasksRequest(access_token, pagination, filters, sort);
     },
     enabled: Boolean(access_token),
   });

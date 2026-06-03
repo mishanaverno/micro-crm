@@ -8,20 +8,25 @@ interface OrdersSortOptions {
   sortDirection?: 'asc' | 'desc';
 }
 
+interface OrdersFilterOptions {
+  status?: 'created' | 'inprogress' | 'done';
+}
+
 export function usePaginatedOrders(
   pagination: PaginationParams,
   sort: OrdersSortOptions = {},
+  filters: OrdersFilterOptions = {},
 ) {
   const { access_token } = useAuth();
 
   return useQuery({
-    queryKey: ['orders', 'paginated', pagination, sort],
+    queryKey: ['orders', 'paginated', pagination, sort, filters],
     queryFn: async () => {
       if (!access_token) {
         throw new Error('Authentication is required to load orders.');
       }
 
-      return fetchPaginatedOrdersRequest(access_token, pagination, undefined, sort);
+      return fetchPaginatedOrdersRequest(access_token, pagination, filters, sort);
     },
     enabled: Boolean(access_token),
   });

@@ -79,18 +79,29 @@ export class OrdersService {
   findAll(
     userId: string,
     clientId?: string,
+    status?: string,
     sortBy?: string,
     sortDirection?: string,
   ): Promise<Order[]> {
+    const where = {
+      user_id: userId,
+      ...(clientId ? { client_id: clientId } : {}),
+      ...(status === OrderStatus.CREATED ||
+      status === OrderStatus.INPROGRESS ||
+      status === OrderStatus.DONE
+        ? { status }
+        : {}),
+    };
+
     if (clientId) {
       return this.ordersRepository.find({
-        where: { user_id: userId, client_id: clientId },
+        where,
         order: this.resolveOrder(sortBy, sortDirection),
       });
     }
 
     return this.ordersRepository.find({
-      where: { user_id: userId },
+      where,
       order: this.resolveOrder(sortBy, sortDirection),
     });
   }
@@ -99,13 +110,20 @@ export class OrdersService {
     userId: string,
     pagination: PaginationOptions,
     clientId?: string,
+    status?: string,
     sortBy?: string,
     sortDirection?: string,
   ): Promise<PaginatedResponse<Order>> {
     const [items, total] = await this.ordersRepository.findAndCount({
-      where: clientId
-        ? { user_id: userId, client_id: clientId }
-        : { user_id: userId },
+      where: {
+        user_id: userId,
+        ...(clientId ? { client_id: clientId } : {}),
+        ...(status === OrderStatus.CREATED ||
+        status === OrderStatus.INPROGRESS ||
+        status === OrderStatus.DONE
+          ? { status }
+          : {}),
+      },
       order: this.resolveOrder(sortBy, sortDirection),
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,

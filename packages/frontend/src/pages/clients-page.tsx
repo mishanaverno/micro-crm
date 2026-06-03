@@ -1,15 +1,11 @@
 import { FormEvent, useEffect, useState } from 'react';
-import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
-import { EntityListToolbar } from '../components/entity-list-toolbar';
-import { EntitySortSelect } from '../components/entity-sort-select';
+import { EntityListCard } from '../components/entity-list-card';
 import { ClientsDataTable } from '../components/clients-data-table';
-import { TablePagination } from '../components/table-pagination';
 import { useCreateClient } from '../features/clients/use-create-client';
 import { useDeleteClient } from '../features/clients/use-delete-client';
 import { usePaginatedClients } from '../features/clients/use-paginated-clients';
 import { useUpdateClient } from '../features/clients/use-update-client';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -208,20 +204,9 @@ export function ClientsPage() {
   return (
     <main className="grid gap-4">
       <div className="grid gap-4">
-        <Card>
-          <EntityListToolbar title={t('page.clients')}>
-                <EntitySortSelect
-                  onSortByChange={setSortBy}
-                  onSortDirectionChange={setSortDirection}
-                  options={sortOptions}
-                  sortBy={sortBy}
-                  sortDirection={sortDirection}
-                />
-                <ColumnVisibilityMenu
-                  columns={columnOptions}
-                  visibleColumns={visibleColumns}
-                  onToggle={toggleColumn}
-                />
+        <EntityListCard
+          actions={
+            <>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
                     <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
@@ -371,8 +356,34 @@ export function ClientsPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-          </EntityListToolbar>
-          <CardContent>
+            </>
+          }
+          columns={{
+            columns: columnOptions,
+            visibleColumns,
+            onToggle: toggleColumn,
+          }}
+          sort={{
+            sortBy,
+            sortDirection,
+          }}
+          sortOptions={sortOptions}
+          title={t('page.clients')}
+          onSortChange={(nextSort) => {
+            setSortBy(nextSort.sortBy);
+            setSortDirection(nextSort.sortDirection);
+          }}
+          pagination={{
+            page: clientsPage,
+            pageSize: clientsPageSize,
+            totalItems: clientsTotal,
+            onPageChange: setClientsPage,
+            onPageSizeChange: (pageSize) => {
+              setClientsPageSize(pageSize);
+              setClientsPage(1);
+            },
+          }}
+        >
             {clientsQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">{t('placeholder.loadingClients')}</p>
             ) : clientsQuery.isError ? (
@@ -387,24 +398,13 @@ export function ClientsPage() {
                   onDeleteClient={openDeleteDialog}
                   visibleColumns={visibleColumns}
                 />
-                <TablePagination
-                  page={clientsPage}
-                  pageSize={clientsPageSize}
-                  totalItems={clientsTotal}
-                  onPageChange={setClientsPage}
-                  onPageSizeChange={(pageSize) => {
-                    setClientsPageSize(pageSize);
-                    setClientsPage(1);
-                  }}
-                />
               </>
             ) : (
               <p className="text-sm text-muted-foreground">
                 {t('empty.clients')}
               </p>
             )}
-          </CardContent>
-        </Card>
+        </EntityListCard>
       </div>
     </main>
   );

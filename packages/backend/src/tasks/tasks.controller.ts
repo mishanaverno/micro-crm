@@ -52,6 +52,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Get tasks for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter tasks by client ID' })
   @ApiQuery({ name: 'order_id', required: false, description: 'Filter tasks by order ID' })
+  @ApiQuery({ name: 'status', required: false, description: 'Filter tasks by status: pending or complete' })
   @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at, updated_at, or deadline' })
   @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
   @ApiResponse({ status: 200, description: 'List of tasks', type: [Task] })
@@ -59,6 +60,7 @@ export class TasksController {
     @Req() request: AuthenticatedRequest,
     @Query('client_id') clientId?: string,
     @Query('order_id') orderId?: string,
+    @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
     @Query('sortBy') sortBy?: string,
@@ -70,6 +72,7 @@ export class TasksController {
         parsePaginationParams(page, pageSize),
         clientId,
         orderId ? Number(orderId) : undefined,
+        status,
         sortBy,
         sortDirection,
       );
@@ -79,6 +82,7 @@ export class TasksController {
       request.user.sub,
       clientId,
       orderId ? Number(orderId) : undefined,
+      status,
       sortBy,
       sortDirection,
     );

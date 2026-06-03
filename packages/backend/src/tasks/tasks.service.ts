@@ -81,6 +81,7 @@ export class TasksService {
     userId: string,
     clientId?: string,
     orderId?: number,
+    status?: string,
     sortBy?: string,
     sortDirection?: string,
   ): Promise<Task[]> {
@@ -88,6 +89,9 @@ export class TasksService {
       user_id: userId,
       ...(clientId ? { client_id: clientId } : {}),
       ...(orderId !== undefined ? { order_id: orderId } : {}),
+      ...(status === TaskStatus.PENDING || status === TaskStatus.COMPLETE
+        ? { status }
+        : {}),
     };
 
     return this.tasksRepository.find({
@@ -101,6 +105,7 @@ export class TasksService {
     pagination: PaginationOptions,
     clientId?: string,
     orderId?: number,
+    status?: string,
     sortBy?: string,
     sortDirection?: string,
   ): Promise<PaginatedResponse<Task>> {
@@ -109,6 +114,9 @@ export class TasksService {
         user_id: userId,
         ...(clientId ? { client_id: clientId } : {}),
         ...(orderId !== undefined ? { order_id: orderId } : {}),
+        ...(status === TaskStatus.PENDING || status === TaskStatus.COMPLETE
+          ? { status }
+          : {}),
       },
       order: this.resolveOrder(sortBy, sortDirection),
       skip: getPaginationSkip(pagination),
