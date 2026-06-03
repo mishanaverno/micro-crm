@@ -1,4 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
+import { EntityListToolbar } from '../components/entity-list-toolbar';
+import { EntitySortSelect } from '../components/entity-sort-select';
 import { TasksDataTable } from '../components/tasks-data-table';
 import {
   ReminderDateTimeField,
@@ -14,7 +17,7 @@ import { usePaginatedTasks } from '../features/tasks/use-paginated-tasks';
 import { useUpdateTask } from '../features/tasks/use-update-task';
 import { TablePagination } from '../components/table-pagination';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { Card, CardContent } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -24,14 +27,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../shared/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../shared/ui/dropdown-menu';
 import { Label } from '../shared/ui/label';
 import {
   Select,
@@ -65,6 +60,7 @@ const defaultVisibleColumns = {
 };
 
 type VisibleColumns = typeof defaultVisibleColumns;
+type TasksSortField = 'created_at' | 'updated_at' | 'deadline';
 
 export function TasksPage() {
   const [form, setForm] = useState(initialFormState);
@@ -73,6 +69,8 @@ export function TasksPage() {
   const [taskToDelete, setTaskToDelete] = useState<TaskRecord | null>(null);
   const [tasksPage, setTasksPage] = useState(1);
   const [tasksPageSize, setTasksPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<TasksSortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -98,7 +96,13 @@ export function TasksPage() {
 
   const clientsQuery = useClients();
   const ordersQuery = useOrders();
-  const tasksQuery = usePaginatedTasks({ page: tasksPage, pageSize: tasksPageSize });
+  const tasksQuery = usePaginatedTasks(
+    { page: tasksPage, pageSize: tasksPageSize },
+    {
+      sortBy,
+      sortDirection,
+    },
+  );
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -190,6 +194,22 @@ export function TasksPage() {
     }));
   }
 
+  const columnOptions: Array<{ key: keyof VisibleColumns; label: string }> = [
+    { key: 'client', label: t('common.client') },
+    { key: 'order', label: t('common.order') },
+    { key: 'status', label: t('common.status') },
+    { key: 'deadline', label: t('common.deadline') },
+    { key: 'content', label: t('common.content') },
+    { key: 'created_at', label: t('common.createdAt') },
+    { key: 'updated_at', label: t('common.updatedAt') },
+  ];
+
+  const sortOptions: Array<{ value: TasksSortField; label: string }> = [
+    { value: 'created_at', label: t('common.createdAt') },
+    { value: 'updated_at', label: t('common.updatedAt') },
+    { value: 'deadline', label: t('common.deadline') },
+  ];
+
   function openCreateDialog() {
     createTask.reset();
     updateTask.reset();
@@ -278,70 +298,19 @@ export function TasksPage() {
   return (
     <main className="grid gap-4">
       <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-1.5">
-              <CardTitle>{t('page.tasks')}</CardTitle>
-              <CardDescription>
-                {t('dialog.taskCreateDescription')}
-              </CardDescription>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="secondary">
-                    {t('common.columns')}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.client}
-                    onCheckedChange={() => toggleColumn('client')}
-                  >
-                    {t('common.client')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.order}
-                    onCheckedChange={() => toggleColumn('order')}
-                  >
-                    {t('common.order')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.status}
-                    onCheckedChange={() => toggleColumn('status')}
-                  >
-                    {t('common.status')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.deadline}
-                    onCheckedChange={() => toggleColumn('deadline')}
-                  >
-                    {t('common.deadline')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.content}
-                    onCheckedChange={() => toggleColumn('content')}
-                  >
-                    {t('common.content')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.created_at}
-                    onCheckedChange={() => toggleColumn('created_at')}
-                  >
-                    {t('common.createdAt')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.updated_at}
-                    onCheckedChange={() => toggleColumn('updated_at')}
-                  >
-                    {t('common.updatedAt')}
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
+        <EntityListToolbar title={t('page.tasks')}>
+              <EntitySortSelect
+                onSortByChange={setSortBy}
+                onSortDirectionChange={setSortDirection}
+                options={sortOptions}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+              />
+              <ColumnVisibilityMenu
+                columns={columnOptions}
+                visibleColumns={visibleColumns}
+                onToggle={toggleColumn}
+              />
               <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
@@ -473,7 +442,6 @@ export function TasksPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-
               <Dialog
                 open={Boolean(taskToDelete)}
                 onOpenChange={(open) => {
@@ -514,9 +482,7 @@ export function TasksPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          </div>
-        </CardHeader>
+        </EntityListToolbar>
 
         <CardContent>
           {mutationError ? (

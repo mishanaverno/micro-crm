@@ -3,6 +3,11 @@ import { PaginatedResponse, PaginationParams } from '../types/pagination';
 import { httpRequest } from './http';
 import { toPaginationQuery } from './pagination';
 
+interface FinancesSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'value';
+  sortDirection?: 'asc' | 'desc';
+}
+
 interface ApiFinanceRecord extends Omit<FinanceRecord, 'id' | 'value' | 'sync_status'> {
   id: number | string;
   value: number | string;
@@ -22,9 +27,20 @@ function toFinanceRecord(record: ApiFinanceRecord): FinanceRecord {
 export async function fetchPaginatedFinancesRequest(
   accessToken: string,
   pagination: PaginationParams,
+  sort?: FinancesSortOptions,
 ) {
+  const params = new URLSearchParams(toPaginationQuery(pagination));
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
+  }
+
   const response = await httpRequest<PaginatedResponse<ApiFinanceRecord>>({
-    path: `/finances?${toPaginationQuery(pagination)}`,
+    path: `/finances?${params.toString()}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,

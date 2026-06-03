@@ -3,6 +3,11 @@ import { PaginatedResponse, PaginationParams } from '../types/pagination';
 import { httpRequest } from './http';
 import { toPaginationQuery } from './pagination';
 
+interface ClientsSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'name' | 'company';
+  sortDirection?: 'asc' | 'desc';
+}
+
 interface ApiClientRecord extends Omit<ClientRecord, 'sync_status'> {
   sync_status?: ClientRecord['sync_status'];
 }
@@ -30,9 +35,20 @@ export async function fetchClientsRequest(accessToken: string) {
 export async function fetchPaginatedClientsRequest(
   accessToken: string,
   pagination: PaginationParams,
+  sort?: ClientsSortOptions,
 ) {
+  const params = new URLSearchParams(toPaginationQuery(pagination));
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
+  }
+
   const response = await httpRequest<PaginatedResponse<ApiClientRecord>>({
-    path: `/clients?${toPaginationQuery(pagination)}`,
+    path: `/clients?${params.toString()}`,
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,

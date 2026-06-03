@@ -1,4 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
+import { EntityListToolbar } from '../components/entity-list-toolbar';
+import { EntitySortSelect } from '../components/entity-sort-select';
 import { RemindersDataTable } from '../components/reminders-data-table';
 import {
   isReminderDateTimeReady,
@@ -6,14 +9,15 @@ import {
   toReminderLocalDateTime,
 } from '../components/reminder-date-time-field';
 import { ReminderDialog } from '../components/reminder-dialog';
+import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { useCreateReminder } from '../features/reminders/use-create-reminder';
 import { useDeleteReminder } from '../features/reminders/use-delete-reminder';
-import { useReminders } from '../features/reminders/use-reminders';
+import { usePaginatedReminders } from '../features/reminders/use-paginated-reminders';
 import { useUpdateReminder } from '../features/reminders/use-update-reminder';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../shared/ui/card';
+import { Card, CardContent } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -22,14 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../shared/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../shared/ui/dropdown-menu';
 import { ReminderRecord } from '../shared/types/reminder';
 import { t } from '../shared/lib/i18n';
 
@@ -52,12 +48,17 @@ const defaultVisibleColumns = {
 };
 
 type VisibleColumns = typeof defaultVisibleColumns;
+type RemindersSortField = 'created_at' | 'updated_at' | 'timestamp';
 
 export function RemindersPage() {
   const [form, setForm] = useState(initialFormState);
   const [isReminderDialogOpen, setIsReminderDialogOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<ReminderRecord | null>(null);
   const [reminderToDelete, setReminderToDelete] = useState<ReminderRecord | null>(null);
+  const [remindersPage, setRemindersPage] = useState(1);
+  const [remindersPageSize, setRemindersPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<RemindersSortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -83,11 +84,19 @@ export function RemindersPage() {
 
   const clientsQuery = useClients();
   const ordersQuery = useOrders();
-  const remindersQuery = useReminders();
+  const remindersQuery = usePaginatedReminders(
+    { page: remindersPage, pageSize: remindersPageSize },
+    {
+      sortBy,
+      sortDirection,
+    },
+  );
   const createReminder = useCreateReminder();
   const updateReminder = useUpdateReminder();
   const deleteReminder = useDeleteReminder();
   const mutationError = createReminder.error ?? updateReminder.error ?? deleteReminder.error;
+  const reminders = remindersQuery.data?.items ?? [];
+  const remindersTotal = remindersQuery.data?.total ?? 0;
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -95,6 +104,14 @@ export function RemindersPage() {
       JSON.stringify(visibleColumns),
     );
   }, [visibleColumns]);
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(remindersTotal / remindersPageSize));
+
+    if (remindersPage > pageCount) {
+      setRemindersPage(pageCount);
+    }
+  }, [remindersPage, remindersPageSize, remindersTotal]);
 
   const clientOptions = clientsQuery.data ?? [];
   const orderOptions = useMemo(
@@ -164,6 +181,21 @@ export function RemindersPage() {
       [column]: !current[column],
     }));
   }
+
+  const columnOptions: Array<{ key: keyof VisibleColumns; label: string }> = [
+    { key: 'client', label: t('common.client') },
+    { key: 'order', label: t('common.order') },
+    { key: 'timestamp', label: t('common.timestamp') },
+    { key: 'content', label: t('common.content') },
+    { key: 'created_at', label: t('common.createdAt') },
+    { key: 'updated_at', label: t('common.updatedAt') },
+  ];
+
+  const sortOptions: Array<{ value: RemindersSortField; label: string }> = [
+    { value: 'created_at', label: t('common.createdAt') },
+    { value: 'updated_at', label: t('common.updatedAt') },
+    { value: 'timestamp', label: t('common.timestamp') },
+  ];
 
   function openCreateDialog() {
     createReminder.reset();
@@ -253,64 +285,19 @@ export function RemindersPage() {
   return (
     <main className="grid gap-4">
       <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-1.5">
-              <CardTitle>{t('page.reminders')}</CardTitle>
-              <CardDescription>
-                {t('dialog.reminderCreateDescription')}
-              </CardDescription>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="secondary">
-                    {t('common.columns')}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.client}
-                    onCheckedChange={() => toggleColumn('client')}
-                  >
-                    {t('common.client')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.order}
-                    onCheckedChange={() => toggleColumn('order')}
-                  >
-                    {t('common.order')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.timestamp}
-                    onCheckedChange={() => toggleColumn('timestamp')}
-                  >
-                    {t('common.timestamp')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.content}
-                    onCheckedChange={() => toggleColumn('content')}
-                  >
-                    {t('common.content')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.created_at}
-                    onCheckedChange={() => toggleColumn('created_at')}
-                  >
-                    {t('common.createdAt')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.updated_at}
-                    onCheckedChange={() => toggleColumn('updated_at')}
-                  >
-                    {t('common.updatedAt')}
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
+        <EntityListToolbar title={t('page.reminders')}>
+              <EntitySortSelect
+                onSortByChange={setSortBy}
+                onSortDirectionChange={setSortDirection}
+                options={sortOptions}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+              />
+              <ColumnVisibilityMenu
+                columns={columnOptions}
+                visibleColumns={visibleColumns}
+                onToggle={toggleColumn}
+              />
               <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
               <ReminderDialog
                 clientField={{
@@ -414,9 +401,7 @@ export function RemindersPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          </div>
-        </CardHeader>
+        </EntityListToolbar>
 
         <CardContent>
           {mutationError ? (
@@ -429,15 +414,27 @@ export function RemindersPage() {
             <p className="text-sm text-muted-foreground">{t('placeholder.loadingReminders')}</p>
           ) : remindersQuery.isError ? (
             <p className="text-sm text-rose-700">{t('feedback.remindersLoadFailed')}</p>
-          ) : remindersQuery.data && remindersQuery.data.length > 0 ? (
-            <RemindersDataTable
-              onDeleteReminder={openDeleteDialog}
-              onEditReminder={openEditDialog}
-              reminders={remindersQuery.data}
-              resolveClientLabel={resolveClientLabel}
-              resolveOrderLabel={resolveOrderLabel}
-              visibleColumns={visibleColumns}
-            />
+          ) : reminders.length > 0 ? (
+            <>
+              <RemindersDataTable
+                onDeleteReminder={openDeleteDialog}
+                onEditReminder={openEditDialog}
+                reminders={reminders}
+                resolveClientLabel={resolveClientLabel}
+                resolveOrderLabel={resolveOrderLabel}
+                visibleColumns={visibleColumns}
+              />
+              <TablePagination
+                page={remindersPage}
+                pageSize={remindersPageSize}
+                totalItems={remindersTotal}
+                onPageChange={setRemindersPage}
+                onPageSizeChange={(pageSize) => {
+                  setRemindersPageSize(pageSize);
+                  setRemindersPage(1);
+                }}
+              />
+            </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.reminders')}

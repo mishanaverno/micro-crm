@@ -8,6 +8,11 @@ interface TasksRequestFilters {
   orderId?: string;
 }
 
+interface TasksSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'deadline';
+  sortDirection?: 'asc' | 'desc';
+}
+
 interface ApiTaskRecord extends Omit<TaskRecord, 'id' | 'sync_status'> {
   id: number | string;
   sync_status?: TaskRecord['sync_status'];
@@ -58,6 +63,7 @@ export async function fetchPaginatedTasksRequest(
   accessToken: string,
   pagination: PaginationParams,
   filters?: TasksRequestFilters,
+  sort?: TasksSortOptions,
 ) {
   const params = new URLSearchParams(toPaginationQuery(pagination));
 
@@ -67,6 +73,14 @@ export async function fetchPaginatedTasksRequest(
 
   if (filters?.orderId) {
     params.set('order_id', filters.orderId);
+  }
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiTaskRecord>>({

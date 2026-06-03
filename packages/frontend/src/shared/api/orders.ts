@@ -7,6 +7,11 @@ interface OrdersRequestFilters {
   clientId?: string;
 }
 
+interface OrdersSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'price' | 'status';
+  sortDirection?: 'asc' | 'desc';
+}
+
 interface ApiOrderRecord extends Omit<OrderRecord, 'id' | 'sync_status' | 'status'> {
   id: number | string;
   status: OrderStatus | 'reopened';
@@ -71,11 +76,20 @@ export async function fetchPaginatedOrdersRequest(
   accessToken: string,
   pagination: PaginationParams,
   filters?: OrdersRequestFilters,
+  sort?: OrdersSortOptions,
 ) {
   const params = new URLSearchParams(toPaginationQuery(pagination));
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiOrderRecord>>({

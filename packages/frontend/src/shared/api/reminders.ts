@@ -1,9 +1,16 @@
 import { httpRequest } from './http';
 import { ReminderDraft, ReminderRecord } from '../types/reminder';
+import { PaginatedResponse, PaginationParams } from '../types/pagination';
+import { toPaginationQuery } from './pagination';
 
 interface RemindersRequestFilters {
   clientId?: string;
   orderId?: string;
+}
+
+interface RemindersSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'timestamp';
+  sortDirection?: 'asc' | 'desc';
 }
 
 interface ApiReminderRecord extends Omit<ReminderRecord, 'id' | 'sync_status'> {
@@ -49,6 +56,44 @@ export async function fetchRemindersRequest(
   });
 
   return reminders.map(toReminderRecord);
+}
+
+export async function fetchPaginatedRemindersRequest(
+  accessToken: string,
+  pagination: PaginationParams,
+  filters?: RemindersRequestFilters,
+  sort?: RemindersSortOptions,
+) {
+  const params = new URLSearchParams(toPaginationQuery(pagination));
+
+  if (filters?.clientId) {
+    params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.orderId) {
+    params.set('order_id', filters.orderId);
+  }
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
+  }
+
+  const response = await httpRequest<PaginatedResponse<ApiReminderRecord>>({
+    path: `/reminders?${params.toString()}`,
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return {
+    ...response,
+    items: response.items.map(toReminderRecord),
+  };
 }
 
 export async function createReminderRequest(payload: ReminderDraft, accessToken: string) {

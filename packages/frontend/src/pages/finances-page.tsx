@@ -1,5 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, Tooltip, XAxis, YAxis } from 'recharts';
+import { ColumnVisibilityMenu } from '../components/column-visibility-menu';
+import { EntityListToolbar } from '../components/entity-list-toolbar';
+import { EntitySortSelect } from '../components/entity-sort-select';
 import { FinancesDataTable } from '../components/finances-data-table';
 import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
@@ -25,14 +28,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../shared/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
 import {
@@ -66,6 +61,7 @@ const defaultVisibleColumns = {
 type VisibleColumns = typeof defaultVisibleColumns;
 type EditingRecord = PaidRecord & { kind: 'paid' };
 type FinanceChartMode = 'month' | 'year';
+type FinancesSortField = 'created_at' | 'updated_at' | 'value';
 type FinanceChartDatum = {
   period: string;
   tooltipLabel: string;
@@ -146,6 +142,8 @@ export function FinancesPage() {
   const [recordToDelete, setRecordToDelete] = useState<EditingRecord | null>(null);
   const [recordsPage, setRecordsPage] = useState(1);
   const [recordsPageSize, setRecordsPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<FinancesSortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [chartMode, setChartMode] = useState<FinanceChartMode>('month');
   const [selectedChartMonth, setSelectedChartMonth] = useState(getMonthKey(now));
   const [selectedChartYear, setSelectedChartYear] = useState(String(now.getFullYear()));
@@ -175,10 +173,16 @@ export function FinancesPage() {
   const clientsQuery = useClients();
   const ordersQuery = useOrders();
   const paidsQuery = usePaids();
-  const financeRecordsQuery = usePaginatedFinances({
-    page: recordsPage,
-    pageSize: recordsPageSize,
-  });
+  const financeRecordsQuery = usePaginatedFinances(
+    {
+      page: recordsPage,
+      pageSize: recordsPageSize,
+    },
+    {
+      sortBy,
+      sortDirection,
+    },
+  );
   const createPaid = useCreatePaid();
   const updatePaid = useUpdatePaid();
   const deletePaid = useDeletePaid();
@@ -401,6 +405,21 @@ export function FinancesPage() {
     }));
   }
 
+  const columnOptions: Array<{ key: keyof VisibleColumns; label: string }> = [
+    { key: 'type', label: t('common.type') },
+    { key: 'client', label: t('common.client') },
+    { key: 'order', label: t('common.order') },
+    { key: 'value', label: t('common.value') },
+    { key: 'created_at', label: t('common.createdAt') },
+    { key: 'updated_at', label: t('common.updatedAt') },
+  ];
+
+  const sortOptions: Array<{ value: FinancesSortField; label: string }> = [
+    { value: 'created_at', label: t('common.createdAt') },
+    { value: 'updated_at', label: t('common.updatedAt') },
+    { value: 'value', label: t('common.value') },
+  ];
+
   function openCreateDialog() {
     createPaid.reset();
     updatePaid.reset();
@@ -602,61 +621,19 @@ export function FinancesPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-1.5">
-              <CardTitle>{t('page.finances')}</CardTitle>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="secondary">
-                    {t('common.columns')}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.type}
-                    onCheckedChange={() => toggleColumn('type')}
-                  >
-                    {t('common.type')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.client}
-                    onCheckedChange={() => toggleColumn('client')}
-                  >
-                    {t('common.client')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.order}
-                    onCheckedChange={() => toggleColumn('order')}
-                  >
-                    {t('common.order')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.value}
-                    onCheckedChange={() => toggleColumn('value')}
-                  >
-                    {t('common.value')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.created_at}
-                    onCheckedChange={() => toggleColumn('created_at')}
-                  >
-                    {t('common.createdAt')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.updated_at}
-                    onCheckedChange={() => toggleColumn('updated_at')}
-                  >
-                    {t('common.updatedAt')}
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
+        <EntityListToolbar title={t('page.finances')}>
+              <EntitySortSelect
+                onSortByChange={setSortBy}
+                onSortDirectionChange={setSortDirection}
+                options={sortOptions}
+                sortBy={sortBy}
+                sortDirection={sortDirection}
+              />
+              <ColumnVisibilityMenu
+                columns={columnOptions}
+                visibleColumns={visibleColumns}
+                onToggle={toggleColumn}
+              />
               <Dialog open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => openCreateDialog()}>{t('actions.create')}</Button>
@@ -819,9 +796,7 @@ export function FinancesPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          </div>
-        </CardHeader>
+        </EntityListToolbar>
 
         <CardContent>
           {formError ? <p className="mb-4 text-sm text-rose-700">{formError}</p> : null}
