@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, Repository } from 'typeorm';
+import { parseSortDirection } from '../common/sorting';
 import { ClientsService } from '../clients/clients.service';
 import { EventType } from '../events/entities/event.entity';
 import { EventsService } from '../events/events.service';
@@ -19,6 +20,20 @@ import {
 
 @Injectable()
 export class TasksService {
+  private resolveOrder(sortBy?: string, sortDirection?: string): FindOptionsOrder<Task> {
+    const direction = parseSortDirection(sortDirection);
+
+    if (sortBy === 'updated_at') {
+      return { updated_at: direction, created_at: 'DESC' };
+    }
+
+    if (sortBy === 'deadline') {
+      return { deadline: direction, created_at: 'DESC' };
+    }
+
+    return { created_at: direction };
+  }
+
   constructor(
     @InjectRepository(Task)
     private readonly tasksRepository: Repository<Task>,
@@ -62,7 +77,13 @@ export class TasksService {
     return createdTask;
   }
 
-  findAll(userId: string, clientId?: string, orderId?: number): Promise<Task[]> {
+  findAll(
+    userId: string,
+    clientId?: string,
+    orderId?: number,
+    sortBy?: string,
+    sortDirection?: string,
+  ): Promise<Task[]> {
     const where = {
       user_id: userId,
       ...(clientId ? { client_id: clientId } : {}),
@@ -71,7 +92,7 @@ export class TasksService {
 
     return this.tasksRepository.find({
       where,
-      order: { created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
     });
   }
 
@@ -80,6 +101,8 @@ export class TasksService {
     pagination: PaginationOptions,
     clientId?: string,
     orderId?: number,
+    sortBy?: string,
+    sortDirection?: string,
   ): Promise<PaginatedResponse<Task>> {
     const [items, total] = await this.tasksRepository.findAndCount({
       where: {
@@ -87,7 +110,7 @@ export class TasksService {
         ...(clientId ? { client_id: clientId } : {}),
         ...(orderId !== undefined ? { order_id: orderId } : {}),
       },
-      order: { created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,
     });

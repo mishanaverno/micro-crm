@@ -357,6 +357,10 @@ Deploy пушит образы:
 - Для production используется внешний `Caddy`.
 - `init` как отдельный SQL-файл больше не должен возвращаться.
 - Миграции должны оставаться единственным источником правды по схеме базы.
+- Для backend общих list endpoints (`clients`, `orders`, `notes`, `tasks`, `reminders`, `finances`) нужно поддерживать user-facing пагинацию и сортировку.
+- Для backend list endpoints дефолтная сортировка должна быть по `created_at`.
+- У всех backend list endpoints должен быть доступен `sortBy=updated_at` как минимум один из поддерживаемых вариантов сортировки.
+- Для detail/dashboard экранов допустимо сохранять режим без пагинации, но общий list endpoint должен уметь принимать `page`, `pageSize`, `sortBy`, `sortDirection`.
 - Если CI/CD ломается на серверном `git fetch`, сначала смотреть:
   - валиден ли `GHCR_READ_TOKEN`
   - есть ли у токена `repo`

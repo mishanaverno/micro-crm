@@ -21,15 +21,21 @@ export class FinancesController {
   @ApiOperation({ summary: 'Get paid finance records for the current user' })
   @ApiQuery({ name: 'page', required: false, type: 'number' })
   @ApiQuery({ name: 'pageSize', required: false, type: 'number' })
+  @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at, updated_at, or value' })
+  @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
   @ApiResponse({ status: 200, description: 'Paginated finance records' })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
   ) {
     return this.financesService.findAllPaginated(
       request.user.sub,
       parsePaginationParams(page, pageSize),
+      sortBy,
+      sortDirection,
     );
   }
 }

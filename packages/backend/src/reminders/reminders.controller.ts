@@ -27,6 +27,7 @@ import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 import { Reminder } from './entities/reminder.entity';
 import { RemindersService } from './reminders.service';
+import { hasPaginationParams, parsePaginationParams } from '../common/pagination';
 
 interface AuthenticatedRequest extends Request {
   user: JwtUserPayload;
@@ -54,16 +55,37 @@ export class RemindersController {
   @ApiOperation({ summary: 'Get reminders for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter reminders by client ID' })
   @ApiQuery({ name: 'order_id', required: false, description: 'Filter reminders by order ID' })
+  @ApiQuery({ name: 'page', required: false, type: 'number' })
+  @ApiQuery({ name: 'pageSize', required: false, type: 'number' })
+  @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at, updated_at, or timestamp' })
+  @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
   @ApiResponse({ status: 200, description: 'List of reminders', type: [Reminder] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('client_id') clientId?: string,
     @Query('order_id') orderId?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
   ) {
+    if (hasPaginationParams(page, pageSize)) {
+      return this.remindersService.findAllPaginated(
+        request.user.sub,
+        parsePaginationParams(page, pageSize),
+        clientId,
+        orderId ? Number(orderId) : undefined,
+        sortBy,
+        sortDirection,
+      );
+    }
+
     return this.remindersService.findAll(
       request.user.sub,
       clientId,
       orderId ? Number(orderId) : undefined,
+      sortBy,
+      sortDirection,
     );
   }
 

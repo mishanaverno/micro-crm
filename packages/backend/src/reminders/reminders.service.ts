@@ -1,10 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, Repository } from 'typeorm';
 import { ClientsService } from '../clients/clients.service';
 import { EventType } from '../events/entities/event.entity';
 import { EventsService } from '../events/events.service';
 import { OrdersService } from '../orders/orders.service';
+import {
+  createPaginatedResponse,
+  getPaginationSkip,
+  PaginatedResponse,
+  PaginationOptions,
+} from '../common/pagination';
+import { parseSortDirection } from '../common/sorting';
 import { CreateReminderDto } from './dto/create-reminder.dto';
 import { UpdateReminderDto } from './dto/update-reminder.dto';
 import { Reminder } from './entities/reminder.entity';
@@ -13,6 +20,20 @@ import { Order } from '../orders/entities/order.entity';
 
 @Injectable()
 export class RemindersService {
+  private resolveOrder(sortBy?: string, sortDirection?: string): FindOptionsOrder<Reminder> {
+    const direction = parseSortDirection(sortDirection);
+
+    if (sortBy === 'updated_at') {
+      return { updated_at: direction, created_at: 'DESC' };
+    }
+
+    if (sortBy === 'timestamp') {
+      return { timestamp: direction, created_at: 'DESC' };
+    }
+
+    return { created_at: direction };
+  }
+
   constructor(
     @InjectRepository(Reminder)
     private readonly remindersRepository: Repository<Reminder>,
@@ -55,7 +76,13 @@ export class RemindersService {
     return createdReminder;
   }
 
-  findAll(userId: string, clientId?: string, orderId?: number): Promise<Reminder[]> {
+  findAll(
+    userId: string,
+    clientId?: string,
+    orderId?: number,
+    sortBy?: string,
+    sortDirection?: string,
+  ): Promise<Reminder[]> {
     const where = {
       user_id: userId,
       ...(clientId ? { client_id: clientId } : {}),
@@ -64,8 +91,30 @@ export class RemindersService {
 
     return this.remindersRepository.find({
       where,
-      order: { timestamp: 'ASC', created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
     });
+  }
+
+  async findAllPaginated(
+    userId: string,
+    pagination: PaginationOptions,
+    clientId?: string,
+    orderId?: number,
+    sortBy?: string,
+    sortDirection?: string,
+  ): Promise<PaginatedResponse<Reminder>> {
+    const [items, total] = await this.remindersRepository.findAndCount({
+      where: {
+        user_id: userId,
+        ...(clientId ? { client_id: clientId } : {}),
+        ...(orderId !== undefined ? { order_id: orderId } : {}),
+      },
+      order: this.resolveOrder(sortBy, sortDirection),
+      skip: getPaginationSkip(pagination),
+      take: pagination.pageSize,
+    });
+
+    return createPaginatedResponse(items, total, pagination);
   }
 
   findOne(id: number, userId: string): Promise<Reminder | null> {
