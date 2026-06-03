@@ -73,6 +73,7 @@ export class OrdersService {
       createdOrder,
       this.createEventSnapshot(client, createdOrder),
     );
+    await this.clientsService.touchClientActivity(createdOrder.client_id, userId);
     return createdOrder;
   }
 
@@ -140,6 +141,19 @@ export class OrdersService {
     return this.findOne(id, userId);
   }
 
+  async touchOrderActivity(id: number | null | undefined, userId: string): Promise<void> {
+    if (id === null || id === undefined) {
+      return;
+    }
+
+    await this.ordersRepository
+      .createQueryBuilder()
+      .update(Order)
+      .set({ updated_at: () => 'CURRENT_TIMESTAMP' } as never)
+      .where('id = :id AND user_id = :userId', { id, userId })
+      .execute();
+  }
+
   async update(id: number, userId: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
     const order = await this.findOne(id, userId);
 
@@ -173,6 +187,7 @@ export class OrdersService {
       changed_fields,
       ...this.createEventSnapshot(client, savedOrder),
     });
+    await this.clientsService.touchClientActivity(savedOrder.client_id, userId);
     return savedOrder;
   }
 

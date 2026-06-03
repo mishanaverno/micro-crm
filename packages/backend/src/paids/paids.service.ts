@@ -48,6 +48,8 @@ export class PaidsService {
       this.createEventSnapshot(client, order),
       createdPaid.id,
     );
+    await this.clientsService.touchClientActivity(createdPaid.client_id, userId);
+    await this.ordersService.touchOrderActivity(createdPaid.order_id, userId);
     return createdPaid;
   }
 
@@ -99,6 +101,12 @@ export class PaidsService {
       this.createEventSnapshot(client, order),
       savedPaid.id,
     );
+    await Promise.all([
+      this.clientsService.touchClientActivity(paid.client_id, userId),
+      this.clientsService.touchClientActivity(savedPaid.client_id, userId),
+      this.ordersService.touchOrderActivity(paid.order_id, userId),
+      this.ordersService.touchOrderActivity(savedPaid.order_id, userId),
+    ]);
     return savedPaid;
   }
 

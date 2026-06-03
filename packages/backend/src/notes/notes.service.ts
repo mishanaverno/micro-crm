@@ -64,6 +64,8 @@ export class NotesService {
       this.createEventSnapshot(client, order),
       createdNote.id,
     );
+    await this.clientsService.touchClientActivity(createdNote.client_id, userId);
+    await this.ordersService.touchOrderActivity(createdNote.order_id, userId);
     return createdNote;
   }
 
@@ -134,6 +136,12 @@ export class NotesService {
       this.createEventSnapshot(client, order),
       savedNote.id,
     );
+    await Promise.all([
+      this.clientsService.touchClientActivity(note.client_id, userId),
+      this.clientsService.touchClientActivity(savedNote.client_id, userId),
+      this.ordersService.touchOrderActivity(note.order_id, userId),
+      this.ordersService.touchOrderActivity(savedNote.order_id, userId),
+    ]);
     return savedNote;
   }
 

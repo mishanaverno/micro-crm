@@ -74,6 +74,8 @@ export class TasksService {
       },
       createdTask.id,
     );
+    await this.clientsService.touchClientActivity(createdTask.client_id, userId);
+    await this.ordersService.touchOrderActivity(createdTask.order_id, userId);
     return createdTask;
   }
 
@@ -169,6 +171,12 @@ export class TasksService {
       },
       savedTask.id,
     );
+    await Promise.all([
+      this.clientsService.touchClientActivity(task.client_id, userId),
+      this.clientsService.touchClientActivity(savedTask.client_id, userId),
+      this.ordersService.touchOrderActivity(task.order_id, userId),
+      this.ordersService.touchOrderActivity(savedTask.order_id, userId),
+    ]);
     return savedTask;
   }
 

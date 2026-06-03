@@ -96,6 +96,15 @@ export class ClientsService {
     return this.clientsRepository.findOneBy({ id, user_id: userId });
   }
 
+  async touchClientActivity(id: string, userId: string): Promise<void> {
+    await this.clientsRepository
+      .createQueryBuilder()
+      .update(Client)
+      .set({ updated_at: () => 'CURRENT_TIMESTAMP' } as never)
+      .where('id = :id AND user_id = :userId', { id, userId })
+      .execute();
+  }
+
   async update(id: string, updateClientDto: UpdateClientDto): Promise<Client | null> {
     await this.clientsRepository.update(id, updateClientDto);
     const updatedClient = await this.findOne(id);

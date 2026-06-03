@@ -73,6 +73,8 @@ export class RemindersService {
       this.createEventSnapshot(client, order),
       createdReminder.id,
     );
+    await this.clientsService.touchClientActivity(createdReminder.client_id, userId);
+    await this.ordersService.touchOrderActivity(createdReminder.order_id, userId);
     return createdReminder;
   }
 
@@ -158,6 +160,12 @@ export class RemindersService {
       this.createEventSnapshot(client, order),
       savedReminder.id,
     );
+    await Promise.all([
+      this.clientsService.touchClientActivity(reminder.client_id, userId),
+      this.clientsService.touchClientActivity(savedReminder.client_id, userId),
+      this.ordersService.touchOrderActivity(reminder.order_id, userId),
+      this.ordersService.touchOrderActivity(savedReminder.order_id, userId),
+    ]);
     return savedReminder;
   }
 
