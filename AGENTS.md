@@ -8,6 +8,11 @@
 - Основной язык общения по проекту: русский.
 - Локальная среда живет в `environments/local`.
 - Продовая среда живет в `environments/prod`.
+- Во frontend для перехода на страницу клиента использовать компонент `packages/frontend/src/components/client-link.tsx`.
+- `ClientLink` должен оставаться единым паттерном ссылки на клиента: аватарка + имя + переход в карточку клиента.
+- Для disclosure/spoiler UI сначала использовать уже подключенные shadcn/radix-компоненты проекта.
+- Если в проекте уже используется подходящий Radix primitive, предпочтительно добавить локальную shadcn-style обертку в `packages/frontend/src/components/ui/*` и реэкспорт в `packages/frontend/src/shared/ui/*`.
+- Нативный HTML (`details/summary`) использовать только как fallback, когда подходящего shadcn/radix-компонента в проекте действительно нет и добавление зависимости нецелесообразно.
 
 ## Локальная среда
 

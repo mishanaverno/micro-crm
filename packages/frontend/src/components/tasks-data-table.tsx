@@ -112,7 +112,7 @@ export function TasksDataTable({
           <TableRow key={task.id}>
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                <ClientLink clientId={task.client_id}>
+                <ClientLink clientId={task.client_id} name={resolveClientLabel(task.client_id)}>
                   {resolveClientLabel(task.client_id)}
                 </ClientLink>
               </TableCell>

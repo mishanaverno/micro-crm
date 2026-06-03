@@ -109,7 +109,7 @@ export function RemindersDataTable({
           <TableRow key={reminder.id}>
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                <ClientLink clientId={reminder.client_id}>
+                <ClientLink clientId={reminder.client_id} name={resolveClientLabel(reminder.client_id)}>
                   {resolveClientLabel(reminder.client_id)}
                 </ClientLink>
               </TableCell>

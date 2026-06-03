@@ -1142,7 +1142,10 @@ export function EventsLog() {
                 <DialogDescription>
                   New note for{' '}
                   {orderEventToNote ? (
-                    <ClientLink clientId={orderEventToNote.client_id}>
+                    <ClientLink
+                      clientId={orderEventToNote.client_id}
+                      name={resolveClientLabel(orderEventToNote.client_id)}
+                    >
                       {resolveClientLabel(orderEventToNote.client_id)}
                     </ClientLink>
                   ) : (
@@ -1157,7 +1160,10 @@ export function EventsLog() {
                 <Label>Client</Label>
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
                   {orderEventToNote ? (
-                    <ClientLink clientId={orderEventToNote.client_id}>
+                    <ClientLink
+                      clientId={orderEventToNote.client_id}
+                      name={resolveClientLabel(orderEventToNote.client_id)}
+                    >
                       {resolveClientLabel(orderEventToNote.client_id)}
                     </ClientLink>
                   ) : (
@@ -1214,7 +1220,10 @@ export function EventsLog() {
                 <DialogDescription>
                   New task for{' '}
                   {orderEventToTask ? (
-                    <ClientLink clientId={orderEventToTask.client_id}>
+                    <ClientLink
+                      clientId={orderEventToTask.client_id}
+                      name={resolveClientLabel(orderEventToTask.client_id)}
+                    >
                       {resolveClientLabel(orderEventToTask.client_id)}
                     </ClientLink>
                   ) : (
@@ -1229,7 +1238,10 @@ export function EventsLog() {
                 <Label>Client</Label>
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
                   {orderEventToTask ? (
-                    <ClientLink clientId={orderEventToTask.client_id}>
+                    <ClientLink
+                      clientId={orderEventToTask.client_id}
+                      name={resolveClientLabel(orderEventToTask.client_id)}
+                    >
                       {resolveClientLabel(orderEventToTask.client_id)}
                     </ClientLink>
                   ) : (
@@ -1276,7 +1288,10 @@ export function EventsLog() {
           clientField={{
             mode: 'fixed',
             label: orderEventToReminder ? (
-              <ClientLink clientId={orderEventToReminder.client_id}>
+              <ClientLink
+                clientId={orderEventToReminder.client_id}
+                name={resolveClientLabel(orderEventToReminder.client_id)}
+              >
                 {resolveClientLabel(orderEventToReminder.client_id)}
               </ClientLink>
             ) : (
@@ -1288,7 +1303,10 @@ export function EventsLog() {
             <>
               New reminder for{' '}
               {orderEventToReminder ? (
-                <ClientLink clientId={orderEventToReminder.client_id}>
+                <ClientLink
+                  clientId={orderEventToReminder.client_id}
+                  name={resolveClientLabel(orderEventToReminder.client_id)}
+                >
                   {resolveClientLabel(orderEventToReminder.client_id)}
                 </ClientLink>
               ) : (

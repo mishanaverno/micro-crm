@@ -131,7 +131,7 @@ export function AbstractEventsLogItem<TEvent extends EventRecord>({
         ) : null}
         {!compact && event.comment ? <LogItemNote>{event.comment}</LogItemNote> : null}
         <LogItemFooter className={`transition-[margin,padding,gap] duration-300 ease-out ${compact ? '' : 'border-t mt-3'}`}>
-          <ClientLink className="text-sm" clientId={event.client_id}>
+          <ClientLink className="text-sm" clientId={event.client_id} name={clientLabel}>
             {clientLabel}
           </ClientLink>
           <LogItemTimestamp className="transition-[font-size] duration-300 ease-out" dateTime={event.created_at}>
