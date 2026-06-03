@@ -223,3 +223,16 @@ Component-level radii:
 - Use `font-medium` for labels and event titles, `font-semibold` for page/card/dialog titles.
 - Use `Card`, `Button`, `Badge`, `Input`, `Textarea`, `Select`, `Table`, `DropdownMenu`, and `Dialog` components instead of restyling raw HTML controls.
 - Keep overlays and dropdowns on opaque `bg-background` or `bg-card`; transparent popovers make the app harder to scan.
+
+## List Pages
+
+Entity list pages such as `clients`, `orders`, `notes`, `tasks`, `reminders`, and `finances` should follow one shared control model.
+
+- Header content should be strictly operational: no descriptive helper copy, no explanatory `CardDescription`, no extra text blocks.
+- Each list page should expose the same four controls:
+  - pagination
+  - create action
+  - column visibility management
+  - sorting controls
+- Sorting must be user-controlled from the page UI, not only hardcoded in component logic.
+- If a page has filters in the header, they should sit alongside these controls rather than replacing them.

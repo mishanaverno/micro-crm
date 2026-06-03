@@ -1,12 +1,11 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { EntityListCard } from '../components/entity-list-card';
 import { ClientsDataTable } from '../components/clients-data-table';
-import { TablePagination } from '../components/table-pagination';
 import { useCreateClient } from '../features/clients/use-create-client';
 import { useDeleteClient } from '../features/clients/use-delete-client';
 import { usePaginatedClients } from '../features/clients/use-paginated-clients';
 import { useUpdateClient } from '../features/clients/use-update-client';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -16,14 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../shared/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
 import {
@@ -56,6 +47,7 @@ const defaultVisibleColumns = {
 };
 
 type VisibleColumns = typeof defaultVisibleColumns;
+type ClientsSortField = 'created_at' | 'updated_at' | 'name' | 'company';
 
 export function ClientsPage() {
   const [form, setForm] = useState(initialFormState);
@@ -64,6 +56,8 @@ export function ClientsPage() {
   const [clientToDelete, setClientToDelete] = useState<ClientRecord | null>(null);
   const [clientsPage, setClientsPage] = useState(1);
   const [clientsPageSize, setClientsPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState<ClientsSortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -91,7 +85,13 @@ export function ClientsPage() {
   const createClient = useCreateClient();
   const deleteClient = useDeleteClient();
   const updateClient = useUpdateClient();
-  const clientsQuery = usePaginatedClients({ page: clientsPage, pageSize: clientsPageSize });
+  const clientsQuery = usePaginatedClients(
+    { page: clientsPage, pageSize: clientsPageSize },
+    {
+      sortBy,
+      sortDirection,
+    },
+  );
   const clients = clientsQuery.data?.items ?? [];
   const clientsTotal = clientsQuery.data?.total ?? 0;
 
@@ -116,6 +116,22 @@ export function ClientsPage() {
       [column]: !current[column],
     }));
   }
+
+  const columnOptions: Array<{ key: keyof VisibleColumns; label: string }> = [
+    { key: 'status', label: t('common.status') },
+    { key: 'email', label: t('common.email') },
+    { key: 'phone_number', label: t('common.phone') },
+    { key: 'company', label: t('common.company') },
+    { key: 'created_at', label: t('common.createdAt') },
+    { key: 'updated_at', label: t('common.updatedAt') },
+  ];
+
+  const sortOptions: Array<{ value: ClientsSortField; label: string }> = [
+    { value: 'created_at', label: t('common.createdAt') },
+    { value: 'updated_at', label: t('common.updatedAt') },
+    { value: 'name', label: t('common.name') },
+    { value: 'company', label: t('common.company') },
+  ];
 
   function openCreateDialog() {
     setEditingClient(null);
@@ -188,65 +204,12 @@ export function ClientsPage() {
   return (
     <main className="grid gap-4">
       <div className="grid gap-4">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div className="space-y-1.5">
-                <CardTitle>{t('page.clients')}</CardTitle>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="secondary">
-                      {t('common.columns')}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                      checked={visibleColumns.status}
-                      onCheckedChange={() => toggleColumn('status')}
-                    >
-                      {t('common.status')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleColumns.email}
-                      onCheckedChange={() => toggleColumn('email')}
-                    >
-                      {t('common.email')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleColumns.phone_number}
-                      onCheckedChange={() => toggleColumn('phone_number')}
-                    >
-                      {t('common.phone')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleColumns.company}
-                      onCheckedChange={() => toggleColumn('company')}
-                    >
-                      {t('common.company')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleColumns.created_at}
-                      onCheckedChange={() => toggleColumn('created_at')}
-                    >
-                      {t('common.createdAt')}
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={visibleColumns.updated_at}
-                      onCheckedChange={() => toggleColumn('updated_at')}
-                    >
-                      {t('common.updatedAt')}
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
+        <EntityListCard
+          actions={
+            <>
                 <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button onClick={openCreateDialog}>Create client</Button>
+                    <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
@@ -393,10 +356,34 @@ export function ClientsPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
+            </>
+          }
+          columns={{
+            columns: columnOptions,
+            visibleColumns,
+            onToggle: toggleColumn,
+          }}
+          sort={{
+            sortBy,
+            sortDirection,
+          }}
+          sortOptions={sortOptions}
+          title={t('page.clients')}
+          onSortChange={(nextSort) => {
+            setSortBy(nextSort.sortBy);
+            setSortDirection(nextSort.sortDirection);
+          }}
+          pagination={{
+            page: clientsPage,
+            pageSize: clientsPageSize,
+            totalItems: clientsTotal,
+            onPageChange: setClientsPage,
+            onPageSizeChange: (pageSize) => {
+              setClientsPageSize(pageSize);
+              setClientsPage(1);
+            },
+          }}
+        >
             {clientsQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">{t('placeholder.loadingClients')}</p>
             ) : clientsQuery.isError ? (
@@ -411,24 +398,13 @@ export function ClientsPage() {
                   onDeleteClient={openDeleteDialog}
                   visibleColumns={visibleColumns}
                 />
-                <TablePagination
-                  page={clientsPage}
-                  pageSize={clientsPageSize}
-                  totalItems={clientsTotal}
-                  onPageChange={setClientsPage}
-                  onPageSizeChange={(pageSize) => {
-                    setClientsPageSize(pageSize);
-                    setClientsPage(1);
-                  }}
-                />
               </>
             ) : (
               <p className="text-sm text-muted-foreground">
                 {t('empty.clients')}
               </p>
             )}
-          </CardContent>
-        </Card>
+        </EntityListCard>
       </div>
     </main>
   );

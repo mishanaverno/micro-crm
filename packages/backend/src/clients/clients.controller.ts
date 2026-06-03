@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -34,20 +34,28 @@ export class ClientsController {
   @ApiBearerAuth()
   @Get()
   @ApiOperation({ summary: 'Get all clients' })
+  @ApiQuery({ name: 'page', required: false, type: 'number' })
+  @ApiQuery({ name: 'pageSize', required: false, type: 'number' })
+  @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at, updated_at, name, or company' })
+  @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
   @ApiResponse({ status: 200, description: 'List of clients', type: [Client] })
   findAll(
     @Req() request: AuthenticatedRequest,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
   ) {
     if (hasPaginationParams(page, pageSize)) {
       return this.clientsService.findAllPaginated(
         request.user.sub,
         parsePaginationParams(page, pageSize),
+        sortBy,
+        sortDirection,
       );
     }
 
-    return this.clientsService.findAll(request.user.sub);
+    return this.clientsService.findAll(request.user.sub, sortBy, sortDirection);
   }
 
   @Get(':id')

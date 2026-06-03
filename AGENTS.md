@@ -13,6 +13,16 @@
 - Для disclosure/spoiler UI сначала использовать уже подключенные shadcn/radix-компоненты проекта.
 - Если в проекте уже используется подходящий Radix primitive, предпочтительно добавить локальную shadcn-style обертку в `packages/frontend/src/components/ui/*` и реэкспорт в `packages/frontend/src/shared/ui/*`.
 - Нативный HTML (`details/summary`) использовать только как fallback, когда подходящего shadcn/radix-компонента в проекте действительно нет и добавление зависимости нецелесообразно.
+- Для общих страниц со списком сущностей (`clients`, `orders`, `notes`, `tasks`, `reminders`, `finances`) в хедере должны быть только рабочие контролы без декоративного или поясняющего текста.
+- На таких list pages обязательно должны быть:
+  - пагинация
+  - кнопка `Создать`
+  - управление колонками
+  - управление сортировкой
+- `CardDescription` и любой лишний explanatory text в header общих страниц со списками не использовать.
+- Для общей обвязки list pages использовать `packages/frontend/src/components/entity-list-card.tsx`, а не собирать заново вручную связку `Card + toolbar + sort + columns`.
+- Если странице нужна сортировка, в `EntityListCard` передавать `sortOptions`; при неконтролируемом использовании можно задавать `defaultSort`.
+- Для backend-driven list pages предпочтителен контролируемый режим `EntityListCard`: страница хранит `sortBy/sortDirection` в state, передает их в `sort` и синхронизирует через `onSortChange`.
 
 ## Локальная среда
 
@@ -350,6 +360,10 @@ Deploy пушит образы:
 - Для production используется внешний `Caddy`.
 - `init` как отдельный SQL-файл больше не должен возвращаться.
 - Миграции должны оставаться единственным источником правды по схеме базы.
+- Для backend общих list endpoints (`clients`, `orders`, `notes`, `tasks`, `reminders`, `finances`) нужно поддерживать user-facing пагинацию и сортировку.
+- Для backend list endpoints дефолтная сортировка должна быть по `created_at`.
+- У всех backend list endpoints должен быть доступен `sortBy=updated_at` как минимум один из поддерживаемых вариантов сортировки.
+- Для detail/dashboard экранов допустимо сохранять режим без пагинации, но общий list endpoint должен уметь принимать `page`, `pageSize`, `sortBy`, `sortDirection`.
 - Если CI/CD ломается на серверном `git fetch`, сначала смотреть:
   - валиден ли `GHCR_READ_TOKEN`
   - есть ли у токена `repo`

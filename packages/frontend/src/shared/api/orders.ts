@@ -5,6 +5,12 @@ import { toPaginationQuery } from './pagination';
 
 interface OrdersRequestFilters {
   clientId?: string;
+  status?: OrderStatus;
+}
+
+interface OrdersSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'price' | 'status';
+  sortDirection?: 'asc' | 'desc';
 }
 
 interface ApiOrderRecord extends Omit<OrderRecord, 'id' | 'sync_status' | 'status'> {
@@ -33,6 +39,10 @@ function toOrdersQuery(filters?: OrdersRequestFilters) {
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.status) {
+    params.set('status', filters.status);
   }
 
   const query = params.toString();
@@ -71,11 +81,24 @@ export async function fetchPaginatedOrdersRequest(
   accessToken: string,
   pagination: PaginationParams,
   filters?: OrdersRequestFilters,
+  sort?: OrdersSortOptions,
 ) {
   const params = new URLSearchParams(toPaginationQuery(pagination));
 
   if (filters?.clientId) {
     params.set('client_id', filters.clientId);
+  }
+
+  if (filters?.status) {
+    params.set('status', filters.status);
+  }
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiOrderRecord>>({

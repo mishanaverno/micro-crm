@@ -54,6 +54,8 @@ export class NotesController {
   @ApiOperation({ summary: 'Get notes for the current user' })
   @ApiQuery({ name: 'client_id', required: false, description: 'Filter notes by client ID' })
   @ApiQuery({ name: 'order_id', required: false, description: 'Filter notes by order ID' })
+  @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at or updated_at' })
+  @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
   @ApiResponse({ status: 200, description: 'List of notes', type: [Note] })
   findAll(
     @Req() request: AuthenticatedRequest,
@@ -61,6 +63,8 @@ export class NotesController {
     @Query('order_id') orderId?: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortDirection') sortDirection?: string,
   ) {
     if (hasPaginationParams(page, pageSize)) {
       return this.notesService.findAllPaginated(
@@ -68,10 +72,18 @@ export class NotesController {
         parsePaginationParams(page, pageSize),
         clientId,
         orderId ? Number(orderId) : undefined,
+        sortBy,
+        sortDirection,
       );
     }
 
-    return this.notesService.findAll(request.user.sub, clientId, orderId ? Number(orderId) : undefined);
+    return this.notesService.findAll(
+      request.user.sub,
+      clientId,
+      orderId ? Number(orderId) : undefined,
+      sortBy,
+      sortDirection,
+    );
   }
 
   @Get(':id')

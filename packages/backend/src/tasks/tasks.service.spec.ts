@@ -22,10 +22,12 @@ type MockRepository<T> = {
 
 type MockClientsService = {
   findOneOwnedByUser: jest.Mock<Promise<Client | null>, [string, string]>;
+  touchClientActivity: jest.Mock<Promise<void>, [string, string]>;
 };
 
 type MockOrdersService = {
   findOneOwnedByUser: jest.Mock<Promise<Order | null>, [number, string]>;
+  touchOrderActivity: jest.Mock<Promise<void>, [number | null | undefined, string]>;
 };
 
 type MockEventsService = {
@@ -51,10 +53,12 @@ describe('TasksService', () => {
 
   beforeEach(() => {
     repository = createRepositoryMock<Task>();
-    clientsService = { findOneOwnedByUser: jest.fn() };
+    clientsService = { findOneOwnedByUser: jest.fn(), touchClientActivity: jest.fn() };
     eventsService = { createEvent: jest.fn(), updateEventPayload: jest.fn() };
-    ordersService = { findOneOwnedByUser: jest.fn() };
+    ordersService = { findOneOwnedByUser: jest.fn(), touchOrderActivity: jest.fn() };
     eventsService.createEvent.mockResolvedValue(undefined);
+    clientsService.touchClientActivity.mockResolvedValue(undefined);
+    ordersService.touchOrderActivity.mockResolvedValue(undefined);
     clientsService.findOneOwnedByUser.mockResolvedValue({
       id: 'client-1',
       name: 'Client One',

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, Repository } from 'typeorm';
 import { EventsService } from '../events/events.service';
+import { parseSortDirection } from '../common/sorting';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { Client } from './entities/client.entity';
@@ -15,6 +16,21 @@ import {
 
 @Injectable()
 export class ClientsService {
+  private resolveOrder(sortBy?: string, sortDirection?: string): FindOptionsOrder<Client> {
+    const direction = parseSortDirection(sortDirection);
+
+    switch (sortBy) {
+      case 'updated_at':
+        return { updated_at: direction, created_at: 'DESC' };
+      case 'name':
+        return { name: direction, created_at: 'DESC' };
+      case 'company':
+        return { company: direction, created_at: 'DESC' };
+      default:
+        return { created_at: direction };
+    }
+  }
+
   constructor(
     @InjectRepository(Client)
     private clientsRepository: Repository<Client>,
@@ -49,20 +65,22 @@ export class ClientsService {
     return createdClient;
   }
 
-  findAll(userId: string): Promise<Client[]> {
+  findAll(userId: string, sortBy?: string, sortDirection?: string): Promise<Client[]> {
     return this.clientsRepository.find({
       where: { user_id: userId },
-      order: { created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
     });
   }
 
   async findAllPaginated(
     userId: string,
     pagination: PaginationOptions,
+    sortBy?: string,
+    sortDirection?: string,
   ): Promise<PaginatedResponse<Client>> {
     const [items, total] = await this.clientsRepository.findAndCount({
       where: { user_id: userId },
-      order: { created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,
     });
@@ -76,6 +94,15 @@ export class ClientsService {
 
   findOneOwnedByUser(id: string, userId: string): Promise<Client | null> {
     return this.clientsRepository.findOneBy({ id, user_id: userId });
+  }
+
+  async touchClientActivity(id: string, userId: string): Promise<void> {
+    await this.clientsRepository
+      .createQueryBuilder()
+      .update(Client)
+      .set({ updated_at: () => 'CURRENT_TIMESTAMP' } as never)
+      .where('id = :id AND user_id = :userId', { id, userId })
+      .execute();
   }
 
   async update(id: string, updateClientDto: UpdateClientDto): Promise<Client | null> {

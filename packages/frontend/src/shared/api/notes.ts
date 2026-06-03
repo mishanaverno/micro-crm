@@ -8,6 +8,11 @@ interface NotesRequestFilters {
   orderId?: string;
 }
 
+interface NotesSortOptions {
+  sortBy?: 'created_at' | 'updated_at';
+  sortDirection?: 'asc' | 'desc';
+}
+
 interface ApiNoteRecord extends Omit<NoteRecord, 'id' | 'sync_status'> {
   id: number | string;
   sync_status?: NoteRecord['sync_status'];
@@ -57,6 +62,7 @@ export async function fetchPaginatedNotesRequest(
   accessToken: string,
   pagination: PaginationParams,
   filters?: NotesRequestFilters,
+  sort?: NotesSortOptions,
 ) {
   const params = new URLSearchParams(toPaginationQuery(pagination));
 
@@ -66,6 +72,14 @@ export async function fetchPaginatedNotesRequest(
 
   if (filters?.orderId) {
     params.set('order_id', filters.orderId);
+  }
+
+  if (sort?.sortBy) {
+    params.set('sortBy', sort.sortBy);
+  }
+
+  if (sort?.sortDirection) {
+    params.set('sortDirection', sort.sortDirection);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiNoteRecord>>({

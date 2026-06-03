@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, Repository } from 'typeorm';
 import { ClientsService } from '../clients/clients.service';
 import { EventType } from '../events/entities/event.entity';
 import { EventsService } from '../events/events.service';
+import { parseSortDirection } from '../common/sorting';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
@@ -25,6 +26,21 @@ type OrderSnapshot = Pick<Order, 'title' | 'price' | 'content' | 'status'>;
 
 @Injectable()
 export class OrdersService {
+  private resolveOrder(sortBy?: string, sortDirection?: string): FindOptionsOrder<Order> {
+    const direction = parseSortDirection(sortDirection);
+
+    switch (sortBy) {
+      case 'updated_at':
+        return { updated_at: direction, created_at: 'DESC' };
+      case 'price':
+        return { price: direction, created_at: 'DESC' };
+      case 'status':
+        return { status: direction, created_at: 'DESC' };
+      default:
+        return { created_at: direction };
+    }
+  }
+
   constructor(
     @InjectRepository(Order)
     private readonly ordersRepository: Repository<Order>,
@@ -57,20 +73,37 @@ export class OrdersService {
       createdOrder,
       this.createEventSnapshot(client, createdOrder),
     );
+    await this.clientsService.touchClientActivity(createdOrder.client_id, userId);
     return createdOrder;
   }
 
-  findAll(userId: string, clientId?: string): Promise<Order[]> {
+  findAll(
+    userId: string,
+    clientId?: string,
+    status?: string,
+    sortBy?: string,
+    sortDirection?: string,
+  ): Promise<Order[]> {
+    const where = {
+      user_id: userId,
+      ...(clientId ? { client_id: clientId } : {}),
+      ...(status === OrderStatus.CREATED ||
+      status === OrderStatus.INPROGRESS ||
+      status === OrderStatus.DONE
+        ? { status }
+        : {}),
+    };
+
     if (clientId) {
       return this.ordersRepository.find({
-        where: { user_id: userId, client_id: clientId },
-        order: { created_at: 'DESC' },
+        where,
+        order: this.resolveOrder(sortBy, sortDirection),
       });
     }
 
     return this.ordersRepository.find({
-      where: { user_id: userId },
-      order: { created_at: 'DESC' },
+      where,
+      order: this.resolveOrder(sortBy, sortDirection),
     });
   }
 
@@ -78,12 +111,21 @@ export class OrdersService {
     userId: string,
     pagination: PaginationOptions,
     clientId?: string,
+    status?: string,
+    sortBy?: string,
+    sortDirection?: string,
   ): Promise<PaginatedResponse<Order>> {
     const [items, total] = await this.ordersRepository.findAndCount({
-      where: clientId
-        ? { user_id: userId, client_id: clientId }
-        : { user_id: userId },
-      order: { created_at: 'DESC' },
+      where: {
+        user_id: userId,
+        ...(clientId ? { client_id: clientId } : {}),
+        ...(status === OrderStatus.CREATED ||
+        status === OrderStatus.INPROGRESS ||
+        status === OrderStatus.DONE
+          ? { status }
+          : {}),
+      },
+      order: this.resolveOrder(sortBy, sortDirection),
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,
     });
@@ -97,6 +139,19 @@ export class OrdersService {
 
   findOneOwnedByUser(id: number, userId: string): Promise<Order | null> {
     return this.findOne(id, userId);
+  }
+
+  async touchOrderActivity(id: number | null | undefined, userId: string): Promise<void> {
+    if (id === null || id === undefined) {
+      return;
+    }
+
+    await this.ordersRepository
+      .createQueryBuilder()
+      .update(Order)
+      .set({ updated_at: () => 'CURRENT_TIMESTAMP' } as never)
+      .where('id = :id AND user_id = :userId', { id, userId })
+      .execute();
   }
 
   async update(id: number, userId: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
@@ -132,6 +187,7 @@ export class OrdersService {
       changed_fields,
       ...this.createEventSnapshot(client, savedOrder),
     });
+    await this.clientsService.touchClientActivity(savedOrder.client_id, userId);
     return savedOrder;
   }
 

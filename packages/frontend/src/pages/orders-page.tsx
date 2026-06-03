@@ -1,13 +1,13 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { EntityListCard } from '../components/entity-list-card';
 import { OrdersDataTable } from '../components/orders-data-table';
-import { TablePagination } from '../components/table-pagination';
 import { useClients } from '../features/clients/use-clients';
 import { useCreateOrder } from '../features/orders/use-create-order';
 import { useDeleteOrder } from '../features/orders/use-delete-order';
 import { usePaginatedOrders } from '../features/orders/use-paginated-orders';
 import { useUpdateOrder } from '../features/orders/use-update-order';
 import { Button } from '../shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../shared/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
 import {
   Dialog,
   DialogContent,
@@ -17,14 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../shared/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../shared/ui/dropdown-menu';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
 import {
@@ -59,6 +51,8 @@ const defaultVisibleColumns = {
 };
 
 type VisibleColumns = typeof defaultVisibleColumns;
+type OrdersSortField = 'created_at' | 'updated_at' | 'price' | 'status';
+type OrderStatusFilter = 'all' | OrderStatus;
 
 export function OrdersPage() {
   const [form, setForm] = useState(initialFormState);
@@ -68,6 +62,9 @@ export function OrdersPage() {
   const [orderToDelete, setOrderToDelete] = useState<OrderRecord | null>(null);
   const [ordersPage, setOrdersPage] = useState(1);
   const [ordersPageSize, setOrdersPageSize] = useState(10);
+  const [statusFilter, setStatusFilter] = useState<OrderStatusFilter>('all');
+  const [sortBy, setSortBy] = useState<OrdersSortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -92,7 +89,16 @@ export function OrdersPage() {
   });
 
   const clientsQuery = useClients();
-  const ordersQuery = usePaginatedOrders({ page: ordersPage, pageSize: ordersPageSize });
+  const ordersQuery = usePaginatedOrders(
+    { page: ordersPage, pageSize: ordersPageSize },
+    {
+      sortBy,
+      sortDirection,
+    },
+    {
+      status: statusFilter === 'all' ? undefined : statusFilter,
+    },
+  );
   const createOrder = useCreateOrder();
   const updateOrder = useUpdateOrder();
   const deleteOrder = useDeleteOrder();
@@ -147,6 +153,30 @@ export function OrdersPage() {
       [column]: !current[column],
     }));
   }
+
+  const columnOptions: Array<{ key: keyof VisibleColumns; label: string }> = [
+    { key: 'id', label: t('common.orderId') },
+    { key: 'client', label: t('common.client') },
+    { key: 'title', label: t('common.title') },
+    { key: 'price', label: t('common.price') },
+    { key: 'status', label: t('common.status') },
+    { key: 'created_at', label: t('common.createdAt') },
+    { key: 'updated_at', label: t('common.updatedAt') },
+  ];
+
+  const sortOptions: Array<{ value: OrdersSortField; label: string }> = [
+    { value: 'created_at', label: t('common.createdAt') },
+    { value: 'updated_at', label: t('common.updatedAt') },
+    { value: 'price', label: t('common.price') },
+    { value: 'status', label: t('common.status') },
+  ];
+
+  const statusFilterOptions: Array<{ value: OrderStatusFilter; label: string }> = [
+    { value: 'all', label: t('common.all') },
+    { value: 'created', label: t('status.created') },
+    { value: 'inprogress', label: t('status.inProgress') },
+    { value: 'done', label: t('status.done') },
+  ];
 
   function openCreateDialog() {
     createOrder.reset();
@@ -250,68 +280,9 @@ export function OrdersPage() {
 
   return (
     <main className="grid gap-4">
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="space-y-1.5">
-              <CardTitle>{t('page.orders')}</CardTitle>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="secondary">
-                    {t('common.columns')}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>{t('columns.toggle')}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.id}
-                    onCheckedChange={() => toggleColumn('id')}
-                  >
-                    {t('common.orderId')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.client}
-                    onCheckedChange={() => toggleColumn('client')}
-                  >
-                    {t('common.client')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.title}
-                    onCheckedChange={() => toggleColumn('title')}
-                  >
-                    {t('common.title')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.price}
-                    onCheckedChange={() => toggleColumn('price')}
-                  >
-                    {t('common.price')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.status}
-                    onCheckedChange={() => toggleColumn('status')}
-                  >
-                    {t('common.status')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.created_at}
-                    onCheckedChange={() => toggleColumn('created_at')}
-                  >
-                    {t('common.createdAt')}
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={visibleColumns.updated_at}
-                    onCheckedChange={() => toggleColumn('updated_at')}
-                  >
-                    {t('common.updatedAt')}
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
+      <EntityListCard
+        actions={
+          <>
               <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
                 <DialogTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
@@ -464,11 +435,57 @@ export function OrdersPage() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent>
+          </>
+        }
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        leadingControls={
+          <ToggleGroup
+            className="rounded-full border border-input bg-background p-1"
+            onValueChange={(value) => {
+              const nextValue = (value || 'all') as OrderStatusFilter;
+              setStatusFilter(nextValue);
+              setOrdersPage(1);
+            }}
+            type="single"
+            value={statusFilter}
+            variant="ghost"
+          >
+            {statusFilterOptions.map((option) => (
+              <ToggleGroupItem
+                className="h-8 rounded-full px-3 text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        }
+        sort={{
+          sortBy,
+          sortDirection,
+        }}
+        sortOptions={sortOptions}
+        title={t('page.orders')}
+        onSortChange={(nextSort) => {
+          setSortBy(nextSort.sortBy);
+          setSortDirection(nextSort.sortDirection);
+        }}
+        pagination={{
+          page: ordersPage,
+          pageSize: ordersPageSize,
+          totalItems: ordersTotal,
+          onPageChange: setOrdersPage,
+          onPageSizeChange: (pageSize) => {
+            setOrdersPageSize(pageSize);
+            setOrdersPage(1);
+          },
+        }}
+      >
           {formError ? (
             <p className="mb-4 text-sm text-rose-700">{formError}</p>
           ) : null}
@@ -492,24 +509,13 @@ export function OrdersPage() {
                 resolveClientLabel={resolveClientLabel}
                 visibleColumns={visibleColumns}
               />
-              <TablePagination
-                page={ordersPage}
-                pageSize={ordersPageSize}
-                totalItems={ordersTotal}
-                onPageChange={setOrdersPage}
-                onPageSizeChange={(pageSize) => {
-                  setOrdersPageSize(pageSize);
-                  setOrdersPage(1);
-                }}
-              />
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
               {t('empty.orders')}
             </p>
           )}
-        </CardContent>
-      </Card>
+      </EntityListCard>
     </main>
   );
 }

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, Repository } from 'typeorm';
+import { parseSortDirection } from '../common/sorting';
 import { ClientsService } from '../clients/clients.service';
 import { EventsService } from '../events/events.service';
 import { OrdersService } from '../orders/orders.service';
@@ -19,6 +20,16 @@ import {
 
 @Injectable()
 export class NotesService {
+  private resolveOrder(sortBy?: string, sortDirection?: string): FindOptionsOrder<Note> {
+    const direction = parseSortDirection(sortDirection);
+
+    if (sortBy === 'updated_at') {
+      return { updated_at: direction, created_at: 'DESC' };
+    }
+
+    return { created_at: direction };
+  }
+
   constructor(
     @InjectRepository(Note)
     private readonly notesRepository: Repository<Note>,
@@ -53,10 +64,18 @@ export class NotesService {
       this.createEventSnapshot(client, order),
       createdNote.id,
     );
+    await this.clientsService.touchClientActivity(createdNote.client_id, userId);
+    await this.ordersService.touchOrderActivity(createdNote.order_id, userId);
     return createdNote;
   }
 
-  findAll(userId: string, clientId?: string, orderId?: number): Promise<Note[]> {
+  findAll(
+    userId: string,
+    clientId?: string,
+    orderId?: number,
+    sortBy?: string,
+    sortDirection?: string,
+  ): Promise<Note[]> {
     const where = {
       user_id: userId,
       ...(clientId ? { client_id: clientId } : {}),
@@ -65,7 +84,7 @@ export class NotesService {
 
     return this.notesRepository.find({
       where,
-      order: { created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
     });
   }
 
@@ -74,6 +93,8 @@ export class NotesService {
     pagination: PaginationOptions,
     clientId?: string,
     orderId?: number,
+    sortBy?: string,
+    sortDirection?: string,
   ): Promise<PaginatedResponse<Note>> {
     const [items, total] = await this.notesRepository.findAndCount({
       where: {
@@ -81,7 +102,7 @@ export class NotesService {
         ...(clientId ? { client_id: clientId } : {}),
         ...(orderId !== undefined ? { order_id: orderId } : {}),
       },
-      order: { created_at: 'DESC' },
+      order: this.resolveOrder(sortBy, sortDirection),
       skip: getPaginationSkip(pagination),
       take: pagination.pageSize,
     });
@@ -115,6 +136,12 @@ export class NotesService {
       this.createEventSnapshot(client, order),
       savedNote.id,
     );
+    await Promise.all([
+      this.clientsService.touchClientActivity(note.client_id, userId),
+      this.clientsService.touchClientActivity(savedNote.client_id, userId),
+      this.ordersService.touchOrderActivity(note.order_id, userId),
+      this.ordersService.touchOrderActivity(savedNote.order_id, userId),
+    ]);
     return savedNote;
   }
 

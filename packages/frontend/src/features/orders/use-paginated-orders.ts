@@ -3,17 +3,30 @@ import { fetchPaginatedOrdersRequest } from '../../shared/api/orders';
 import { PaginationParams } from '../../shared/types/pagination';
 import { useAuth } from '../auth/auth-provider';
 
-export function usePaginatedOrders(pagination: PaginationParams) {
+interface OrdersSortOptions {
+  sortBy?: 'created_at' | 'updated_at' | 'price' | 'status';
+  sortDirection?: 'asc' | 'desc';
+}
+
+interface OrdersFilterOptions {
+  status?: 'created' | 'inprogress' | 'done';
+}
+
+export function usePaginatedOrders(
+  pagination: PaginationParams,
+  sort: OrdersSortOptions = {},
+  filters: OrdersFilterOptions = {},
+) {
   const { access_token } = useAuth();
 
   return useQuery({
-    queryKey: ['orders', 'paginated', pagination],
+    queryKey: ['orders', 'paginated', pagination, sort, filters],
     queryFn: async () => {
       if (!access_token) {
         throw new Error('Authentication is required to load orders.');
       }
 
-      return fetchPaginatedOrdersRequest(access_token, pagination);
+      return fetchPaginatedOrdersRequest(access_token, pagination, filters, sort);
     },
     enabled: Boolean(access_token),
   });
