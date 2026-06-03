@@ -107,7 +107,7 @@ export function NotesDataTable({
           <TableRow key={note.id}>
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                <ClientLink clientId={note.client_id}>
+                <ClientLink clientId={note.client_id} name={resolveClientLabel(note.client_id)}>
                   {resolveClientLabel(note.client_id)}
                 </ClientLink>
               </TableCell>

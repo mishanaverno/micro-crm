@@ -1,11 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { ClientLink } from '../components/client-link';
 import { ReminderCalendar } from '../components/reminder-calendar';
 import { StatusBadge } from '../components/status-badges';
 import { useClients } from '../features/clients/use-clients';
 import { useNotes } from '../features/notes/use-notes';
-import { useDeleteOrder } from '../features/orders/use-delete-order';
 import { useOrder } from '../features/orders/use-order';
 import { useReminders } from '../features/reminders/use-reminders';
 import { useTasks } from '../features/tasks/use-tasks';
@@ -17,10 +16,13 @@ import { Button } from '../shared/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '../shared/ui/card';
+import {
+  Collapsible,
+  CollapsibleContent,
+} from '../shared/ui/collapsible';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
 import {
@@ -58,17 +60,8 @@ function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleString() : '—';
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-border bg-background px-3 py-2">
-      <dt className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-1 break-words text-sm font-medium text-foreground">
-        {value || '—'}
-      </dd>
-    </div>
-  );
+function formatDateOnly(value?: string | null) {
+  return value ? new Date(value).toLocaleDateString() : '—';
 }
 
 function formatDuration(milliseconds: number) {
@@ -139,9 +132,9 @@ function getDeadlineTooltip(deadline: string) {
 function getDeadlineBadgeClassName(deadline: string) {
   switch (getDeadlineState(deadline)) {
     case 'overdue':
-      return 'border-transparent bg-rose-100 text-rose-700';
+      return 'border-transparent bg-rose-700 text-rose-100';
     case 'this-week':
-      return 'border-transparent bg-amber-100 text-amber-800';
+      return 'border-transparent bg-amber-800 text-amber-100';
     default:
       return '';
   }
@@ -156,6 +149,7 @@ function OrderItemsBlock<T>({
   isLoading,
   items,
   title,
+  variant = 'default',
 }: {
   emptyText: string;
   errorText: string;
@@ -165,6 +159,7 @@ function OrderItemsBlock<T>({
   isLoading: boolean;
   items: T[];
   title: string;
+  variant?: 'default' | 'inverse';
 }) {
   return (
     <Card>
@@ -185,13 +180,34 @@ function OrderItemsBlock<T>({
 
               return (
                 <li
-                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  className={cn(
+                    'rounded-[8px] px-3 py-2 text-sm',
+                    variant === 'inverse'
+                      ? 'border border-black bg-black text-white'
+                      : 'border border-border bg-background',
+                  )}
                   key={index}
                 >
-                  <p className="font-medium text-foreground">{getTitle(item)}</p>
                   {meta ? (
-                    <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
+                    <p
+                      className={cn(
+                        'mt-1 text-xs',
+                        variant === 'inverse' ? 'text-white/70' : 'text-muted-foreground',
+                      )}
+                    >
+                      {t('common.createdFromDate', undefined, {
+                        date: formatDateOnly(meta),
+                      })}
+                    </p>
                   ) : null}
+                  <p
+                    className={cn(
+                      'font-medium',
+                      variant === 'inverse' ? 'text-white' : 'text-foreground',
+                    )}
+                  >
+                    {getTitle(item)}
+                  </p>
                 </li>
               );
             })}
@@ -232,37 +248,43 @@ function OrderTasksBlock({
         ) : tasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">{emptyText}</p>
         ) : (
-          <ul className="grid gap-2">
+          <ul className="grid gap-2 rounded-[8px] border px-3 py-2">
             {tasks.map((task) => (
               <li
-                className="grid gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="grid gap-2 border-b py-2 text-sm last:border-b-0"
                 key={task.id}
               >
-                {task.deadline ? (
-                  <div className="flex justify-end">
-                    <span
-                      className={cn(
-                        'inline-flex rounded-full border px-2.5 py-1 text-xs font-medium',
-                        getDeadlineBadgeClassName(task.deadline),
-                      )}
-                      title={getDeadlineTooltip(task.deadline)}
-                    >
-                      {t('common.completeBefore', undefined, {
-                        deadline: formatDate(task.deadline),
-                      })}
-                    </span>
-                  </div>
-                ) : null}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs">
+                    {t('common.createdFromDate', undefined, {
+                      date: formatDateOnly(task.created_at),
+                    })}
+                  </p>
+                  {task.deadline ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs">{t('common.completeBeforeLabel')}</span>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full border px-2.5 py-1 text-xs font-medium',
+                          getDeadlineBadgeClassName(task.deadline),
+                        )}
+                        title={getDeadlineTooltip(task.deadline)}
+                      >
+                        {formatDateOnly(task.deadline)}
+                      </span>
+                    </div>
+                  ) : null}
+                </div>
                 <div className="flex items-start gap-3">
                   <button
                     aria-label={task.content}
                     aria-checked={task.status === 'complete'}
                     aria-pressed={task.status === 'complete'}
                     className={[
-                      'mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
+                      'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
                       task.status === 'complete'
-                        ? 'border-emerald-600 bg-emerald-100 text-emerald-700'
-                        : 'border-foreground/70 bg-background text-transparent hover:bg-muted',
+                        ? 'border-emerald-500 bg-emerald-950 text-emerald-300'
+                        : 'border-black/60 text-transparent',
                       isUpdating ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
                     ].join(' ')}
                     disabled={isUpdating}
@@ -286,12 +308,7 @@ function OrderTasksBlock({
                     </svg>
                   </button>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground">{task.content}</p>
-                    {!task.deadline ? (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {formatDate(task.created_at)}
-                      </p>
-                    ) : null}
+                    <p className="font-medium">{task.content}</p>
                   </div>
                 </div>
               </li>
@@ -303,17 +320,35 @@ function OrderTasksBlock({
   );
 }
 
+function ChevronIcon({ isOpen }: { isOpen: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={cn('h-4 w-4 transition-transform', isOpen ? 'rotate-180' : 'rotate-0')}
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <path
+        d="m6 9 6 6 6-6"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
 export function OrderDetailsPage() {
   const { orderId } = useParams();
-  const navigate = useNavigate();
   const orderQuery = useOrder(orderId);
   const clientsQuery = useClients();
   const notesQuery = useNotes({ orderId });
   const tasksQuery = useTasks({ orderId });
   const remindersQuery = useReminders({ orderId });
   const updateOrder = useUpdateOrder();
-  const deleteOrder = useDeleteOrder();
   const updateTask = useUpdateTask();
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [form, setForm] = useState(initialFormState);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -340,8 +375,26 @@ export function OrderDetailsPage() {
     return client?.name || client?.email || order?.client_id || '—';
   }, [clientsQuery.data, order?.client_id]);
 
-  const mutationError = updateOrder.error ?? deleteOrder.error;
-  const isBusy = updateOrder.isPending || deleteOrder.isPending;
+  const mutationError = updateOrder.error;
+  const isBusy = updateOrder.isPending;
+  const tasksWithDeadlines = useMemo(
+    () => (tasksQuery.data ?? []).filter((task) => Boolean(task.deadline)),
+    [tasksQuery.data],
+  );
+  const hasReminderCalendarItems =
+    (remindersQuery.data?.length ?? 0) > 0 || tasksWithDeadlines.length > 0;
+  const hasChanges = useMemo(() => {
+    if (!order) {
+      return false;
+    }
+
+    return (
+      (order.title ?? '') !== form.title ||
+      String(order.price) !== form.price ||
+      order.content !== form.content ||
+      order.status !== form.status
+    );
+  }, [form.content, form.price, form.status, form.title, order]);
 
   async function toggleTaskStatus(task: TaskRecord) {
     await updateTask.mutateAsync({
@@ -379,21 +432,8 @@ export function OrderDetailsPage() {
         status: form.status,
       },
     });
-  }
 
-  async function handleDelete() {
-    if (!order) {
-      return;
-    }
-
-    const confirmed = window.confirm(t('dialog.orderDeleteDescription'));
-
-    if (!confirmed) {
-      return;
-    }
-
-    await deleteOrder.mutateAsync(order.id);
-    navigate('/orders');
+    setIsEditOpen(false);
   }
 
   if (orderQuery.isLoading) {
@@ -434,153 +474,134 @@ export function OrderDetailsPage() {
         </Link>
       </div>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_380px]">
+      <section className="grid gap-4">
         <Card>
           <CardHeader>
-            <CardTitle>{t('page.orderDetails')}</CardTitle>
-            <CardDescription>
-              #{order.id} {order.title ? `— ${order.title}` : ''}
-            </CardDescription>
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+              <div className="space-y-2">
+                <CardTitle>{`#${order.id} - ${order.title || t('empty.orderTitle')}`}</CardTitle>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                  <StatusBadge status={order.status} />
+                  <ClientLink clientId={order.client_id} name={clientName}>{clientName}</ClientLink>
+                  <span>{formatPrice(order.price)}</span>
+                  <span>
+                    {t('common.createdAt')}: {formatDate(order.created_at)}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 xl:ml-auto">
+                {!hasChanges ? (
+                  <Button
+                    className="w-fit gap-2"
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsEditOpen((current) => !current)}
+                  >
+                    <ChevronIcon isOpen={isEditOpen} />
+                    {t('actions.edit')}
+                  </Button>
+                ) : null}
+                {hasChanges ? (
+                  <Button disabled={isBusy} form="order-edit-form" type="submit">
+                    {updateOrder.isPending ? t('actions.saving') : t('actions.save')}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <form className="grid gap-4" onSubmit={handleSubmit}>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="grid gap-2">
-                  <Label htmlFor="order-title">{t('common.title')}</Label>
-                  <Input
-                    id="order-title"
-                    value={form.title}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        title: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="order-price">{t('common.price')}</Label>
-                  <Input
-                    id="order-price"
-                    inputMode="decimal"
-                    type="number"
-                    value={form.price}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        price: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
+            <Collapsible
+              className="bg-background"
+              open={isEditOpen}
+              onOpenChange={setIsEditOpen}
+            >
+              <CollapsibleContent className="data-[state=closed]:hidden">
+                <form className="grid gap-4 pt-2" id="order-edit-form" onSubmit={handleSubmit}>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="order-title">{t('common.title')}</Label>
+                      <Input
+                        id="order-title"
+                        value={form.title}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            title: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="order-price">{t('common.price')}</Label>
+                      <Input
+                        id="order-price"
+                        inputMode="decimal"
+                        type="number"
+                        value={form.price}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            price: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="order-status">{t('common.status')}</Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(value: OrderStatus) =>
-                    setForm((current) => ({
-                      ...current,
-                      status: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger id="order-status">
-                    <SelectValue placeholder={t('placeholder.selectStatus')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {orderStatusOptions.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status === 'created'
-                          ? t('status.created')
-                          : status === 'inprogress'
-                            ? t('status.inProgress')
-                            : t('status.done')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="order-status">{t('common.status')}</Label>
+                    <Select
+                      value={form.status}
+                      onValueChange={(value: OrderStatus) =>
+                        setForm((current) => ({
+                          ...current,
+                          status: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger id="order-status">
+                        <SelectValue placeholder={t('placeholder.selectStatus')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {orderStatusOptions.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status === 'created'
+                              ? t('status.created')
+                              : status === 'inprogress'
+                                ? t('status.inProgress')
+                                : t('status.done')}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="order-content">{t('common.content')}</Label>
-                <Textarea
-                  id="order-content"
-                  rows={10}
-                  value={form.content}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      content: event.target.value,
-                    }))
-                  }
-                />
-              </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="order-content">{t('common.content')}</Label>
+                    <Textarea
+                      id="order-content"
+                      rows={10}
+                      value={form.content}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          content: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
 
-              {formError ? <p className="text-sm text-rose-700">{formError}</p> : null}
-              {mutationError instanceof Error ? (
-                <p className="text-sm text-rose-700">
-                  {mutationError.message || t('feedback.orderSaveFailed')}
-                </p>
-              ) : null}
-
-              <div className="flex flex-wrap justify-between gap-3">
-                <Button
-                  className="bg-rose-600 text-white hover:bg-rose-700 focus-visible:ring-rose-500"
-                  disabled={isBusy}
-                  type="button"
-                  onClick={handleDelete}
-                >
-                  {deleteOrder.isPending ? t('actions.deleting') : t('actions.delete')}
-                </Button>
-                <Button disabled={isBusy} type="submit">
-                  {updateOrder.isPending ? t('actions.saving') : t('actions.save')}
-                </Button>
-              </div>
-            </form>
+                  {formError ? <p className="text-sm text-rose-700">{formError}</p> : null}
+                {mutationError instanceof Error ? (
+                  <p className="text-sm text-rose-700">
+                    {mutationError.message || t('feedback.orderSaveFailed')}
+                  </p>
+                ) : null}
+                </form>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
-
-        <div className="grid gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('page.orderSummary')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid gap-3">
-                <DetailRow label={t('common.orderId')} value={`#${order.id}`} />
-                <DetailRow
-                  label={t('common.client')}
-                  value={clientName}
-                />
-                <DetailRow label={t('common.price')} value={formatPrice(order.price)} />
-                <DetailRow label={t('common.createdAt')} value={formatDate(order.created_at)} />
-                <DetailRow label={t('common.updatedAt')} value={formatDate(order.updated_at)} />
-              </dl>
-
-              <div className="mt-4 rounded-md border border-border bg-background px-3 py-2">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                  {t('common.status')}
-                </p>
-                <div className="mt-2">
-                  <StatusBadge status={order.status} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('common.client')}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              <p>
-                <ClientLink clientId={order.client_id}>{clientName}</ClientLink>
-              </p>
-            </CardContent>
-          </Card>
-        </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
@@ -602,20 +623,24 @@ export function OrderDetailsPage() {
           isLoading={notesQuery.isLoading}
           items={notesQuery.data ?? []}
           title={t('page.notes')}
+          variant="inverse"
         />
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">{t('page.reminders')}</CardTitle>
           </CardHeader>
-          <CardContent className="px-4 pb-4">
+          <CardContent className="px-4 pb-4 flex justify-center">
             {remindersQuery.isLoading ? (
               <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
             ) : remindersQuery.isError ? (
               <p className="text-sm text-rose-700">{t('feedback.remindersLoadFailed')}</p>
-            ) : (remindersQuery.data ?? []).length === 0 ? (
+            ) : !hasReminderCalendarItems ? (
               <p className="text-sm text-muted-foreground">{t('empty.orderReminders')}</p>
             ) : (
-              <ReminderCalendar reminders={remindersQuery.data ?? []} />
+              <ReminderCalendar
+                reminders={remindersQuery.data ?? []}
+                tasks={tasksWithDeadlines}
+              />
             )}
           </CardContent>
         </Card>

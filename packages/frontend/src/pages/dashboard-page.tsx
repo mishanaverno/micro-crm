@@ -188,7 +188,11 @@ export function DashboardPage() {
         .map((order) => ({
           key: String(order.id),
           description: (
-            <ClientLink className="text-muted-foreground hover:text-primary" clientId={order.client_id}>
+            <ClientLink
+              className="text-muted-foreground hover:text-primary"
+              clientId={order.client_id}
+              name={clientLabels.get(order.client_id) ?? order.client_id}
+            >
               {clientLabels.get(order.client_id) ?? order.client_id}
             </ClientLink>
           ),

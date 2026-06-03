@@ -125,7 +125,7 @@ export function OrdersDataTable({
             ) : null}
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                <ClientLink clientId={order.client_id}>
+                <ClientLink clientId={order.client_id} name={resolveClientLabel(order.client_id)}>
                   {resolveClientLabel(order.client_id)}
                 </ClientLink>
               </TableCell>

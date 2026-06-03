@@ -140,7 +140,7 @@ function getDeadlineBadgeClassName(deadline: string) {
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border bg-background px-3 py-2">
+    <div className="rounded-[8px] border border-border bg-background px-3 py-2">
       <dt className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </dt>
@@ -239,7 +239,7 @@ function ClientTasksBlock({
           <ul className="grid gap-2">
             {tasks.map((task) => (
               <li
-                className="grid gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
+                className="grid gap-2 rounded-[8px] border border-border bg-background px-3 py-2 text-sm"
                 key={task.id}
               >
                 {task.deadline ? (
@@ -271,7 +271,7 @@ function ClientTasksBlock({
                     aria-checked={task.status === 'complete'}
                     aria-pressed={task.status === 'complete'}
                     className={[
-                      'mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
+                      'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[3px] border-2 transition-colors',
                       task.status === 'complete'
                         ? 'border-emerald-600 bg-emerald-100 text-emerald-700'
                         : 'border-foreground/70 bg-background text-transparent hover:bg-muted',

@@ -125,7 +125,7 @@ export function FinancesDataTable({
             ) : null}
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
-                <ClientLink clientId={record.client_id}>
+                <ClientLink clientId={record.client_id} name={resolveClientLabel(record.client_id)}>
                   {resolveClientLabel(record.client_id)}
                 </ClientLink>
               </TableCell>
