@@ -22,12 +22,10 @@ import {
 interface OrdersDataTableProps {
   orders: OrderRecord[];
   resolveClientLabel: (clientId: string) => string;
-  onEditOrder: (order: OrderRecord) => void;
-  onDeleteOrder: (order: OrderRecord) => void;
+  onEditOrder?: (order: OrderRecord) => void;
+  onDeleteOrder?: (order: OrderRecord) => void;
   visibleColumns: {
-    id: boolean;
     client: boolean;
-    title: boolean;
     price: boolean;
     status: boolean;
     created_at: boolean;
@@ -100,29 +98,27 @@ export function OrdersDataTable({
   onDeleteOrder,
   visibleColumns,
 }: OrdersDataTableProps) {
+  const hasActions = Boolean(onEditOrder || onDeleteOrder);
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          {visibleColumns.id ? <TableHead>{t('common.orderId')}</TableHead> : null}
+          <TableHead>{t('common.orderId')}</TableHead>
           {visibleColumns.client ? <TableHead>{t('common.client')}</TableHead> : null}
           {visibleColumns.status ? <TableHead>{t('common.status')}</TableHead> : null}
-          {visibleColumns.title ? <TableHead>{t('common.title')}</TableHead> : null}
-          <TableHead>{t('common.content')}</TableHead>
           {visibleColumns.price ? <TableHead>{t('common.price')}</TableHead> : null}
           {visibleColumns.created_at ? <TableHead>{t('common.createdAt')}</TableHead> : null}
           {visibleColumns.updated_at ? <TableHead>{t('common.updatedAt')}</TableHead> : null}
-          <TableHead className="w-0" />
+          {hasActions ? <TableHead className="w-0" /> : null}
         </TableRow>
       </TableHeader>
       <TableBody>
         {orders.map((order) => (
           <TableRow key={order.id}>
-            {visibleColumns.id ? (
-              <TableCell className="font-medium">
-                <OrderLink orderId={order.id}>#{order.id}</OrderLink>
-              </TableCell>
-            ) : null}
+            <TableCell className="font-medium">
+              <OrderLink orderId={order.id} title={order.title || t('empty.orderTitle')} />
+            </TableCell>
             {visibleColumns.client ? (
               <TableCell className="font-medium text-foreground">
                 <ClientLink clientId={order.client_id} name={resolveClientLabel(order.client_id)}>
@@ -135,14 +131,6 @@ export function OrdersDataTable({
                 <StatusBadge status={order.status} />
               </TableCell>
             ) : null}
-            {visibleColumns.title ? (
-              <TableCell>
-                <OrderLink orderId={order.id}>{order.title || t('empty.orderTitle')}</OrderLink>
-              </TableCell>
-            ) : null}
-            <TableCell className="max-w-[420px] text-muted-foreground">
-              <span className="line-clamp-2">{order.content}</span>
-            </TableCell>
             {visibleColumns.price ? <TableCell>{formatPrice(order.price)}</TableCell> : null}
             {visibleColumns.created_at ? (
               <TableCell>{order.created_at ? new Date(order.created_at).toLocaleString() : '—'}</TableCell>
@@ -150,33 +138,39 @@ export function OrdersDataTable({
             {visibleColumns.updated_at ? (
               <TableCell>{order.updated_at ? new Date(order.updated_at).toLocaleString() : '—'}</TableCell>
             ) : null}
-            <TableCell className="w-0">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    aria-label={`Actions for order ${order.id}`}
-                    className="h-8 w-8 rounded-full p-0"
-                    type="button"
-                    variant="ghost"
-                  >
-                    ...
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem className="gap-2" onSelect={() => onEditOrder(order)}>
-                    <EditIcon />
-                    <span>{t('actions.edit')}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
-                    onSelect={() => onDeleteOrder(order)}
-                  >
-                    <TrashIcon />
-                    <span>{t('actions.delete')}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
+            {hasActions ? (
+              <TableCell className="w-0">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      aria-label={`Actions for order ${order.id}`}
+                      className="h-8 w-8 rounded-full p-0"
+                      type="button"
+                      variant="ghost"
+                    >
+                      ...
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {onEditOrder ? (
+                      <DropdownMenuItem className="gap-2" onSelect={() => onEditOrder(order)}>
+                        <EditIcon />
+                        <span>{t('actions.edit')}</span>
+                      </DropdownMenuItem>
+                    ) : null}
+                    {onDeleteOrder ? (
+                      <DropdownMenuItem
+                        className="gap-2 text-rose-600 focus:bg-rose-50 focus:text-rose-700"
+                        onSelect={() => onDeleteOrder(order)}
+                      >
+                        <TrashIcon />
+                        <span>{t('actions.delete')}</span>
+                      </DropdownMenuItem>
+                    ) : null}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            ) : null}
           </TableRow>
         ))}
       </TableBody>

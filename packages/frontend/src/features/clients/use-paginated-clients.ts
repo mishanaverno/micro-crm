@@ -8,20 +8,25 @@ interface ClientsSortOptions {
   sortDirection?: 'asc' | 'desc';
 }
 
+interface ClientsFilterOptions {
+  orderState?: 'open_orders';
+}
+
 export function usePaginatedClients(
   pagination: PaginationParams,
   sort: ClientsSortOptions = {},
+  filters: ClientsFilterOptions = {},
 ) {
   const { access_token } = useAuth();
 
   return useQuery({
-    queryKey: ['clients', 'paginated', pagination, sort],
+    queryKey: ['clients', 'paginated', pagination, sort, filters],
     queryFn: async () => {
       if (!access_token) {
         throw new Error('Authentication is required to load clients.');
       }
 
-      return fetchPaginatedClientsRequest(access_token, pagination, sort);
+      return fetchPaginatedClientsRequest(access_token, pagination, sort, filters);
     },
     enabled: Boolean(access_token),
   });

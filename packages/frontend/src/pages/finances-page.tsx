@@ -36,6 +36,14 @@ import {
 } from '../shared/ui/select';
 import { PaidRecord } from '../shared/types/paid';
 import { FinanceRecord } from '../shared/types/finance';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '../shared/ui/sheet';
 import { t } from '../shared/lib/i18n';
 
 const initialFormState = {
@@ -620,21 +628,21 @@ export function FinancesPage() {
       <EntityListCard
         actions={
           <>
-              <Dialog open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
+              <Sheet open={isRecordDialogOpen} onOpenChange={setIsRecordDialogOpen}>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => openCreateDialog()}>{t('actions.create')}</Button>
                 </div>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>
                       {editingRecord ? t('dialog.editPaidTitle') : t('dialog.newPaidTitle')}
-                    </DialogTitle>
-                    <DialogDescription>
+                    </SheetTitle>
+                    <SheetDescription>
                       {editingRecord
                         ? t('dialog.paidEditDescription')
                         : t('dialog.paidCreateDescription')}
-                    </DialogDescription>
-                  </DialogHeader>
+                    </SheetDescription>
+                  </SheetHeader>
 
                   <form className="grid gap-4" id="finance-record-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
@@ -719,7 +727,7 @@ export function FinancesPage() {
                     </div>
                   </form>
 
-                  <DialogFooter>
+                  <SheetFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
                       {t('actions.cancel')}
                     </Button>
@@ -731,12 +739,12 @@ export function FinancesPage() {
                       {createPaid.isPending || updatePaid.isPending
                         ? t('actions.saving')
                         : editingRecord
-                          ? t('actions.save')
-                          : t('actions.save')}
+                        ? t('actions.save')
+                        : t('actions.save')}
                     </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
 
               <Dialog
                 open={Boolean(recordToDelete)}

@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ClientAvatar } from '../components/client-avatar';
 import { NotesBlock } from '../components/notes-block';
-import { OrderLink } from '../components/order-link';
+import { OrdersDataTable } from '../components/orders-data-table';
 import { RemindersBlock } from '../components/reminders-block';
-import { StatusBadge } from '../components/status-badges';
 import { TablePagination } from '../components/table-pagination';
 import { TasksBlock } from '../components/tasks-block';
 import { useClients } from '../features/clients/use-clients';
@@ -24,14 +23,6 @@ import {
   CardHeader,
   CardTitle,
 } from '../shared/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../components/ui/table';
 import { ClientRecord } from '../shared/types/client';
 import { TaskRecord } from '../shared/types/task';
 import { OrderStatus } from '../shared/types/order';
@@ -46,14 +37,6 @@ function formatClientStatus(status: ClientRecord['status']) {
 
 function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleString() : '—';
-}
-
-function formatPrice(price: number) {
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'RUB',
-    maximumFractionDigits: 2,
-  }).format(price);
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -285,40 +268,17 @@ export function ClientDetailsPage() {
             <p className="text-sm text-muted-foreground">{t('empty.clientOrders')}</p>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('common.orderId')}</TableHead>
-                    <TableHead>{t('common.status')}</TableHead>
-                    <TableHead>{t('common.title')}</TableHead>
-                    <TableHead>{t('common.content')}</TableHead>
-                    <TableHead>{t('common.price')}</TableHead>
-                    <TableHead>{t('common.createdAt')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">
-                        <OrderLink orderId={order.id}>#{order.id}</OrderLink>
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={order.status} />
-                      </TableCell>
-                      <TableCell>
-                        <OrderLink orderId={order.id}>
-                          {order.title || t('empty.orderTitle')}
-                        </OrderLink>
-                      </TableCell>
-                      <TableCell className="max-w-[420px] text-muted-foreground">
-                        <span className="line-clamp-2">{order.content}</span>
-                      </TableCell>
-                      <TableCell>{formatPrice(order.price)}</TableCell>
-                      <TableCell>{formatDate(order.created_at)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <OrdersDataTable
+                orders={paginatedOrders}
+                resolveClientLabel={() => client?.name || client?.email || client?.id || '—'}
+                visibleColumns={{
+                  client: false,
+                  price: true,
+                  status: true,
+                  created_at: true,
+                  updated_at: false,
+                }}
+              />
               <TablePagination
                 page={ordersPage}
                 pageSize={ordersPageSize}

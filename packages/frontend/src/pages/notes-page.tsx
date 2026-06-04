@@ -15,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../shared/ui/dialog';
 import { Label } from '../shared/ui/label';
 import {
@@ -26,6 +25,15 @@ import {
   SelectValue,
 } from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../shared/ui/sheet';
 import { NoteRecord } from '../shared/types/note';
 import { t } from '../shared/lib/i18n';
 
@@ -275,21 +283,21 @@ export function NotesPage() {
       <EntityListCard
         actions={
           <>
-              <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
-                <DialogTrigger asChild>
+              <Sheet open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+                <SheetTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>
                       {editingNote ? t('dialog.editNoteTitle') : t('dialog.newNoteTitle')}
-                    </DialogTitle>
-                    <DialogDescription>
+                    </SheetTitle>
+                    <SheetDescription>
                       {editingNote
                         ? t('dialog.noteEditDescription')
                         : t('dialog.noteCreateDescription')}
-                    </DialogDescription>
-                  </DialogHeader>
+                    </SheetDescription>
+                  </SheetHeader>
 
                   <form className="grid gap-4" id="create-note-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
@@ -359,7 +367,7 @@ export function NotesPage() {
                     </div>
                   </form>
 
-                  <DialogFooter>
+                  <SheetFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
                       {t('actions.cancel')}
                     </Button>
@@ -376,12 +384,12 @@ export function NotesPage() {
                       {createNote.isPending || updateNote.isPending
                         ? t('actions.saving')
                         : editingNote
-                          ? t('actions.save')
-                          : t('actions.save')}
+                        ? t('actions.save')
+                        : t('actions.save')}
                     </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
               <Dialog
                 open={Boolean(noteToDelete)}
                 onOpenChange={(open) => {

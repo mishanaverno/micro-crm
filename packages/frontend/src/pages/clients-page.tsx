@@ -13,7 +13,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../shared/ui/dialog';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
@@ -24,6 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../shared/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../shared/ui/sheet';
+import { ToggleGroup, ToggleGroupItem } from '../shared/ui/toggle-group';
 import { ClientRecord, ClientStatus } from '../shared/types/client';
 import { t } from '../shared/lib/i18n';
 
@@ -48,6 +57,7 @@ const defaultVisibleColumns = {
 
 type VisibleColumns = typeof defaultVisibleColumns;
 type ClientsSortField = 'created_at' | 'updated_at' | 'name' | 'company';
+type ClientsOrderFilter = 'all' | 'open_orders';
 
 export function ClientsPage() {
   const [form, setForm] = useState(initialFormState);
@@ -58,6 +68,7 @@ export function ClientsPage() {
   const [clientsPageSize, setClientsPageSize] = useState(10);
   const [sortBy, setSortBy] = useState<ClientsSortField>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [orderFilter, setOrderFilter] = useState<ClientsOrderFilter>('all');
   const [visibleColumns, setVisibleColumns] = useState<VisibleColumns>(() => {
     if (typeof window === 'undefined') {
       return defaultVisibleColumns;
@@ -90,6 +101,9 @@ export function ClientsPage() {
     {
       sortBy,
       sortDirection,
+    },
+    {
+      orderState: orderFilter === 'open_orders' ? 'open_orders' : undefined,
     },
   );
   const clients = clientsQuery.data?.items ?? [];
@@ -131,6 +145,10 @@ export function ClientsPage() {
     { value: 'updated_at', label: t('common.updatedAt') },
     { value: 'name', label: t('common.name') },
     { value: 'company', label: t('common.company') },
+  ];
+  const orderFilterOptions: Array<{ value: ClientsOrderFilter; label: string }> = [
+    { value: 'all', label: t('filters.clients.all') },
+    { value: 'open_orders', label: t('filters.clients.openOrders') },
   ];
 
   function openCreateDialog() {
@@ -207,21 +225,21 @@ export function ClientsPage() {
         <EntityListCard
           actions={
             <>
-                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                  <DialogTrigger asChild>
+                <Sheet open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                  <SheetTrigger asChild>
                     <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>
                         {editingClient ? t('dialog.editClientTitle') : t('dialog.newClientTitle')}
-                      </DialogTitle>
-                      <DialogDescription>
+                      </SheetTitle>
+                      <SheetDescription>
                         {editingClient
                           ? t('dialog.clientEditDescription')
                           : t('dialog.clientCreateDescription')}
-                      </DialogDescription>
-                    </DialogHeader>
+                      </SheetDescription>
+                    </SheetHeader>
 
                     <form className="grid gap-4" id="create-client-form" onSubmit={handleSubmit}>
                       <div className="grid gap-2">
@@ -293,7 +311,7 @@ export function ClientsPage() {
                       </div>
                     </form>
 
-                    <DialogFooter>
+                    <SheetFooter>
                       <Button
                         onClick={closeDialog}
                         type="button"
@@ -309,12 +327,12 @@ export function ClientsPage() {
                         {createClient.isPending || updateClient.isPending
                           ? t('actions.saving')
                           : editingClient
-                            ? t('actions.save')
-                            : t('actions.save')}
+                          ? t('actions.save')
+                          : t('actions.save')}
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
 
                 <Dialog
                   open={Boolean(clientToDelete)}
@@ -358,14 +376,37 @@ export function ClientsPage() {
                 </Dialog>
             </>
           }
-          columns={{
-            columns: columnOptions,
-            visibleColumns,
-            onToggle: toggleColumn,
-          }}
-          sort={{
-            sortBy,
-            sortDirection,
+        columns={{
+          columns: columnOptions,
+          visibleColumns,
+          onToggle: toggleColumn,
+        }}
+        leadingControls={
+          <ToggleGroup
+            className="rounded-full border border-input bg-background p-1"
+            onValueChange={(value) => {
+              const nextValue = (value || 'all') as ClientsOrderFilter;
+              setOrderFilter(nextValue);
+              setClientsPage(1);
+            }}
+            type="single"
+            value={orderFilter}
+            variant="ghost"
+          >
+            {orderFilterOptions.map((option) => (
+              <ToggleGroupItem
+                className="h-8 rounded-full px-3 text-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        }
+        sort={{
+          sortBy,
+          sortDirection,
           }}
           sortOptions={sortOptions}
           title={t('page.clients')}
