@@ -13,6 +13,7 @@ type MockRepository<T> = {
   findOneBy: jest.Mock<Promise<T | null>, [Partial<T>]>;
   update: jest.Mock<Promise<unknown>, [string, Partial<T>]>;
   softDelete: jest.Mock<Promise<unknown>, [Partial<T>]>;
+  createQueryBuilder: jest.Mock;
 };
 
 const createRepositoryMock = <T>(): MockRepository<T> => ({
@@ -23,6 +24,7 @@ const createRepositoryMock = <T>(): MockRepository<T> => ({
   findOneBy: jest.fn(),
   update: jest.fn(),
   softDelete: jest.fn(),
+  createQueryBuilder: jest.fn(),
 });
 
 type MockEventsService = {
@@ -33,12 +35,36 @@ describe('ClientsService', () => {
   let service: ClientsService;
   let repository: MockRepository<Client>;
   let eventsService: MockEventsService;
+  let queryBuilder: {
+    where: jest.Mock;
+    andWhere: jest.Mock;
+    orderBy: jest.Mock;
+    skip: jest.Mock;
+    take: jest.Mock;
+    getMany: jest.Mock;
+    getManyAndCount: jest.Mock;
+  };
 
   beforeEach(() => {
     repository = createRepositoryMock<Client>();
     eventsService = {
       createEvent: jest.fn(),
     };
+    queryBuilder = {
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      orderBy: jest.fn(),
+      skip: jest.fn(),
+      take: jest.fn(),
+      getMany: jest.fn(),
+      getManyAndCount: jest.fn(),
+    };
+    queryBuilder.where.mockReturnValue(queryBuilder);
+    queryBuilder.andWhere.mockReturnValue(queryBuilder);
+    queryBuilder.orderBy.mockReturnValue(queryBuilder);
+    queryBuilder.skip.mockReturnValue(queryBuilder);
+    queryBuilder.take.mockReturnValue(queryBuilder);
+    repository.createQueryBuilder.mockReturnValue(queryBuilder);
     eventsService.createEvent.mockResolvedValue(undefined);
     service = new ClientsService(
       repository as unknown as Repository<Client>,
@@ -81,18 +107,18 @@ describe('ClientsService', () => {
 
   it('returns all clients for the user', async () => {
     const clients = [{ id: 'client-1' }, { id: 'client-2' }] as Client[];
-    repository.find.mockResolvedValue(clients);
+    queryBuilder.getMany.mockResolvedValue(clients);
 
     await expect(service.findAll('user-1')).resolves.toEqual(clients);
-    expect(repository.find).toHaveBeenCalledWith({
-      where: { user_id: 'user-1' },
-      order: { created_at: 'DESC' },
-    });
+    expect(repository.createQueryBuilder).toHaveBeenCalledWith('client');
+    expect(queryBuilder.where).toHaveBeenCalledWith('client.user_id = :userId', { userId: 'user-1' });
+    expect(queryBuilder.orderBy).toHaveBeenCalledWith({ 'client.created_at': 'DESC' });
+    expect(queryBuilder.getMany).toHaveBeenCalled();
   });
 
   it('returns paginated clients for the user', async () => {
     const clients = [{ id: 'client-1' }, { id: 'client-2' }] as Client[];
-    repository.findAndCount.mockResolvedValue([clients, 12]);
+    queryBuilder.getManyAndCount.mockResolvedValue([clients, 12]);
 
     await expect(
       service.findAllPaginated('user-1', { page: 2, pageSize: 10 }),
@@ -102,12 +128,12 @@ describe('ClientsService', () => {
       page: 2,
       pageSize: 10,
     });
-    expect(repository.findAndCount).toHaveBeenCalledWith({
-      where: { user_id: 'user-1' },
-      order: { created_at: 'DESC' },
-      skip: 10,
-      take: 10,
-    });
+    expect(repository.createQueryBuilder).toHaveBeenCalledWith('client');
+    expect(queryBuilder.where).toHaveBeenCalledWith('client.user_id = :userId', { userId: 'user-1' });
+    expect(queryBuilder.orderBy).toHaveBeenCalledWith({ 'client.created_at': 'DESC' });
+    expect(queryBuilder.skip).toHaveBeenCalledWith(10);
+    expect(queryBuilder.take).toHaveBeenCalledWith(10);
+    expect(queryBuilder.getManyAndCount).toHaveBeenCalled();
   });
 
   it('returns one client by id', async () => {
