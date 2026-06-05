@@ -38,6 +38,11 @@ export class ClientsController {
   @ApiQuery({ name: 'pageSize', required: false, type: 'number' })
   @ApiQuery({ name: 'sortBy', required: false, description: 'Sort field: created_at, updated_at, name, or company' })
   @ApiQuery({ name: 'sortDirection', required: false, description: 'Sort direction: asc or desc' })
+  @ApiQuery({
+    name: 'orderState',
+    required: false,
+    description: 'Client filter: open_orders',
+  })
   @ApiResponse({ status: 200, description: 'List of clients', type: [Client] })
   findAll(
     @Req() request: AuthenticatedRequest,
@@ -45,17 +50,19 @@ export class ClientsController {
     @Query('pageSize') pageSize?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortDirection') sortDirection?: string,
+    @Query('orderState') orderState?: string,
   ) {
     if (hasPaginationParams(page, pageSize)) {
       return this.clientsService.findAllPaginated(
         request.user.sub,
         parsePaginationParams(page, pageSize),
+        orderState,
         sortBy,
         sortDirection,
       );
     }
 
-    return this.clientsService.findAll(request.user.sub, sortBy, sortDirection);
+    return this.clientsService.findAll(request.user.sub, orderState, sortBy, sortDirection);
   }
 
   @Get(':id')

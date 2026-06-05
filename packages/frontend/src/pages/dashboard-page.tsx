@@ -1,6 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ClientLink } from '../components/client-link';
+import { OrderLink } from '../components/order-link';
 import { useClients } from '../features/clients/use-clients';
 import { useOrders } from '../features/orders/use-orders';
 import { usePaids } from '../features/paids/use-paids';
@@ -196,7 +197,11 @@ export function DashboardPage() {
               {clientLabels.get(order.client_id) ?? order.client_id}
             </ClientLink>
           ),
-          label: `#${order.id} — ${order.title || t('empty.orderTitle')}`,
+          label: (
+            <OrderLink orderId={order.id}>
+              {order.title || t('empty.orderTitle')}
+            </OrderLink>
+          ),
           trailing: <StatusBadge status={order.status} />,
         })),
     [clientLabels, ordersQuery.data],

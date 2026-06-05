@@ -21,12 +21,6 @@ import { SidebarIcon } from '@/components/sidebar-icon';
 
 const navigation = [
   {
-    to: '/',
-    labelKey: 'page.dashboard',
-    icon: '/sidebar-icons/dashboard.svg',
-    fallbackIcon: '⌂',
-  },
-  {
     to: '/clients',
     labelKey: 'page.clients',
     icon: '/sidebar-icons/clients.svg',
@@ -78,7 +72,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 relative">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground">
             LOGO
           </div>
@@ -87,7 +81,7 @@ export function AppSidebar() {
               <p className="text-sm font-semibold">{t('sidebar.appName')}</p>
             </div>
           ) : null}
-          <SidebarTrigger />
+          <SidebarTrigger/>
         </div>
       </SidebarHeader>
 

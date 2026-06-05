@@ -10,9 +10,13 @@
 - Продовая среда живет в `environments/prod`.
 - Во frontend для перехода на страницу клиента использовать компонент `packages/frontend/src/components/client-link.tsx`.
 - `ClientLink` должен оставаться единым паттерном ссылки на клиента: аватарка + имя + переход в карточку клиента.
+- Во frontend для перехода на страницу заказа использовать компонент `packages/frontend/src/components/order-link.tsx`.
+- `OrderLink` должен оставаться единым паттерном ссылки на заказ: общий бордер ссылки, бейдж `#id`, справа название/лейбл заказа с `nowrap` и усечением длинного текста, переход в карточку заказа.
 - Для disclosure/spoiler UI сначала использовать уже подключенные shadcn/radix-компоненты проекта.
 - Если в проекте уже используется подходящий Radix primitive, предпочтительно добавить локальную shadcn-style обертку в `packages/frontend/src/components/ui/*` и реэкспорт в `packages/frontend/src/shared/ui/*`.
 - Нативный HTML (`details/summary`) использовать только как fallback, когда подходящего shadcn/radix-компонента в проекте действительно нет и добавление зависимости нецелесообразно.
+- Для create/edit форм сущностей во frontend использовать `Sheet` из shadcn (`packages/frontend/src/shared/ui/sheet.tsx`).
+- `Dialog` оставлять для confirm/delete и прочих коротких модальных действий, где нужен именно blocking confirm-pattern.
 - Для общих страниц со списком сущностей (`clients`, `orders`, `notes`, `tasks`, `reminders`, `finances`) в хедере должны быть только рабочие контролы без декоративного или поясняющего текста.
 - На таких list pages обязательно должны быть:
   - пагинация

@@ -22,18 +22,22 @@ import {
   CardTitle,
 } from '../shared/ui/card';
 import {
-  Collapsible,
-  CollapsibleContent,
-} from '../shared/ui/collapsible';
-import { Input } from '../shared/ui/input';
-import { Label } from '../shared/ui/label';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '../shared/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '../shared/ui/sheet';
+import { Input } from '../shared/ui/input';
+import { Label } from '../shared/ui/label';
 import { Textarea } from '../shared/ui/textarea';
 import { cn } from '../lib/utils';
 import { HttpError } from '../shared/api/http';
@@ -59,25 +63,6 @@ function formatPrice(price: number) {
 
 function formatDate(value?: string | null) {
   return value ? new Date(value).toLocaleString() : '—';
-}
-
-function ChevronIcon({ isOpen }: { isOpen: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={cn('h-4 w-4 transition-transform', isOpen ? 'rotate-180' : 'rotate-0')}
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <path
-        d="m6 9 6 6 6-6"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
 }
 
 export function OrderDetailsPage() {
@@ -130,6 +115,21 @@ export function OrderDetailsPage() {
       order.status !== form.status
     );
   }, [form.content, form.price, form.status, form.title, order]);
+
+  function openEditSheet() {
+    if (!order) {
+      return;
+    }
+
+    setForm({
+      title: order.title ?? '',
+      price: String(order.price),
+      content: order.content,
+      status: order.status,
+    });
+    setFormError(null);
+    setIsEditOpen(true);
+  }
 
   async function toggleTaskStatus(task: TaskRecord) {
     await updateTask.mutateAsync({
@@ -225,119 +225,125 @@ export function OrderDetailsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 xl:ml-auto">
-                {!hasChanges ? (
-                  <Button
-                    className="w-fit gap-2"
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsEditOpen((current) => !current)}
-                  >
-                    <ChevronIcon isOpen={isEditOpen} />
-                    {t('actions.edit')}
-                  </Button>
-                ) : null}
-                {hasChanges ? (
-                  <Button disabled={isBusy} form="order-edit-form" type="submit">
-                    {updateOrder.isPending ? t('actions.saving') : t('actions.save')}
-                  </Button>
-                ) : null}
+                <Button
+                  className="w-fit"
+                  type="button"
+                  variant="outline"
+                  onClick={openEditSheet}
+                >
+                  {t('actions.edit')}
+                </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <Collapsible
-              className="bg-background"
-              open={isEditOpen}
-              onOpenChange={setIsEditOpen}
-            >
-              <CollapsibleContent className="data-[state=closed]:hidden">
-                <form className="grid gap-4 pt-2" id="order-edit-form" onSubmit={handleSubmit}>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="order-title">{t('common.title')}</Label>
-                      <Input
-                        id="order-title"
-                        value={form.title}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            title: event.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="order-price">{t('common.price')}</Label>
-                      <Input
-                        id="order-price"
-                        inputMode="decimal"
-                        type="number"
-                        value={form.price}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            price: event.target.value,
-                          }))
-                        }
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="order-status">{t('common.status')}</Label>
-                    <Select
-                      value={form.status}
-                      onValueChange={(value: OrderStatus) =>
-                        setForm((current) => ({
-                          ...current,
-                          status: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger id="order-status">
-                        <SelectValue placeholder={t('placeholder.selectStatus')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {orderStatusOptions.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status === 'created'
-                              ? t('status.created')
-                              : status === 'inprogress'
-                                ? t('status.inProgress')
-                                : t('status.done')}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="order-content">{t('common.content')}</Label>
-                    <Textarea
-                      id="order-content"
-                      rows={10}
-                      value={form.content}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          content: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-
-                  {formError ? <p className="text-sm text-rose-700">{formError}</p> : null}
-                {mutationError instanceof Error ? (
-                  <p className="text-sm text-rose-700">
-                    {mutationError.message || t('feedback.orderSaveFailed')}
-                  </p>
-                ) : null}
-                </form>
-              </CollapsibleContent>
-            </Collapsible>
+            <div className="whitespace-pre-wrap text-sm leading-6 text-foreground">
+              {order.content || '—'}
+            </div>
           </CardContent>
         </Card>
       </section>
+
+      <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>{t('dialog.editOrderTitle')}</SheetTitle>
+            <SheetDescription>{t('dialog.orderEditDescription')}</SheetDescription>
+          </SheetHeader>
+
+          <form className="grid gap-4" id="order-edit-form" onSubmit={handleSubmit}>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="order-title">{t('common.title')}</Label>
+                <Input
+                  id="order-title"
+                  value={form.title}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="order-price">{t('common.price')}</Label>
+                <Input
+                  id="order-price"
+                  inputMode="decimal"
+                  type="number"
+                  value={form.price}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      price: event.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="order-status">{t('common.status')}</Label>
+              <Select
+                value={form.status}
+                onValueChange={(value: OrderStatus) =>
+                  setForm((current) => ({
+                    ...current,
+                    status: value,
+                  }))
+                }
+              >
+                <SelectTrigger id="order-status">
+                  <SelectValue placeholder={t('placeholder.selectStatus')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {orderStatusOptions.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status === 'created'
+                        ? t('status.created')
+                        : status === 'inprogress'
+                          ? t('status.inProgress')
+                          : t('status.done')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="order-content">{t('common.content')}</Label>
+              <Textarea
+                id="order-content"
+                rows={10}
+                value={form.content}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    content: event.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            {formError ? <p className="text-sm text-rose-700">{formError}</p> : null}
+            {mutationError instanceof Error ? (
+              <p className="text-sm text-rose-700">
+                {mutationError.message || t('feedback.orderSaveFailed')}
+              </p>
+            ) : null}
+          </form>
+
+          <SheetFooter>
+            <Button onClick={() => setIsEditOpen(false)} type="button" variant="ghost">
+              {t('actions.cancel')}
+            </Button>
+            <Button disabled={isBusy || !hasChanges} form="order-edit-form" type="submit">
+              {updateOrder.isPending ? t('actions.saving') : t('actions.save')}
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <section className="grid gap-4 xl:grid-cols-3">
         <TasksBlock

@@ -97,7 +97,7 @@ export function Sidebar({
     <aside
       data-open={open}
       className={cn(
-        'sticky top-0 hidden h-screen shrink-0 bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:block',
+        'sticky top-0 hidden h-screen shrink-0 bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:block border-r',
         open ? 'w-[var(--sidebar-width)]' : 'w-[var(--sidebar-width-collapsed)]',
         className,
       )}
@@ -111,17 +111,33 @@ export function SidebarTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { open, toggleSidebar } = useSidebar();
 
   return (
     <Button
-      className={cn('h-10 w-10 rounded-full p-0', className)}
+      className={cn('bg-muted h-10 w-5 rounded-xs p-0 absolute z-100 left-[var(--sidebar-trigger-offset)] border-t border-b border-r rounded-r-[8px]', className)}
       onClick={toggleSidebar}
       type="button"
-      variant="ghost"
+      variant="empty"
       {...props}
     >
-      <span className="text-lg leading-none">≡</span>
+      <svg
+        aria-hidden="true"
+        className={cn(
+          'h-4 w-4 transition-transform duration-200',
+          open ? 'rotate-180' : 'rotate-0',
+        )}
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="m9 6 6 6-6 6"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+        />
+      </svg>
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

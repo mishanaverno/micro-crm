@@ -2,6 +2,7 @@ import { TaskRecord } from '../shared/types/task';
 import { t } from '../shared/lib/i18n';
 import { StatusBadge } from './status-badges';
 import { ClientLink } from './client-link';
+import { OrderLink } from './order-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -117,7 +118,15 @@ export function TasksDataTable({
                 </ClientLink>
               </TableCell>
             ) : null}
-            {visibleColumns.order ? <TableCell>{resolveOrderLabel(task.order_id)}</TableCell> : null}
+            {visibleColumns.order ? (
+              <TableCell>
+                {task.order_id ? (
+                  <OrderLink orderId={task.order_id}>{resolveOrderLabel(task.order_id)}</OrderLink>
+                ) : (
+                  '—'
+                )}
+              </TableCell>
+            ) : null}
             {visibleColumns.status ? (
               <TableCell>
                 <StatusBadge status={task.status} />

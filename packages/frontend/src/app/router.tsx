@@ -1,6 +1,5 @@
-import { createHashRouter } from 'react-router-dom';
+import { Navigate, createHashRouter } from 'react-router-dom';
 import { AppLayout } from './app-layout';
-import { DashboardPage } from '../pages/dashboard-page';
 import { ClientDetailsPage } from '../pages/client-details-page';
 import { ClientsPage } from '../pages/clients-page';
 import { NotesPage } from '../pages/notes-page';
@@ -37,7 +36,7 @@ export const router = createHashRouter([
         children: [
           {
             index: true,
-            element: <DashboardPage />,
+            element: <Navigate replace to="/clients" />,
           },
           {
             path: 'clients',

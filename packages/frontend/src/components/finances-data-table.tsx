@@ -17,6 +17,7 @@ import {
 import { FinanceRecord } from '../shared/types/finance';
 import { t } from '../shared/lib/i18n';
 import { ClientLink } from './client-link';
+import { OrderLink } from './order-link';
 
 interface FinancesDataTableProps {
   records: FinanceRecord[];
@@ -131,7 +132,15 @@ export function FinancesDataTable({
               </TableCell>
             ) : null}
             {visibleColumns.order ? (
-              <TableCell>{resolveOrderLabel(record.order_id)}</TableCell>
+              <TableCell>
+                {record.order_id ? (
+                  <OrderLink orderId={record.order_id}>
+                    {resolveOrderLabel(record.order_id)}
+                  </OrderLink>
+                ) : (
+                  '—'
+                )}
+              </TableCell>
             ) : null}
             {visibleColumns.value ? (
               <TableCell className="text-foreground">{formatValue(record.value)}</TableCell>

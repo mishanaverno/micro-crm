@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  safelist: ['left-[var(--sidebar-trigger-offset)]'],
   theme: {
     extend: {
       colors: {

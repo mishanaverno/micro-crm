@@ -1,6 +1,7 @@
 import { ReminderRecord } from '../shared/types/reminder';
 import { t } from '../shared/lib/i18n';
 import { ClientLink } from './client-link';
+import { OrderLink } from './order-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -115,7 +116,15 @@ export function RemindersDataTable({
               </TableCell>
             ) : null}
             {visibleColumns.order ? (
-              <TableCell>{resolveOrderLabel(reminder.order_id)}</TableCell>
+              <TableCell>
+                {reminder.order_id ? (
+                  <OrderLink orderId={reminder.order_id}>
+                    {resolveOrderLabel(reminder.order_id)}
+                  </OrderLink>
+                ) : (
+                  '—'
+                )}
+              </TableCell>
             ) : null}
             {visibleColumns.timestamp ? (
               <TableCell>

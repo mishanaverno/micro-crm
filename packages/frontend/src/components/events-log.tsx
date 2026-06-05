@@ -32,6 +32,15 @@ import { EventsLogItem } from './event-log-item/events-log-item';
 import { EventGraphRow } from './ui/event-graph';
 import { ReminderDialog } from './reminder-dialog';
 import { ClientLink } from './client-link';
+import { OrderLink } from './order-link';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '../shared/ui/sheet';
 import {
   isReminderDateTimeReady,
   toReminderApiDateTime,
@@ -1128,7 +1137,7 @@ export function EventsLog() {
           </DialogContent>
         </Dialog>
 
-        <Dialog
+        <Sheet
           open={Boolean(orderEventToNote)}
           onOpenChange={(open) => {
             if (!open) {
@@ -1136,10 +1145,10 @@ export function EventsLog() {
             }
           }}
         >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create note</DialogTitle>
-                <DialogDescription>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Create note</SheetTitle>
+                <SheetDescription>
                   New note for{' '}
                   {orderEventToNote ? (
                     <ClientLink
@@ -1152,8 +1161,8 @@ export function EventsLog() {
                     'client'
                   )}{' '}
                   {orderEventToNote ? `and order #${orderEventToNote.payload.order_id}` : ''}.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
 
             <form className="grid gap-4" id="event-create-note-form" onSubmit={handleCreateNoteSubmit}>
               <div className="grid gap-2">
@@ -1175,9 +1184,14 @@ export function EventsLog() {
               <div className="grid gap-2">
                 <Label>Order</Label>
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                  {orderEventToNote
-                    ? orderLabels.get(orderEventToNote.payload.order_id) ?? `#${orderEventToNote.payload.order_id}`
-                    : '—'}
+                  {orderEventToNote ? (
+                    <OrderLink orderId={orderEventToNote.payload.order_id}>
+                      {orderLabels.get(orderEventToNote.payload.order_id) ??
+                        `#${orderEventToNote.payload.order_id}`}
+                    </OrderLink>
+                  ) : (
+                    '—'
+                  )}
                 </p>
               </div>
 
@@ -1191,7 +1205,7 @@ export function EventsLog() {
               </div>
             </form>
 
-            <DialogFooter>
+            <SheetFooter>
               <Button onClick={closeCreateNoteDialog} type="button" variant="ghost">
                 Cancel
               </Button>
@@ -1202,11 +1216,11 @@ export function EventsLog() {
               >
                 {createNote.isPending ? 'Creating...' : 'Create note'}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
 
-        <Dialog
+        <Sheet
           open={Boolean(orderEventToTask)}
           onOpenChange={(open) => {
             if (!open) {
@@ -1214,10 +1228,10 @@ export function EventsLog() {
             }
           }}
         >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create task</DialogTitle>
-                <DialogDescription>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Create task</SheetTitle>
+                <SheetDescription>
                   New task for{' '}
                   {orderEventToTask ? (
                     <ClientLink
@@ -1229,9 +1243,18 @@ export function EventsLog() {
                   ) : (
                     'client'
                   )}{' '}
-                  {orderEventToTask ? `and order #${orderEventToTask.payload.order_id}` : ''}.
-                </DialogDescription>
-              </DialogHeader>
+                  {orderEventToTask ? (
+                    <>
+                      and order{' '}
+                      <OrderLink orderId={orderEventToTask.payload.order_id}>
+                        {orderLabels.get(orderEventToTask.payload.order_id) ??
+                          `#${orderEventToTask.payload.order_id}`}
+                      </OrderLink>
+                    </>
+                  ) : null}
+                  .
+                </SheetDescription>
+              </SheetHeader>
 
             <form className="grid gap-4" id="event-create-task-form" onSubmit={handleCreateTaskSubmit}>
               <div className="grid gap-2">
@@ -1253,9 +1276,14 @@ export function EventsLog() {
               <div className="grid gap-2">
                 <Label>Order</Label>
                 <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                  {orderEventToTask
-                    ? orderLabels.get(orderEventToTask.payload.order_id) ?? `#${orderEventToTask.payload.order_id}`
-                    : '—'}
+                  {orderEventToTask ? (
+                    <OrderLink orderId={orderEventToTask.payload.order_id}>
+                      {orderLabels.get(orderEventToTask.payload.order_id) ??
+                        `#${orderEventToTask.payload.order_id}`}
+                    </OrderLink>
+                  ) : (
+                    '—'
+                  )}
                 </p>
               </div>
 
@@ -1269,7 +1297,7 @@ export function EventsLog() {
               </div>
             </form>
 
-            <DialogFooter>
+            <SheetFooter>
               <Button onClick={closeCreateTaskDialog} type="button" variant="ghost">
                 Cancel
               </Button>
@@ -1280,9 +1308,9 @@ export function EventsLog() {
               >
                 {createTask.isPending ? 'Creating...' : 'Create task'}
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
 
         <ReminderDialog
           clientField={{
@@ -1312,7 +1340,15 @@ export function EventsLog() {
               ) : (
                 'client'
               )}
-              {orderEventToReminder ? ` and order #${orderEventToReminder.payload.order_id}` : ''}
+              {orderEventToReminder ? (
+                <>
+                  {' '}and order{' '}
+                  <OrderLink orderId={orderEventToReminder.payload.order_id}>
+                    {orderLabels.get(orderEventToReminder.payload.order_id) ??
+                      `#${orderEventToReminder.payload.order_id}`}
+                  </OrderLink>
+                </>
+              ) : null}
               .
             </>
           }
@@ -1330,10 +1366,14 @@ export function EventsLog() {
           onTimestampChange={setReminderTimestampDraft}
           orderField={{
             mode: 'fixed',
-            label: orderEventToReminder
-              ? orderLabels.get(orderEventToReminder.payload.order_id) ??
-                `#${orderEventToReminder.payload.order_id}`
-              : '—',
+            label: orderEventToReminder ? (
+              <OrderLink orderId={orderEventToReminder.payload.order_id}>
+                {orderLabels.get(orderEventToReminder.payload.order_id) ??
+                  `#${orderEventToReminder.payload.order_id}`}
+              </OrderLink>
+            ) : (
+              '—'
+            ),
           }}
           submitLabel="Create reminder"
           timestamp={reminderTimestampDraft}

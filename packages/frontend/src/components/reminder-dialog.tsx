@@ -5,13 +5,13 @@ import {
 } from './reminder-date-time-field';
 import { Button } from '../shared/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '../shared/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '../shared/ui/sheet';
 import { Label } from '../shared/ui/label';
 import {
   Select,
@@ -89,12 +89,12 @@ export function ReminderDialog({
   orderField,
 }: ReminderDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
+        </SheetHeader>
 
         <form className="grid gap-4" id={formId} onSubmit={onSubmit}>
           <div className="grid gap-2">
@@ -173,7 +173,7 @@ export function ReminderDialog({
           </div>
         </form>
 
-        <DialogFooter>
+        <SheetFooter>
           <Button onClick={() => onOpenChange(false)} type="button" variant="ghost">
             {t('actions.cancel')}
           </Button>
@@ -188,8 +188,8 @@ export function ReminderDialog({
           >
             {isPending ? t('actions.saving') : submitLabel}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

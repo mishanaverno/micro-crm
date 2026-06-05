@@ -1,6 +1,7 @@
 import { NoteRecord } from '../shared/types/note';
 import { t } from '../shared/lib/i18n';
 import { ClientLink } from './client-link';
+import { OrderLink } from './order-link';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -112,7 +113,15 @@ export function NotesDataTable({
                 </ClientLink>
               </TableCell>
             ) : null}
-            {visibleColumns.order ? <TableCell>{resolveOrderLabel(note.order_id)}</TableCell> : null}
+            {visibleColumns.order ? (
+              <TableCell>
+                {note.order_id ? (
+                  <OrderLink orderId={note.order_id}>{resolveOrderLabel(note.order_id)}</OrderLink>
+                ) : (
+                  '—'
+                )}
+              </TableCell>
+            ) : null}
             {visibleColumns.content ? (
               <TableCell className="max-w-[560px] text-muted-foreground">
                 <span className="line-clamp-2">{note.content}</span>

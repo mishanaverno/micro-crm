@@ -15,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../shared/ui/dialog';
 import { Input } from '../shared/ui/input';
 import { Label } from '../shared/ui/label';
@@ -27,6 +26,15 @@ import {
   SelectValue,
 } from '../shared/ui/select';
 import { Textarea } from '../shared/ui/textarea';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../shared/ui/sheet';
 import { OrderRecord, OrderStatus } from '../shared/types/order';
 import { t } from '../shared/lib/i18n';
 
@@ -41,9 +49,7 @@ const initialFormState = {
 const ORDERS_TABLE_COLUMNS_STORAGE_KEY = 'orders-table-visible-columns';
 
 const defaultVisibleColumns = {
-  id: true,
   client: true,
-  title: true,
   price: true,
   status: true,
   created_at: false,
@@ -155,9 +161,7 @@ export function OrdersPage() {
   }
 
   const columnOptions: Array<{ key: keyof VisibleColumns; label: string }> = [
-    { key: 'id', label: t('common.orderId') },
     { key: 'client', label: t('common.client') },
-    { key: 'title', label: t('common.title') },
     { key: 'price', label: t('common.price') },
     { key: 'status', label: t('common.status') },
     { key: 'created_at', label: t('common.createdAt') },
@@ -283,21 +287,21 @@ export function OrdersPage() {
       <EntityListCard
         actions={
           <>
-              <Dialog open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
-                <DialogTrigger asChild>
+              <Sheet open={isOrderDialogOpen} onOpenChange={setIsOrderDialogOpen}>
+                <SheetTrigger asChild>
                   <Button onClick={openCreateDialog}>{t('actions.create')}</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>
                       {editingOrder ? t('dialog.editOrderTitle') : t('dialog.newOrderTitle')}
-                    </DialogTitle>
-                    <DialogDescription>
+                    </SheetTitle>
+                    <SheetDescription>
                       {editingOrder
                         ? t('dialog.orderEditDescription')
                         : t('dialog.orderCreateDescription')}
-                    </DialogDescription>
-                  </DialogHeader>
+                    </SheetDescription>
+                  </SheetHeader>
 
                   <form className="grid gap-4" id="create-order-form" onSubmit={handleSubmit}>
                     <div className="grid gap-2">
@@ -371,7 +375,7 @@ export function OrdersPage() {
                     </div>
                   </form>
 
-                  <DialogFooter>
+                  <SheetFooter>
                     <Button onClick={closeDialog} type="button" variant="ghost">
                       {t('actions.cancel')}
                     </Button>
@@ -388,12 +392,12 @@ export function OrdersPage() {
                       {createOrder.isPending || updateOrder.isPending
                         ? t('actions.saving')
                         : editingOrder
-                          ? t('actions.save')
-                          : t('actions.save')}
+                        ? t('actions.save')
+                        : t('actions.save')}
                     </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
 
               <Dialog
                 open={Boolean(orderToDelete)}

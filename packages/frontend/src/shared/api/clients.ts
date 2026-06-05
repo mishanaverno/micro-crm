@@ -8,6 +8,10 @@ interface ClientsSortOptions {
   sortDirection?: 'asc' | 'desc';
 }
 
+interface ClientsFilterOptions {
+  orderState?: 'open_orders';
+}
+
 interface ApiClientRecord extends Omit<ClientRecord, 'sync_status'> {
   sync_status?: ClientRecord['sync_status'];
 }
@@ -36,6 +40,7 @@ export async function fetchPaginatedClientsRequest(
   accessToken: string,
   pagination: PaginationParams,
   sort?: ClientsSortOptions,
+  filters?: ClientsFilterOptions,
 ) {
   const params = new URLSearchParams(toPaginationQuery(pagination));
 
@@ -45,6 +50,10 @@ export async function fetchPaginatedClientsRequest(
 
   if (sort?.sortDirection) {
     params.set('sortDirection', sort.sortDirection);
+  }
+
+  if (filters?.orderState) {
+    params.set('orderState', filters.orderState);
   }
 
   const response = await httpRequest<PaginatedResponse<ApiClientRecord>>({
